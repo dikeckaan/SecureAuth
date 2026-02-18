@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
 import '../services/auth_service.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
@@ -8,31 +12,90 @@ import 'home_screen.dart';
 class AuthScreen extends StatefulWidget {
   final StorageService storageService;
   final AuthService authService;
+  final VoidCallback onThemeChanged;
 
   const AuthScreen({
     super.key,
     required this.storageService,
     required this.authService,
+    required this.onThemeChanged,
   });
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen> {
+class _AuthScreenState extends State<AuthScreen>
+    with SingleTickerProviderStateMixin {
   final _passwordController = TextEditingController();
+  final _focusNode = FocusNode();
   bool _obscurePassword = true;
   bool _isLoading = false;
+  String? _errorMessage;
+  int _failedAttempts = 0;
+  Duration? _lockoutRemaining;
+  Timer? _lockoutTimer;
+
+  late AnimationController _shakeController;
+  late Animation<double> _shakeAnimation;
 
   @override
   void initState() {
     super.initState();
+    _shakeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _shakeAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _shakeController, curve: Curves.elasticIn),
+    );
+
+    _checkLockout();
     _tryBiometricAuth();
+  }
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    _focusNode.dispose();
+    _shakeController.dispose();
+    _lockoutTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _checkLockout() async {
+    final remaining = await widget.authService.getRemainingLockout();
+    final attempts = await widget.authService.getFailedAttempts();
+
+    if (mounted) {
+      setState(() {
+        _failedAttempts = attempts;
+        _lockoutRemaining = remaining;
+      });
+    }
+
+    if (remaining != null) {
+      _startLockoutTimer();
+    }
+  }
+
+  void _startLockoutTimer() {
+    _lockoutTimer?.cancel();
+    _lockoutTimer = Timer.periodic(const Duration(seconds: 1), (_) async {
+      final remaining = await widget.authService.getRemainingLockout();
+      if (mounted) {
+        setState(() => _lockoutRemaining = remaining);
+        if (remaining == null) {
+          _lockoutTimer?.cancel();
+        }
+      }
+    });
   }
 
   Future<void> _tryBiometricAuth() async {
     if (widget.authService.isBiometricEnabled()) {
-      final authenticated = await widget.authService.authenticateWithBiometric();
+      final authenticated =
+          await widget.authService.authenticateWithBiometric();
       if (authenticated && mounted) {
         _navigateToHome();
       }
@@ -40,19 +103,61 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Future<void> _authenticate() async {
-    if (_passwordController.text.isEmpty) {
-      _showError('Lütfen şifrenizi girin');
+    final password = _passwordController.text;
+    if (password.isEmpty) {
+      setState(() => _errorMessage = 'Lutfen sifrenizi girin');
       return;
     }
 
-    setState(() => _isLoading = true);
+    // Check lockout
+    if (await widget.authService.isLockedOut()) {
+      await _checkLockout();
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
     try {
-      final isValid = widget.authService.verifyPassword(_passwordController.text);
+      final isValid = await widget.authService.verifyPassword(password);
       if (isValid) {
-        _navigateToHome();
+        if (mounted) _navigateToHome();
       } else {
-        _showError('Yanlış şifre');
+        HapticFeedback.heavyImpact();
+        _shakeController.forward().then((_) => _shakeController.reset());
+
+        final attempts = await widget.authService.getFailedAttempts();
+        final remaining = await widget.authService.getRemainingLockout();
+        final settings = widget.storageService.getSettings();
+
+        if (settings.wipeOnMaxAttempts &&
+            attempts >= settings.maxFailedAttempts) {
+          if (mounted) {
+            setState(() {
+              _errorMessage = 'Maksimum deneme asildi. Tum veriler silindi.';
+            });
+          }
+          return;
+        }
+
+        if (mounted) {
+          setState(() {
+            _failedAttempts = attempts;
+            _lockoutRemaining = remaining;
+            if (remaining != null) {
+              _errorMessage =
+                  'Cok fazla basarisiz deneme. Lutfen bekleyin.';
+              _startLockoutTimer();
+            } else {
+              _errorMessage =
+                  'Yanlis sifre (${settings.maxFailedAttempts - attempts} hak kaldi)';
+            }
+          });
+        }
+
+        _passwordController.clear();
       }
     } finally {
       if (mounted) {
@@ -67,90 +172,261 @@ class _AuthScreenState extends State<AuthScreen> {
         builder: (context) => HomeScreen(
           storageService: widget.storageService,
           authService: widget.authService,
+          onThemeChanged: widget.onThemeChanged,
         ),
       ),
     );
   }
 
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: AppColors.error),
-    );
+  String _formatDuration(Duration d) {
+    final minutes = d.inMinutes;
+    final seconds = d.inSeconds % 60;
+    if (minutes > 0) {
+      return '$minutes dk $seconds sn';
+    }
+    return '$seconds sn';
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final isLocked = _lockoutRemaining != null;
 
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(AppConstants.largePadding),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Icon(
-                Icons.lock,
-                size: 80,
-                color: theme.colorScheme.primary,
-              ),
-              const SizedBox(height: AppConstants.largePadding),
-              Text(
-                'SecureAuth',
-                style: theme.textTheme.headlineLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppConstants.smallPadding),
-              Text(
-                'Hesaplarınıza erişmek için kimliğinizi doğrulayın',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 40),
-              TextField(
-                controller: _passwordController,
-                obscureText: _obscurePassword,
-                onSubmitted: (_) => _authenticate(),
-                decoration: InputDecoration(
-                  labelText: 'Şifre',
-                  prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
-                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppColors.authGradient),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(AppConstants.paddingLG),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Logo
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(26),
+                      borderRadius:
+                          BorderRadius.circular(AppConstants.radiusXL),
+                      border: Border.all(
+                        color: Colors.white.withAlpha(51),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.shield,
+                      size: 40,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
+                  const SizedBox(height: AppConstants.paddingLG),
+                  const Text(
+                    'SecureAuth',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: AppConstants.paddingSM),
+                  Text(
+                    'Hesaplariniza erismek icin\nkimliginizi dogrulayin',
+                    style: TextStyle(
+                      color: Colors.white.withAlpha(179),
+                      fontSize: 14,
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppConstants.paddingXXL),
+                  // Auth Card
+                  Container(
+                    padding: const EdgeInsets.all(AppConstants.paddingLG),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(26),
+                      borderRadius:
+                          BorderRadius.circular(AppConstants.radiusLG),
+                      border: Border.all(
+                        color: Colors.white.withAlpha(38),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Lockout warning
+                        if (isLocked) ...[
+                          Container(
+                            padding:
+                                const EdgeInsets.all(AppConstants.paddingMD),
+                            decoration: BoxDecoration(
+                              color: AppColors.error.withAlpha(38),
+                              borderRadius: BorderRadius.circular(
+                                  AppConstants.radiusMD),
+                              border: Border.all(
+                                color: AppColors.error.withAlpha(77),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.lock_clock,
+                                    color: AppColors.error, size: 20),
+                                const SizedBox(width: AppConstants.paddingSM),
+                                Expanded(
+                                  child: Text(
+                                    'Kilitli: ${_formatDuration(_lockoutRemaining!)}',
+                                    style: const TextStyle(
+                                      color: AppColors.error,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: AppConstants.paddingMD),
+                        ],
+                        // Password field
+                        AnimatedBuilder(
+                          animation: _shakeAnimation,
+                          builder: (context, child) {
+                            final dx = _shakeAnimation.value *
+                                10 *
+                                ((_shakeController.value * 6).toInt().isEven
+                                    ? 1
+                                    : -1);
+                            return Transform.translate(
+                              offset: Offset(dx, 0),
+                              child: child,
+                            );
+                          },
+                          child: TextField(
+                            controller: _passwordController,
+                            focusNode: _focusNode,
+                            obscureText: _obscurePassword,
+                            enabled: !isLocked,
+                            onSubmitted: (_) =>
+                                isLocked ? null : _authenticate(),
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              labelText: 'Sifre',
+                              labelStyle: TextStyle(
+                                color: Colors.white.withAlpha(153),
+                              ),
+                              prefixIcon: Icon(
+                                Icons.lock_outline,
+                                color: Colors.white.withAlpha(153),
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                  color: Colors.white.withAlpha(153),
+                                ),
+                                onPressed: () => setState(
+                                    () => _obscurePassword = !_obscurePassword),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white.withAlpha(18),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                    AppConstants.radiusMD),
+                                borderSide: BorderSide(
+                                  color: Colors.white.withAlpha(51),
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                    AppConstants.radiusMD),
+                                borderSide: const BorderSide(
+                                  color: Colors.white,
+                                  width: 2,
+                                ),
+                              ),
+                              disabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                    AppConstants.radiusMD),
+                                borderSide: BorderSide(
+                                  color: Colors.white.withAlpha(26),
+                                ),
+                              ),
+                              errorText: _errorMessage,
+                              errorStyle: const TextStyle(
+                                color: AppColors.error,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: AppConstants.paddingMD),
+                        // Failed attempts indicator
+                        if (_failedAttempts > 0 && !isLocked)
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                bottom: AppConstants.paddingSM),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.warning_amber_rounded,
+                                    size: 14,
+                                    color: AppColors.warning.withAlpha(204)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '$_failedAttempts basarisiz deneme',
+                                  style: TextStyle(
+                                    color: AppColors.warning.withAlpha(204),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        // Login button
+                        GradientButton(
+                          text: 'Giris Yap',
+                          onPressed: isLocked ? null : _authenticate,
+                          isLoading: _isLoading,
+                          icon: Icons.login,
+                        ),
+                        // Biometric button
+                        if (widget.authService.isBiometricEnabled()) ...[
+                          const SizedBox(height: AppConstants.paddingMD),
+                          OutlinedButton.icon(
+                            onPressed: isLocked ? null : _tryBiometricAuth,
+                            icon: const Icon(Icons.fingerprint,
+                                color: Colors.white),
+                            label: const Text(
+                              'Biyometrik ile Giris',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(
+                                color: Colors.white.withAlpha(102),
+                                width: 1.5,
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: AppConstants.paddingMD),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                    AppConstants.radiusMD),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: AppConstants.largePadding),
-              CustomButton(
-                text: 'Giriş Yap',
-                onPressed: _authenticate,
-                isLoading: _isLoading,
-                icon: Icons.login,
-              ),
-              if (widget.authService.isBiometricEnabled()) ...[
-                const SizedBox(height: AppConstants.defaultPadding),
-                CustomButton(
-                  text: 'Biyometrik ile Giriş',
-                  onPressed: _tryBiometricAuth,
-                  isOutlined: true,
-                  icon: Icons.fingerprint,
-                ),
-              ],
-            ],
+            ),
           ),
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _passwordController.dispose();
-    super.dispose();
   }
 }

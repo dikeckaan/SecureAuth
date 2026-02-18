@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../services/auth_service.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
@@ -8,11 +9,13 @@ import 'home_screen.dart';
 class SetupScreen extends StatefulWidget {
   final StorageService storageService;
   final AuthService authService;
+  final VoidCallback onThemeChanged;
 
   const SetupScreen({
     super.key,
     required this.storageService,
     required this.authService,
+    required this.onThemeChanged,
   });
 
   @override
@@ -34,51 +37,79 @@ class _SetupScreenState extends State<SetupScreen> {
     _checkBiometric();
   }
 
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
   Future<void> _checkBiometric() async {
     final available = await widget.authService.isBiometricAvailable();
-    setState(() {
-      _biometricAvailable = available;
-    });
+    if (mounted) {
+      setState(() => _biometricAvailable = available);
+    }
+  }
+
+  double _getPasswordStrength(String password) {
+    if (password.isEmpty) return 0;
+    double strength = 0;
+    if (password.length >= 6) strength += 0.2;
+    if (password.length >= 10) strength += 0.15;
+    if (password.length >= 14) strength += 0.15;
+    if (RegExp(r'[a-z]').hasMatch(password)) strength += 0.1;
+    if (RegExp(r'[A-Z]').hasMatch(password)) strength += 0.1;
+    if (RegExp(r'[0-9]').hasMatch(password)) strength += 0.15;
+    if (RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password)) strength += 0.15;
+    return strength.clamp(0.0, 1.0);
+  }
+
+  String _getStrengthLabel(double strength) {
+    if (strength == 0) return '';
+    if (strength < 0.3) return 'Zayif';
+    if (strength < 0.5) return 'Orta';
+    if (strength < 0.7) return 'Iyi';
+    if (strength < 0.9) return 'Guclu';
+    return 'Cok Guclu';
+  }
+
+  Color _getStrengthColor(double strength) {
+    if (strength < 0.3) return AppColors.error;
+    if (strength < 0.5) return AppColors.warning;
+    if (strength < 0.7) return AppColors.accent;
+    return AppColors.success;
   }
 
   Future<void> _setupSecurity() async {
-    if (_passwordController.text.isEmpty) {
-      _showError('Lütfen bir şifre belirleyin');
+    final password = _passwordController.text;
+    final confirm = _confirmPasswordController.text;
+
+    if (password.isEmpty) {
+      _showError('Lutfen bir sifre belirleyin');
       return;
     }
 
-    if (_passwordController.text.length < 6) {
-      _showError('Şifre en az 6 karakter olmalıdır');
+    if (password.length < AppConstants.minPasswordLength) {
+      _showError('Sifre en az ${AppConstants.minPasswordLength} karakter olmalidir');
       return;
     }
 
-    if (_passwordController.text != _confirmPasswordController.text) {
-      _showError('Şifreler eşleşmiyor');
+    if (password != confirm) {
+      _showError('Sifreler eslesmyor');
       return;
     }
 
     setState(() => _isLoading = true);
 
     try {
-      await widget.authService.setPassword(_passwordController.text);
+      await widget.authService.setPassword(password);
       await widget.authService.enableBiometric(_useBiometric);
 
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => HomeScreen(
-              storageService: widget.storageService,
-              authService: widget.authService,
-            ),
-          ),
-        );
-      }
+      if (mounted) _navigateToHome();
     } catch (e) {
-      _showError('Bir hata oluştu: $e');
+      if (mounted) _showError('Bir hata olustu');
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -87,127 +118,280 @@ class _SetupScreenState extends State<SetupScreen> {
     settings.requireAuthOnLaunch = false;
     await widget.storageService.updateSettings(settings);
 
-    if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => HomeScreen(
-            storageService: widget.storageService,
-            authService: widget.authService,
-          ),
-        ),
-      );
-    }
+    if (mounted) _navigateToHome();
   }
 
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: AppColors.error),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppConstants.largePadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 40),
-              Icon(
-                Icons.security,
-                size: 80,
-                color: theme.colorScheme.primary,
-              ),
-              const SizedBox(height: AppConstants.largePadding),
-              Text(
-                'SecureAuth\'a Hoş Geldiniz',
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppConstants.smallPadding),
-              Text(
-                'Hesaplarınızı güvende tutmak için bir şifre belirleyin',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 40),
-              TextField(
-                controller: _passwordController,
-                obscureText: _obscurePassword,
-                decoration: InputDecoration(
-                  labelText: 'Şifre',
-                  prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
-                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppConstants.defaultPadding),
-              TextField(
-                controller: _confirmPasswordController,
-                obscureText: _obscureConfirm,
-                decoration: InputDecoration(
-                  labelText: 'Şifre Tekrar',
-                  prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(_obscureConfirm ? Icons.visibility : Icons.visibility_off),
-                    onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
-                  ),
-                ),
-              ),
-              if (_biometricAvailable) ...[
-                const SizedBox(height: AppConstants.largePadding),
-                Card(
-                  child: SwitchListTile(
-                    title: const Text('Biyometrik Kimlik Doğrulama'),
-                    subtitle: const Text('Parmak izi veya yüz tanıma kullan'),
-                    value: _useBiometric,
-                    onChanged: (value) => setState(() => _useBiometric = value),
-                    secondary: const Icon(Icons.fingerprint),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 40),
-              CustomButton(
-                text: 'Kurulumu Tamamla',
-                onPressed: _setupSecurity,
-                isLoading: _isLoading,
-                icon: Icons.check,
-              ),
-              const SizedBox(height: AppConstants.defaultPadding),
-              CustomButton(
-                text: 'Şifresiz Devam Et',
-                onPressed: _skipSetup,
-                isOutlined: true,
-              ),
-              const SizedBox(height: AppConstants.largePadding),
-              Text(
-                'Not: Şifre belirlemezseniz uygulama açık kalacaktır',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.textTheme.bodySmall?.color?.withOpacity(0.5),
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+  void _navigateToHome() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => HomeScreen(
+          storageService: widget.storageService,
+          authService: widget.authService,
+          onThemeChanged: widget.onThemeChanged,
         ),
       ),
     );
   }
 
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.error,
+      ),
+    );
+  }
+
   @override
-  void dispose() {
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
+  Widget build(BuildContext context) {
+    final strength = _getPasswordStrength(_passwordController.text);
+    final strengthLabel = _getStrengthLabel(strength);
+
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppColors.authGradient),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(AppConstants.paddingLG),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Logo
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(26),
+                      borderRadius:
+                          BorderRadius.circular(AppConstants.radiusXL),
+                      border: Border.all(
+                        color: Colors.white.withAlpha(51),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.shield,
+                      size: 40,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: AppConstants.paddingLG),
+                  const Text(
+                    'Hos Geldiniz',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: AppConstants.paddingSM),
+                  Text(
+                    'Hesaplarinizi guvende tutmak icin\nbir sifre belirleyin',
+                    style: TextStyle(
+                      color: Colors.white.withAlpha(179),
+                      fontSize: 14,
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppConstants.paddingXL),
+                  // Setup Card
+                  Container(
+                    padding: const EdgeInsets.all(AppConstants.paddingLG),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(26),
+                      borderRadius:
+                          BorderRadius.circular(AppConstants.radiusLG),
+                      border: Border.all(
+                        color: Colors.white.withAlpha(38),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Password field
+                        TextField(
+                          controller: _passwordController,
+                          obscureText: _obscurePassword,
+                          onChanged: (_) => setState(() {}),
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            labelText: 'Sifre',
+                            labelStyle: TextStyle(
+                                color: Colors.white.withAlpha(153)),
+                            prefixIcon: Icon(Icons.lock_outline,
+                                color: Colors.white.withAlpha(153)),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                                color: Colors.white.withAlpha(153),
+                              ),
+                              onPressed: () => setState(
+                                  () => _obscurePassword = !_obscurePassword),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white.withAlpha(18),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                  AppConstants.radiusMD),
+                              borderSide: BorderSide(
+                                  color: Colors.white.withAlpha(51)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                  AppConstants.radiusMD),
+                              borderSide: const BorderSide(
+                                  color: Colors.white, width: 2),
+                            ),
+                          ),
+                        ),
+                        // Password strength indicator
+                        if (_passwordController.text.isNotEmpty) ...[
+                          const SizedBox(height: AppConstants.paddingSM),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: strength,
+                              backgroundColor: Colors.white.withAlpha(26),
+                              valueColor: AlwaysStoppedAnimation(
+                                  _getStrengthColor(strength)),
+                              minHeight: 4,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            strengthLabel,
+                            style: TextStyle(
+                              color: _getStrengthColor(strength),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: AppConstants.paddingMD),
+                        // Confirm password
+                        TextField(
+                          controller: _confirmPasswordController,
+                          obscureText: _obscureConfirm,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            labelText: 'Sifre Tekrar',
+                            labelStyle: TextStyle(
+                                color: Colors.white.withAlpha(153)),
+                            prefixIcon: Icon(Icons.lock_outline,
+                                color: Colors.white.withAlpha(153)),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureConfirm
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                                color: Colors.white.withAlpha(153),
+                              ),
+                              onPressed: () => setState(
+                                  () => _obscureConfirm = !_obscureConfirm),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white.withAlpha(18),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                  AppConstants.radiusMD),
+                              borderSide: BorderSide(
+                                  color: Colors.white.withAlpha(51)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                  AppConstants.radiusMD),
+                              borderSide: const BorderSide(
+                                  color: Colors.white, width: 2),
+                            ),
+                          ),
+                        ),
+                        // Biometric toggle
+                        if (_biometricAvailable) ...[
+                          const SizedBox(height: AppConstants.paddingLG),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppConstants.paddingMD,
+                              vertical: AppConstants.paddingSM,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(13),
+                              borderRadius: BorderRadius.circular(
+                                  AppConstants.radiusMD),
+                              border: Border.all(
+                                  color: Colors.white.withAlpha(26)),
+                            ),
+                            child: SwitchListTile(
+                              title: const Text(
+                                'Biyometrik Dogrulama',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 14),
+                              ),
+                              subtitle: Text(
+                                'Parmak izi veya yuz tanima',
+                                style: TextStyle(
+                                  color: Colors.white.withAlpha(128),
+                                  fontSize: 12,
+                                ),
+                              ),
+                              value: _useBiometric,
+                              onChanged: (value) =>
+                                  setState(() => _useBiometric = value),
+                              secondary: Icon(Icons.fingerprint,
+                                  color: Colors.white.withAlpha(179)),
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: AppConstants.paddingLG),
+                        // Setup button
+                        GradientButton(
+                          text: 'Kurulumu Tamamla',
+                          onPressed: _setupSecurity,
+                          isLoading: _isLoading,
+                          icon: Icons.check,
+                        ),
+                        const SizedBox(height: AppConstants.paddingMD),
+                        // Skip button
+                        TextButton(
+                          onPressed: _skipSetup,
+                          child: Text(
+                            'Sifresiz Devam Et',
+                            style: TextStyle(
+                              color: Colors.white.withAlpha(153),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppConstants.paddingMD),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.info_outline,
+                          size: 14, color: Colors.white.withAlpha(102)),
+                      const SizedBox(width: 6),
+                      Text(
+                        'PBKDF2-SHA512 ile guclu sifreleme',
+                        style: TextStyle(
+                          color: Colors.white.withAlpha(102),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

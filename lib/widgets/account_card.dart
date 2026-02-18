@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../models/account_model.dart';
 import '../services/totp_service.dart';
 import '../utils/constants.dart';
@@ -10,6 +13,7 @@ class AccountCard extends StatefulWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onShowQR;
+  final Future<void> Function(String code) onCopy;
 
   const AccountCard({
     super.key,
@@ -18,94 +22,150 @@ class AccountCard extends StatefulWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onShowQR,
+    required this.onCopy,
   });
 
   @override
   State<AccountCard> createState() => _AccountCardState();
 }
 
-class _AccountCardState extends State<AccountCard> {
+class _AccountCardState extends State<AccountCard>
+    with SingleTickerProviderStateMixin {
   late String _code;
   late int _remaining;
   late double _progress;
+  Timer? _timer;
+  bool _copied = false;
 
   @override
   void initState() {
     super.initState();
     _updateCode();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _updateCode());
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   void _updateCode() {
-    setState(() {
-      _code = widget.totpService.generateTOTP(widget.account);
-      _remaining = widget.totpService.getRemainingSeconds(widget.account.period);
-      _progress = widget.totpService.getProgress(widget.account.period);
-    });
+    if (!mounted) return;
+    final newCode = widget.totpService.generateTOTP(widget.account);
+    final newRemaining =
+        widget.totpService.getRemainingSeconds(widget.account.period);
+    final newProgress = widget.totpService.getProgress(widget.account.period);
 
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted) {
-        _updateCode();
-      }
+    setState(() {
+      _code = newCode;
+      _remaining = newRemaining;
+      _progress = newProgress;
     });
   }
 
-  void _copyToClipboard() {
-    Clipboard.setData(ClipboardData(text: _code));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Kod kopyalandı'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+  Future<void> _copyToClipboard() async {
+    HapticFeedback.lightImpact();
+    await widget.onCopy(_code);
+
+    setState(() => _copied = true);
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _copied = false);
+    });
+  }
+
+  Color get _timerColor {
+    if (_remaining <= 5) return AppColors.error;
+    if (_remaining <= 10) return AppColors.warning;
+    return AppColors.primary;
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final serviceColor = AppColors.getServiceColor(widget.account.issuer);
+    final formattedCode = widget.totpService.formatCode(_code);
 
     return Card(
       child: InkWell(
         onTap: _copyToClipboard,
-        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+        borderRadius: BorderRadius.circular(AppConstants.radiusLG),
         child: Padding(
-          padding: const EdgeInsets.all(AppConstants.defaultPadding),
+          padding: const EdgeInsets.all(AppConstants.paddingMD),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header row: avatar + info + menu
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // Service avatar
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          serviceColor,
+                          serviceColor.withAlpha(179),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius:
+                          BorderRadius.circular(AppConstants.radiusMD),
+                    ),
+                    child: Center(
+                      child: Text(
+                        widget.account.initials,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppConstants.paddingMD),
+                  // Name and issuer
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           widget.account.issuer,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.2,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
+                        const SizedBox(height: 2),
                         Text(
                           widget.account.name,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.textTheme.bodySmall?.color?.withOpacity(0.6),
+                            color: theme.colorScheme.onSurface.withAlpha(153),
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
+                  // Menu
                   PopupMenuButton<String>(
+                    icon: Icon(
+                      Icons.more_vert,
+                      color: theme.colorScheme.onSurface.withAlpha(128),
+                      size: 20,
+                    ),
                     onSelected: (value) {
                       switch (value) {
                         case 'qr':
                           widget.onShowQR();
-                          break;
                         case 'edit':
                           widget.onEdit();
-                          break;
                         case 'delete':
                           widget.onDelete();
-                          break;
                       }
                     },
                     itemBuilder: (context) => [
@@ -113,9 +173,9 @@ class _AccountCardState extends State<AccountCard> {
                         value: 'qr',
                         child: Row(
                           children: [
-                            Icon(Icons.qr_code),
-                            SizedBox(width: 8),
-                            Text('QR Kod Göster'),
+                            Icon(Icons.qr_code_2, size: 20),
+                            SizedBox(width: 12),
+                            Text('QR Kod'),
                           ],
                         ),
                       ),
@@ -123,19 +183,21 @@ class _AccountCardState extends State<AccountCard> {
                         value: 'edit',
                         child: Row(
                           children: [
-                            Icon(Icons.edit),
-                            SizedBox(width: 8),
-                            Text('Düzenle'),
+                            Icon(Icons.edit_outlined, size: 20),
+                            SizedBox(width: 12),
+                            Text('Duzenle'),
                           ],
                         ),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete, color: AppColors.error),
-                            SizedBox(width: 8),
-                            Text('Sil', style: TextStyle(color: AppColors.error)),
+                            Icon(Icons.delete_outline,
+                                size: 20, color: AppColors.error),
+                            const SizedBox(width: 12),
+                            Text('Sil',
+                                style: TextStyle(color: AppColors.error)),
                           ],
                         ),
                       ),
@@ -143,42 +205,78 @@ class _AccountCardState extends State<AccountCard> {
                   ),
                 ],
               ),
-              const SizedBox(height: AppConstants.defaultPadding),
+              const SizedBox(height: AppConstants.paddingMD),
+              // OTP code row
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    _code,
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 4,
-                      fontFeatures: [const FontFeature.tabularFigures()],
+                  // Code
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Text(
+                          formattedCode,
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 3,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                            color: _remaining <= 5
+                                ? AppColors.error
+                                : theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(width: AppConstants.paddingSM),
+                        AnimatedSwitcher(
+                          duration: AppConstants.animFast,
+                          child: _copied
+                              ? Icon(
+                                  Icons.check_circle,
+                                  key: const ValueKey('check'),
+                                  color: AppColors.success,
+                                  size: 20,
+                                )
+                              : Icon(
+                                  Icons.copy,
+                                  key: const ValueKey('copy'),
+                                  color: theme.colorScheme.onSurface
+                                      .withAlpha(102),
+                                  size: 18,
+                                ),
+                        ),
+                      ],
                     ),
                   ),
-                  Column(
-                    children: [
-                      SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            CircularProgressIndicator(
-                              value: _progress,
-                              strokeWidth: 3,
-                              color: _remaining <= 5 ? AppColors.error : AppColors.primary,
-                              backgroundColor: theme.colorScheme.surface,
-                            ),
-                            Text(
-                              '$_remaining',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
+                  // Timer
+                  SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: CircularProgressIndicator(
+                            value: _progress,
+                            strokeWidth: 3,
+                            strokeCap: StrokeCap.round,
+                            color: _timerColor,
+                            backgroundColor:
+                                theme.colorScheme.outline.withAlpha(51),
+                          ),
                         ),
-                      ),
-                    ],
+                        Text(
+                          '$_remaining',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: _timerColor,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

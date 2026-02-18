@@ -17,17 +17,22 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return AppSettings(
-      useBiometric: fields[0] as bool,
-      requireAuthOnLaunch: fields[1] as bool,
+      useBiometric: fields[0] as bool? ?? false,
+      requireAuthOnLaunch: fields[1] as bool? ?? true,
       passwordHash: fields[2] as String?,
-      isDarkMode: fields[3] as bool,
+      isDarkMode: fields[3] as bool? ?? false,
+      autoLockSeconds: fields[4] as int? ?? 60,
+      clipboardClearSeconds: fields[5] as int? ?? 30,
+      maxFailedAttempts: fields[6] as int? ?? 10,
+      wipeOnMaxAttempts: fields[7] as bool? ?? false,
+      passwordSalt: fields[8] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettings obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.useBiometric)
       ..writeByte(1)
@@ -35,7 +40,17 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       ..writeByte(2)
       ..write(obj.passwordHash)
       ..writeByte(3)
-      ..write(obj.isDarkMode);
+      ..write(obj.isDarkMode)
+      ..writeByte(4)
+      ..write(obj.autoLockSeconds)
+      ..writeByte(5)
+      ..write(obj.clipboardClearSeconds)
+      ..writeByte(6)
+      ..write(obj.maxFailedAttempts)
+      ..writeByte(7)
+      ..write(obj.wipeOnMaxAttempts)
+      ..writeByte(8)
+      ..write(obj.passwordSalt);
   }
 
   @override

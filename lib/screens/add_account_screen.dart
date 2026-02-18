@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+
 import '../models/account_model.dart';
 import '../services/storage_service.dart';
 import '../services/totp_service.dart';
@@ -25,7 +26,16 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
   final _nameController = TextEditingController();
   final _issuerController = TextEditingController();
   final _secretController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _issuerController.dispose();
+    _secretController.dispose();
+    super.dispose();
+  }
 
   Future<void> _scanQR() async {
     final result = await Navigator.push(
@@ -39,19 +49,16 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
       _nameController.text = result.name;
       _issuerController.text = result.issuer;
       _secretController.text = result.secret;
+      setState(() {});
     }
   }
 
   Future<void> _saveAccount() async {
-    if (_issuerController.text.isEmpty ||
-        _nameController.text.isEmpty ||
-        _secretController.text.isEmpty) {
-      _showError('Lütfen tüm alanları doldurun');
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
-    if (!widget.totpService.validateSecret(_secretController.text)) {
-      _showError('Geçersiz secret key');
+    final secret = _secretController.text.trim().toUpperCase();
+    if (!widget.totpService.validateSecret(secret)) {
+      _showError('Gecersiz secret key');
       return;
     }
 
@@ -62,99 +69,187 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
         id: const Uuid().v4(),
         name: _nameController.text.trim(),
         issuer: _issuerController.text.trim(),
-        secret: _secretController.text.trim().toUpperCase(),
+        secret: secret,
         createdAt: DateTime.now(),
       );
 
       await widget.storageService.addAccount(account);
 
-      if (mounted) {
-        Navigator.pop(context, true);
-      }
+      if (mounted) Navigator.pop(context, true);
     } catch (e) {
-      _showError('Hesap eklenirken hata: $e');
+      if (mounted) _showError('Hesap eklenirken hata olustu');
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: AppColors.error),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.error,
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Hesap Ekle'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppConstants.largePadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            CustomButton(
-              text: 'QR Kod Tara',
-              onPressed: _scanQR,
-              icon: Icons.qr_code_scanner,
-              isOutlined: true,
-            ),
-            const SizedBox(height: AppConstants.largePadding),
-            const Divider(),
-            const SizedBox(height: AppConstants.largePadding),
-            Text(
-              'veya manuel olarak girin',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: AppConstants.defaultPadding),
-            TextField(
-              controller: _issuerController,
-              decoration: const InputDecoration(
-                labelText: 'Yayıncı (ör: Google, GitHub)',
-                prefixIcon: Icon(Icons.business),
+        padding: const EdgeInsets.all(AppConstants.paddingLG),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // QR Scan button
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: theme.colorScheme.outline,
+                    width: 1.5,
+                  ),
+                  borderRadius: BorderRadius.circular(AppConstants.radiusLG),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _scanQR,
+                    borderRadius:
+                        BorderRadius.circular(AppConstants.radiusLG),
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppConstants.paddingLG),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              gradient: AppColors.primaryGradient,
+                              borderRadius: BorderRadius.circular(
+                                  AppConstants.radiusMD),
+                            ),
+                            child: const Icon(
+                              Icons.qr_code_scanner,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(height: AppConstants.paddingMD),
+                          Text(
+                            'QR Kod Tara',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Kameranizi kullanarak QR kodu okutun',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface
+                                  .withAlpha(128),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
-              textCapitalization: TextCapitalization.words,
-            ),
-            const SizedBox(height: AppConstants.defaultPadding),
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Hesap Adı (ör: user@example.com)',
-                prefixIcon: Icon(Icons.person),
+              const SizedBox(height: AppConstants.paddingLG),
+              // Divider
+              Row(
+                children: [
+                  const Expanded(child: Divider()),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppConstants.paddingMD),
+                    child: Text(
+                      'veya',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color:
+                            theme.colorScheme.onSurface.withAlpha(128),
+                      ),
+                    ),
+                  ),
+                  const Expanded(child: Divider()),
+                ],
               ),
-            ),
-            const SizedBox(height: AppConstants.defaultPadding),
-            TextField(
-              controller: _secretController,
-              decoration: const InputDecoration(
-                labelText: 'Secret Key',
-                prefixIcon: Icon(Icons.key),
-                hintText: 'JBSWY3DPEHPK3PXP',
+              const SizedBox(height: AppConstants.paddingLG),
+              // Manual entry header
+              Text(
+                'Manuel Giris',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-              textCapitalization: TextCapitalization.characters,
-            ),
-            const SizedBox(height: AppConstants.largePadding),
-            CustomButton(
-              text: 'Hesabı Kaydet',
-              onPressed: _saveAccount,
-              isLoading: _isLoading,
-              icon: Icons.save,
-            ),
-          ],
+              const SizedBox(height: AppConstants.paddingMD),
+              // Issuer
+              TextFormField(
+                controller: _issuerController,
+                decoration: const InputDecoration(
+                  labelText: 'Servis Adi',
+                  hintText: 'Google, GitHub, Discord...',
+                  prefixIcon: Icon(Icons.business_outlined),
+                ),
+                textCapitalization: TextCapitalization.words,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Servis adi gerekli';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: AppConstants.paddingMD),
+              // Name
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Hesap Adi',
+                  hintText: 'kullanici@ornek.com',
+                  prefixIcon: Icon(Icons.person_outline),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Hesap adi gerekli';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: AppConstants.paddingMD),
+              // Secret
+              TextFormField(
+                controller: _secretController,
+                decoration: const InputDecoration(
+                  labelText: 'Secret Key',
+                  hintText: 'JBSWY3DPEHPK3PXP',
+                  prefixIcon: Icon(Icons.key_outlined),
+                ),
+                textCapitalization: TextCapitalization.characters,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Secret key gerekli';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: AppConstants.paddingLG),
+              // Save button
+              GradientButton(
+                text: 'Hesabi Kaydet',
+                onPressed: _saveAccount,
+                isLoading: _isLoading,
+                icon: Icons.save_outlined,
+              ),
+            ],
+          ),
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _issuerController.dispose();
-    _secretController.dispose();
-    super.dispose();
   }
 }

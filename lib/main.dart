@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
 import 'services/storage_service.dart';
 import 'services/auth_service.dart';
 import 'screens/setup_screen.dart';
@@ -8,6 +12,12 @@ import 'utils/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Lock orientation to portrait for better security UX
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   final storageService = StorageService();
   await storageService.init();
@@ -34,20 +44,74 @@ class SecureAuthApp extends StatefulWidget {
   State<SecureAuthApp> createState() => _SecureAuthAppState();
 }
 
-class _SecureAuthAppState extends State<SecureAuthApp> {
-  late bool _isDarkMode;
+class _SecureAuthAppState extends State<SecureAuthApp>
+    with WidgetsBindingObserver {
+  late ThemeMode _themeMode;
+  Timer? _inactivityTimer;
+  bool _isLocked = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadTheme();
+    _startInactivityTimer();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _inactivityTimer?.cancel();
+    super.dispose();
   }
 
   void _loadTheme() {
     final settings = widget.storageService.getSettings();
+    _themeMode = settings.isDarkMode ? ThemeMode.dark : ThemeMode.light;
+  }
+
+  void _onThemeChanged() {
+    final settings = widget.storageService.getSettings();
     setState(() {
-      _isDarkMode = settings.isDarkMode;
+      _themeMode = settings.isDarkMode ? ThemeMode.dark : ThemeMode.light;
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      // Record last activity when going to background
+      widget.authService.recordActivity();
+    } else if (state == AppLifecycleState.resumed) {
+      // Check if should lock on resume
+      _checkAutoLock();
+    }
+  }
+
+  void _startInactivityTimer() {
+    _inactivityTimer?.cancel();
+    final settings = widget.storageService.getSettings();
+    if (settings.autoLockSeconds > 0 && settings.requireAuthOnLaunch) {
+      _inactivityTimer = Timer.periodic(
+        const Duration(seconds: 15),
+        (_) => _checkAutoLock(),
+      );
+    }
+  }
+
+  Future<void> _checkAutoLock() async {
+    final settings = widget.storageService.getSettings();
+    if (!settings.requireAuthOnLaunch || !widget.authService.hasPassword()) {
+      return;
+    }
+
+    final timedOut = await widget.authService.hasTimedOut();
+    if (timedOut && mounted && !_isLocked) {
+      setState(() => _isLocked = true);
+      // Force rebuild to show auth screen
+      setState(() {});
+    }
   }
 
   @override
@@ -57,30 +121,48 @@ class _SecureAuthAppState extends State<SecureAuthApp> {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      home: _determineInitialScreen(),
+      themeMode: _themeMode,
+      home: _determineScreen(),
     );
   }
 
-  Widget _determineInitialScreen() {
+  Widget _determineScreen() {
     final hasPassword = widget.authService.hasPassword();
     final settings = widget.storageService.getSettings();
 
+    // If locked by inactivity timer, show auth
+    if (_isLocked && hasPassword) {
+      _isLocked = false;
+      return AuthScreen(
+        storageService: widget.storageService,
+        authService: widget.authService,
+        onThemeChanged: _onThemeChanged,
+      );
+    }
+
+    // First time setup
     if (!hasPassword && settings.requireAuthOnLaunch) {
       return SetupScreen(
         storageService: widget.storageService,
         authService: widget.authService,
+        onThemeChanged: _onThemeChanged,
       );
-    } else if (hasPassword && settings.requireAuthOnLaunch) {
+    }
+
+    // Has password, requires auth
+    if (hasPassword && settings.requireAuthOnLaunch) {
       return AuthScreen(
         storageService: widget.storageService,
         authService: widget.authService,
-      );
-    } else {
-      return HomeScreen(
-        storageService: widget.storageService,
-        authService: widget.authService,
+        onThemeChanged: _onThemeChanged,
       );
     }
+
+    // No auth required
+    return HomeScreen(
+      storageService: widget.storageService,
+      authService: widget.authService,
+      onThemeChanged: _onThemeChanged,
+    );
   }
 }

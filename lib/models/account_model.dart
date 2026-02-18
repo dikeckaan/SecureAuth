@@ -66,6 +66,16 @@ class AccountModel extends HiveObject {
   }
 
   String get otpAuthUri {
-    return 'otpauth://totp/$issuer:$name?secret=$secret&issuer=$issuer&digits=$digits&period=$period&algorithm=$algorithm';
+    final encodedIssuer = Uri.encodeComponent(issuer);
+    final encodedName = Uri.encodeComponent(name);
+    return 'otpauth://totp/$encodedIssuer:$encodedName'
+        '?secret=$secret&issuer=$encodedIssuer'
+        '&digits=$digits&period=$period&algorithm=$algorithm';
+  }
+
+  String get initials {
+    if (issuer.isNotEmpty) return issuer[0].toUpperCase();
+    if (name.isNotEmpty) return name[0].toUpperCase();
+    return '?';
   }
 }

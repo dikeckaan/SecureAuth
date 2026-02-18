@@ -1,4 +1,5 @@
 import 'package:otp/otp.dart';
+
 import '../models/account_model.dart';
 
 class TOTPService {
@@ -38,6 +39,8 @@ class TOTPService {
   }
 
   bool validateSecret(String secret) {
+    if (secret.isEmpty) return false;
+
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
       OTP.generateTOTPCodeString(
@@ -49,7 +52,7 @@ class TOTPService {
         isGoogle: true,
       );
       return true;
-    } catch (e) {
+    } catch (_) {
       return false;
     }
   }
@@ -68,9 +71,9 @@ class TOTPService {
       String issuer = '';
       String name = '';
 
-      if (parts.length == 2) {
+      if (parts.length >= 2) {
         issuer = Uri.decodeComponent(parts[0]);
-        name = Uri.decodeComponent(parts[1]);
+        name = Uri.decodeComponent(parts.sublist(1).join(':'));
       } else {
         name = Uri.decodeComponent(path);
       }
@@ -82,22 +85,28 @@ class TOTPService {
         return null;
       }
 
-      if (queryParams['issuer'] != null) {
+      if (queryParams.containsKey('issuer')) {
         issuer = queryParams['issuer']!;
       }
 
       return AccountModel(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         name: name,
-        issuer: issuer.isEmpty ? 'Unknown' : issuer,
-        secret: secret,
+        issuer: issuer.isEmpty ? 'Bilinmeyen' : issuer,
+        secret: secret.toUpperCase(),
         digits: int.tryParse(queryParams['digits'] ?? '6') ?? 6,
         period: int.tryParse(queryParams['period'] ?? '30') ?? 30,
         algorithm: queryParams['algorithm']?.toUpperCase() ?? 'SHA1',
         createdAt: DateTime.now(),
       );
-    } catch (e) {
+    } catch (_) {
       return null;
     }
+  }
+
+  String formatCode(String code) {
+    if (code.length <= 3) return code;
+    final mid = code.length ~/ 2;
+    return '${code.substring(0, mid)} ${code.substring(mid)}';
   }
 }

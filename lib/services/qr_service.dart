@@ -1,7 +1,8 @@
 import 'dart:typed_data';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
+
+import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class QRService {
   Future<Uint8List> generateQRImage(String data, {int size = 512}) async {
@@ -12,29 +13,39 @@ class QRService {
     );
 
     if (qrValidationResult.status != QrValidationStatus.valid) {
-      throw Exception('QR kod oluşturulamadı');
+      throw StateError('QR kod olusturulamadi');
     }
 
     final qrCode = qrValidationResult.qrCode!;
     final painter = QrPainter.withQr(
       qr: qrCode,
-      color: const Color(0xFF000000),
-      emptyColor: const Color(0xFFFFFFFF),
+      eyeStyle: const QrEyeStyle(
+        eyeShape: QrEyeShape.square,
+        color: Color(0xFF000000),
+      ),
+      dataModuleStyle: const QrDataModuleStyle(
+        dataModuleShape: QrDataModuleShape.square,
+        color: Color(0xFF000000),
+      ),
       gapless: true,
       embeddedImageStyle: null,
       embeddedImage: null,
     );
 
-    final picturRecorder = ui.PictureRecorder();
-    final canvas = Canvas(picturRecorder);
+    final pictureRecorder = ui.PictureRecorder();
+    final canvas = Canvas(pictureRecorder);
 
     painter.paint(canvas, Size(size.toDouble(), size.toDouble()));
 
-    final picture = picturRecorder.endRecording();
+    final picture = pictureRecorder.endRecording();
     final image = await picture.toImage(size, size);
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
 
-    return byteData!.buffer.asUint8List();
+    if (byteData == null) {
+      throw StateError('QR kod resmi olusturulamadi');
+    }
+
+    return byteData.buffer.asUint8List();
   }
 
   Widget buildQRWidget(String data, {double size = 200}) {
