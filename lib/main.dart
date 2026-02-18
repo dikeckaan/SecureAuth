@@ -26,6 +26,12 @@ void main() async {
 
   final authService = AuthService(storageService);
 
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    debugPrint('FlutterError: ${details.exception}');
+    debugPrint('Stack: ${details.stack}');
+  };
+
   runApp(SecureAuthApp(
     storageService: storageService,
     authService: authService,
@@ -152,6 +158,14 @@ class _SecureAuthAppState extends State<SecureAuthApp>
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
+      localeResolutionCallback: (locale, supportedLocales) {
+        for (var supportedLocale in supportedLocales) {
+          if (supportedLocale.languageCode == locale?.languageCode) {
+            return supportedLocale;
+          }
+        }
+        return const Locale('en');
+      },
       home: _determineScreen(),
     );
   }

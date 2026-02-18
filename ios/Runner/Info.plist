@@ -45,6 +45,21 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>tr</string>
+		<string>en</string>
+		<string>es</string>
+		<string>de</string>
+		<string>az</string>
+		<string>ru</string>
+		<string>fr</string>
+		<string>pt</string>
+		<string>ja</string>
+		<string>ko</string>
+		<string>zh</string>
+		<string>ar</string>
+	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>QR kod taramak için kamera erişimine ihtiyacımız var. Bu özellik isteğe bağlıdır.</string>
 	<key>NSFaceIDUsageDescription</key>
