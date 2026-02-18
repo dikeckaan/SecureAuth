@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:secure_auth/l10n/app_localizations.dart';
 
 import '../services/auth_service.dart';
 import '../services/storage_service.dart';
@@ -13,12 +14,14 @@ class AuthScreen extends StatefulWidget {
   final StorageService storageService;
   final AuthService authService;
   final VoidCallback onThemeChanged;
+  final VoidCallback onLocaleChanged;
 
   const AuthScreen({
     super.key,
     required this.storageService,
     required this.authService,
     required this.onThemeChanged,
+    required this.onLocaleChanged,
   });
 
   @override
@@ -103,9 +106,10 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   Future<void> _authenticate() async {
+    final l10n = AppLocalizations.of(context)!;
     final password = _passwordController.text;
     if (password.isEmpty) {
-      setState(() => _errorMessage = 'Lutfen sifrenizi girin');
+      setState(() => _errorMessage = l10n.pleaseEnterPassword);
       return;
     }
 
@@ -136,7 +140,7 @@ class _AuthScreenState extends State<AuthScreen>
             attempts >= settings.maxFailedAttempts) {
           if (mounted) {
             setState(() {
-              _errorMessage = 'Maksimum deneme asildi. Tum veriler silindi.';
+              _errorMessage = l10n.maxAttemptsExceeded;
             });
           }
           return;
@@ -147,12 +151,11 @@ class _AuthScreenState extends State<AuthScreen>
             _failedAttempts = attempts;
             _lockoutRemaining = remaining;
             if (remaining != null) {
-              _errorMessage =
-                  'Cok fazla basarisiz deneme. Lutfen bekleyin.';
+              _errorMessage = l10n.tooManyAttempts;
               _startLockoutTimer();
             } else {
-              _errorMessage =
-                  'Yanlis sifre (${settings.maxFailedAttempts - attempts} hak kaldi)';
+              _errorMessage = l10n.wrongPasswordWithRemaining(
+                  settings.maxFailedAttempts - attempts);
             }
           });
         }
@@ -173,22 +176,25 @@ class _AuthScreenState extends State<AuthScreen>
           storageService: widget.storageService,
           authService: widget.authService,
           onThemeChanged: widget.onThemeChanged,
+          onLocaleChanged: widget.onLocaleChanged,
         ),
       ),
     );
   }
 
   String _formatDuration(Duration d) {
+    final l10n = AppLocalizations.of(context)!;
     final minutes = d.inMinutes;
     final seconds = d.inSeconds % 60;
     if (minutes > 0) {
-      return '$minutes dk $seconds sn';
+      return l10n.minuteShortFormat(minutes, seconds);
     }
-    return '$seconds sn';
+    return l10n.secondShortFormat(seconds);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isLocked = _lockoutRemaining != null;
 
     return Scaffold(
@@ -221,9 +227,9 @@ class _AuthScreenState extends State<AuthScreen>
                     ),
                   ),
                   const SizedBox(height: AppConstants.paddingLG),
-                  const Text(
-                    'SecureAuth',
-                    style: TextStyle(
+                  Text(
+                    l10n.appName,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 28,
                       fontWeight: FontWeight.w700,
@@ -232,7 +238,7 @@ class _AuthScreenState extends State<AuthScreen>
                   ),
                   const SizedBox(height: AppConstants.paddingSM),
                   Text(
-                    'Hesaplariniza erismek icin\nkimliginizi dogrulayin',
+                    l10n.authSubtitle,
                     style: TextStyle(
                       color: Colors.white.withAlpha(179),
                       fontSize: 14,
@@ -276,7 +282,8 @@ class _AuthScreenState extends State<AuthScreen>
                                 const SizedBox(width: AppConstants.paddingSM),
                                 Expanded(
                                   child: Text(
-                                    'Kilitli: ${_formatDuration(_lockoutRemaining!)}',
+                                    l10n.lockedWithTime(
+                                        _formatDuration(_lockoutRemaining!)),
                                     style: const TextStyle(
                                       color: AppColors.error,
                                       fontWeight: FontWeight.w600,
@@ -312,7 +319,7 @@ class _AuthScreenState extends State<AuthScreen>
                                 isLocked ? null : _authenticate(),
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
-                              labelText: 'Sifre',
+                              labelText: l10n.password,
                               labelStyle: TextStyle(
                                 color: Colors.white.withAlpha(153),
                               ),
@@ -376,7 +383,7 @@ class _AuthScreenState extends State<AuthScreen>
                                     color: AppColors.warning.withAlpha(204)),
                                 const SizedBox(width: 4),
                                 Text(
-                                  '$_failedAttempts basarisiz deneme',
+                                  l10n.failedAttemptsCount(_failedAttempts),
                                   style: TextStyle(
                                     color: AppColors.warning.withAlpha(204),
                                     fontSize: 12,
@@ -388,7 +395,7 @@ class _AuthScreenState extends State<AuthScreen>
                           ),
                         // Login button
                         GradientButton(
-                          text: 'Giris Yap',
+                          text: l10n.login,
                           onPressed: isLocked ? null : _authenticate,
                           isLoading: _isLoading,
                           icon: Icons.login,
@@ -400,9 +407,9 @@ class _AuthScreenState extends State<AuthScreen>
                             onPressed: isLocked ? null : _tryBiometricAuth,
                             icon: const Icon(Icons.fingerprint,
                                 color: Colors.white),
-                            label: const Text(
-                              'Biyometrik ile Giris',
-                              style: TextStyle(color: Colors.white),
+                            label: Text(
+                              l10n.biometricLogin,
+                              style: const TextStyle(color: Colors.white),
                             ),
                             style: OutlinedButton.styleFrom(
                               side: BorderSide(

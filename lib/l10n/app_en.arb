@@ -1,0 +1,194 @@
+{
+  "@@locale": "en",
+  "appName": "SecureAuth",
+  "authSubtitle": "Verify your identity to\naccess your accounts",
+  "password": "Password",
+  "pleaseEnterPassword": "Please enter your password",
+  "lockedWithTime": "Locked: {time}",
+  "@lockedWithTime": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "failedAttemptsCount": "{count} failed attempt(s)",
+  "@failedAttemptsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "tooManyAttempts": "Too many failed attempts. Please wait.",
+  "wrongPasswordWithRemaining": "Wrong password ({remaining} attempt(s) left)",
+  "@wrongPasswordWithRemaining": {
+    "placeholders": {
+      "remaining": { "type": "int" }
+    }
+  },
+  "maxAttemptsExceeded": "Maximum attempts exceeded. All data deleted.",
+  "login": "Login",
+  "biometricLogin": "Login with Biometric",
+  "codeCopied": "Code copied ({seconds}s auto-clear)",
+  "@codeCopied": {
+    "placeholders": {
+      "seconds": { "type": "int" }
+    }
+  },
+  "minuteShortFormat": "{minutes} min {seconds} sec",
+  "@minuteShortFormat": {
+    "placeholders": {
+      "minutes": { "type": "int" },
+      "seconds": { "type": "int" }
+    }
+  },
+  "secondShortFormat": "{seconds} sec",
+  "@secondShortFormat": {
+    "placeholders": {
+      "seconds": { "type": "int" }
+    }
+  },
+  "welcome": "Welcome",
+  "setupSubtitle": "Set a password to\nkeep your accounts safe",
+  "confirmPassword": "Confirm Password",
+  "strengthWeak": "Weak",
+  "strengthMedium": "Medium",
+  "strengthGood": "Good",
+  "strengthStrong": "Strong",
+  "strengthVeryStrong": "Very Strong",
+  "biometricAuth": "Biometric Authentication",
+  "fingerprintOrFace": "Fingerprint or face recognition",
+  "completeSetup": "Complete Setup",
+  "continueWithoutPassword": "Continue Without Password",
+  "pleaseSetPassword": "Please set a password",
+  "passwordMinLength": "Password must be at least {length} characters",
+  "@passwordMinLength": {
+    "placeholders": {
+      "length": { "type": "int" }
+    }
+  },
+  "passwordsDoNotMatch": "Passwords do not match",
+  "anErrorOccurred": "An error occurred",
+  "strongEncryption": "Strong encryption with PBKDF2-SHA512",
+  "editAccount": "Edit Account",
+  "serviceName": "Service Name",
+  "accountName": "Account Name",
+  "cancel": "Cancel",
+  "save": "Save",
+  "deleteAccount": "Delete Account",
+  "deleteAccountConfirm": "Are you sure you want to delete the {issuer} account?",
+  "@deleteAccountConfirm": {
+    "placeholders": {
+      "issuer": { "type": "String" }
+    }
+  },
+  "actionIrreversible": "This action cannot be undone",
+  "delete": "Delete",
+  "accountDeleted": "Account deleted",
+  "searchAccounts": "Search accounts...",
+  "noAccountsYet": "No accounts added yet",
+  "addAccountsToImprove": "Add your 2FA accounts to\nimprove your security",
+  "accountNotFound": "Account not found",
+  "addAccount": "Add Account",
+  "scanQRCode": "Scan QR Code",
+  "useCamera": "Use your camera to scan the QR code",
+  "or": "or",
+  "manualEntry": "Manual Entry",
+  "serviceNameHint": "Google, GitHub, Discord...",
+  "accountNameHint": "user@example.com",
+  "secretKey": "Secret Key",
+  "secretKeyHint": "JBSWY3DPEHPK3PXP",
+  "serviceNameRequired": "Service name is required",
+  "accountNameRequired": "Account name is required",
+  "secretKeyRequired": "Secret key is required",
+  "invalidSecretKey": "Invalid secret key",
+  "saveAccount": "Save Account",
+  "errorAddingAccount": "Error adding account",
+  "alignQRCode": "Align the QR code within the frame",
+  "invalidQRCode": "Invalid QR code. Please scan a TOTP QR code.",
+  "qrCode": "QR Code",
+  "qrCodeTransferInfo": "You can transfer this account by scanning this QR code on another device",
+  "settings": "Settings",
+  "appearance": "Appearance",
+  "darkMode": "Dark Mode",
+  "useDarkTheme": "Use dark theme",
+  "security": "Security",
+  "appLock": "App Lock",
+  "requirePasswordOnLaunch": "Require password on launch",
+  "fingerprintFaceId": "Fingerprint / Face ID",
+  "changePassword": "Change Password",
+  "setPassword": "Set Password",
+  "advancedSecurity": "Advanced Security",
+  "autoLock": "Auto Lock",
+  "clipboardClear": "Clipboard Clear",
+  "clipboardClearAfterSeconds": "{seconds} seconds later",
+  "@clipboardClearAfterSeconds": {
+    "placeholders": {
+      "seconds": { "type": "int" }
+    }
+  },
+  "maxFailedAttemptsLabel": "Max Failed Attempts",
+  "attemptsCount": "{count} attempts",
+  "@attemptsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "wipeOnMaxAttemptsLabel": "Wipe Data on Max Attempts",
+  "wipeAllDataOnMax": "Delete all data on max attempts",
+  "backup": "Backup",
+  "exportAccounts": "Export Accounts",
+  "nAccounts": "{count} accounts",
+  "@nAccounts": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "importAccounts": "Import Accounts",
+  "loadFromJSON": "Load from JSON file",
+  "dangerZone": "Danger Zone",
+  "deleteAllData": "Delete All Data",
+  "warning": "Warning",
+  "wipeWarning": "After {count} failed login attempts, all data will be automatically deleted. This feature may cause irreversible data loss.",
+  "@wipeWarning": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "enable": "Enable",
+  "needPasswordFirst": "You need to set a password first",
+  "currentPassword": "Current Password",
+  "newPassword": "New Password",
+  "confirmNewPassword": "Confirm New Password",
+  "currentPasswordWrong": "Current password is incorrect",
+  "passwordChangedSuccess": "Password changed successfully",
+  "deleteAllDataConfirm": "This will delete all accounts and settings.",
+  "actionIrreversibleExcl": "This action cannot be undone!",
+  "allDataDeleted": "All data deleted",
+  "disabled": "Disabled",
+  "nSeconds": "{count} seconds",
+  "@nSeconds": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "nMinutes": "{count} minutes",
+  "@nMinutes": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "clipboardClearTime": "Clipboard Clear Time",
+  "secureAuthBackup": "SecureAuth Backup",
+  "backupFileDescription": "SecureAuth account backup file",
+  "accountsExported": "Accounts exported",
+  "nAccountsImported": "{count} accounts imported successfully",
+  "@nAccountsImported": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "exportError": "Export error",
+  "importError": "Import error",
+  "aboutEncryption": "PBKDF2-SHA512 | AES-256 | Fully Offline",
+  "edit": "Edit",
+  "language": "Language",
+  "selectLanguage": "Select Language"
+}

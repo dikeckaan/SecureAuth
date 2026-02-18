@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:secure_auth/l10n/app_localizations.dart';
 
 import '../models/account_model.dart';
 import '../services/qr_service.dart';
@@ -16,12 +17,13 @@ class QRDisplayScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final serviceColor = AppColors.getServiceColor(account.issuer);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('QR Kod'),
+        title: Text(l10n.qrCode),
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -113,7 +115,7 @@ class QRDisplayScreen extends StatelessWidget {
                     const SizedBox(width: AppConstants.paddingSM),
                     Expanded(
                       child: Text(
-                        'Bu QR kodu baska bir cihazda tarayarak hesabi aktarabilirsiniz',
+                        l10n.qrCodeTransferInfo,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.primary,
                           fontWeight: FontWeight.w500,

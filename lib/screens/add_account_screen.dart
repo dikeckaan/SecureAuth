@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import 'package:secure_auth/l10n/app_localizations.dart';
 
 import '../models/account_model.dart';
 import '../services/storage_service.dart';
@@ -54,11 +55,12 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
   }
 
   Future<void> _saveAccount() async {
+    final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
 
     final secret = _secretController.text.trim().toUpperCase();
     if (!widget.totpService.validateSecret(secret)) {
-      _showError('Gecersiz secret key');
+      _showError(l10n.invalidSecretKey);
       return;
     }
 
@@ -77,7 +79,7 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
 
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
-      if (mounted) _showError('Hesap eklenirken hata olustu');
+      if (mounted) _showError(l10n.errorAddingAccount);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -94,11 +96,12 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hesap Ekle'),
+        title: Text(l10n.addAccount),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppConstants.paddingLG),
@@ -142,14 +145,14 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
                           ),
                           const SizedBox(height: AppConstants.paddingMD),
                           Text(
-                            'QR Kod Tara',
+                            l10n.scanQRCode,
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Kameranizi kullanarak QR kodu okutun',
+                            l10n.useCamera,
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurface
                                   .withAlpha(128),
@@ -170,7 +173,7 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: AppConstants.paddingMD),
                     child: Text(
-                      'veya',
+                      l10n.or,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color:
                             theme.colorScheme.onSurface.withAlpha(128),
@@ -183,7 +186,7 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
               const SizedBox(height: AppConstants.paddingLG),
               // Manual entry header
               Text(
-                'Manuel Giris',
+                l10n.manualEntry,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -192,15 +195,15 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
               // Issuer
               TextFormField(
                 controller: _issuerController,
-                decoration: const InputDecoration(
-                  labelText: 'Servis Adi',
-                  hintText: 'Google, GitHub, Discord...',
-                  prefixIcon: Icon(Icons.business_outlined),
+                decoration: InputDecoration(
+                  labelText: l10n.serviceName,
+                  hintText: l10n.serviceNameHint,
+                  prefixIcon: const Icon(Icons.business_outlined),
                 ),
                 textCapitalization: TextCapitalization.words,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Servis adi gerekli';
+                    return l10n.serviceNameRequired;
                   }
                   return null;
                 },
@@ -209,14 +212,14 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
               // Name
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Hesap Adi',
-                  hintText: 'kullanici@ornek.com',
-                  prefixIcon: Icon(Icons.person_outline),
+                decoration: InputDecoration(
+                  labelText: l10n.accountName,
+                  hintText: l10n.accountNameHint,
+                  prefixIcon: const Icon(Icons.person_outline),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Hesap adi gerekli';
+                    return l10n.accountNameRequired;
                   }
                   return null;
                 },
@@ -225,15 +228,15 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
               // Secret
               TextFormField(
                 controller: _secretController,
-                decoration: const InputDecoration(
-                  labelText: 'Secret Key',
-                  hintText: 'JBSWY3DPEHPK3PXP',
-                  prefixIcon: Icon(Icons.key_outlined),
+                decoration: InputDecoration(
+                  labelText: l10n.secretKey,
+                  hintText: l10n.secretKeyHint,
+                  prefixIcon: const Icon(Icons.key_outlined),
                 ),
                 textCapitalization: TextCapitalization.characters,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Secret key gerekli';
+                    return l10n.secretKeyRequired;
                   }
                   return null;
                 },
@@ -241,7 +244,7 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
               const SizedBox(height: AppConstants.paddingLG),
               // Save button
               GradientButton(
-                text: 'Hesabi Kaydet',
+                text: l10n.saveAccount,
                 onPressed: _saveAccount,
                 isLoading: _isLoading,
                 icon: Icons.save_outlined,

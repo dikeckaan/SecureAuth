@@ -31,6 +31,9 @@ class AppSettings extends HiveObject {
   @HiveField(8)
   String? passwordSalt;
 
+  @HiveField(9)
+  String? languageCode;
+
   AppSettings({
     this.useBiometric = false,
     this.requireAuthOnLaunch = true,
@@ -41,5 +44,6 @@ class AppSettings extends HiveObject {
     this.maxFailedAttempts = 10,
     this.wipeOnMaxAttempts = false,
     this.passwordSalt,
+    this.languageCode,
   });
 }

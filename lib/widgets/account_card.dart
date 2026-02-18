@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:secure_auth/l10n/app_localizations.dart';
 
 import '../models/account_model.dart';
 import '../services/totp_service.dart';
@@ -82,6 +83,7 @@ class _AccountCardState extends State<AccountCard>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final serviceColor = AppColors.getServiceColor(widget.account.issuer);
     final formattedCode = widget.totpService.formatCode(_code);
@@ -169,23 +171,23 @@ class _AccountCardState extends State<AccountCard>
                       }
                     },
                     itemBuilder: (context) => [
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'qr',
                         child: Row(
                           children: [
-                            Icon(Icons.qr_code_2, size: 20),
-                            SizedBox(width: 12),
-                            Text('QR Kod'),
+                            const Icon(Icons.qr_code_2, size: 20),
+                            const SizedBox(width: 12),
+                            Text(l10n.qrCode),
                           ],
                         ),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'edit',
                         child: Row(
                           children: [
-                            Icon(Icons.edit_outlined, size: 20),
-                            SizedBox(width: 12),
-                            Text('Duzenle'),
+                            const Icon(Icons.edit_outlined, size: 20),
+                            const SizedBox(width: 12),
+                            Text(l10n.edit),
                           ],
                         ),
                       ),
@@ -193,11 +195,11 @@ class _AccountCardState extends State<AccountCard>
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete_outline,
+                            const Icon(Icons.delete_outline,
                                 size: 20, color: AppColors.error),
                             const SizedBox(width: 12),
-                            Text('Sil',
-                                style: TextStyle(color: AppColors.error)),
+                            Text(l10n.delete,
+                                style: const TextStyle(color: AppColors.error)),
                           ],
                         ),
                       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:secure_auth/l10n/app_localizations.dart';
 
 import '../services/totp_service.dart';
 import '../utils/constants.dart';
@@ -37,7 +38,8 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     if (account != null && mounted) {
       Navigator.pop(context, account);
     } else {
-      _showError('Gecersiz QR kod. Lutfen bir TOTP QR kodu tarayin.');
+      final l10n = AppLocalizations.of(context)!;
+      _showError(l10n.invalidQRCode);
       setState(() => _isProcessing = false);
     }
   }
@@ -54,10 +56,12 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('QR Kod Tara'),
+        title: Text(l10n.scanQRCode),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         actions: [
@@ -125,14 +129,14 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                   borderRadius:
                       BorderRadius.circular(AppConstants.radiusFull),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.qr_code_2, color: Colors.white, size: 18),
-                    SizedBox(width: 8),
+                    const Icon(Icons.qr_code_2, color: Colors.white, size: 18),
+                    const SizedBox(width: 8),
                     Text(
-                      'QR kodu cerceve icine hizalayin',
-                      style: TextStyle(
+                      l10n.alignQRCode,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,

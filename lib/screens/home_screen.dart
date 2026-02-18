@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:secure_auth/l10n/app_localizations.dart';
 
 import '../models/account_model.dart';
 import '../services/auth_service.dart';
@@ -16,12 +17,14 @@ class HomeScreen extends StatefulWidget {
   final StorageService storageService;
   final AuthService authService;
   final VoidCallback onThemeChanged;
+  final VoidCallback onLocaleChanged;
 
   const HomeScreen({
     super.key,
     required this.storageService,
     required this.authService,
     required this.onThemeChanged,
+    required this.onLocaleChanged,
   });
 
   @override
@@ -88,30 +91,31 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _editAccount(AccountModel account) async {
+    final l10n = AppLocalizations.of(context)!;
     final nameController = TextEditingController(text: account.name);
     final issuerController = TextEditingController(text: account.issuer);
 
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Hesabi Duzenle'),
+        title: Text(l10n.editAccount),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: issuerController,
-              decoration: const InputDecoration(
-                labelText: 'Servis Adi',
-                prefixIcon: Icon(Icons.business_outlined),
+              decoration: InputDecoration(
+                labelText: l10n.serviceName,
+                prefixIcon: const Icon(Icons.business_outlined),
               ),
               textCapitalization: TextCapitalization.words,
             ),
             const SizedBox(height: AppConstants.paddingMD),
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Hesap Adi',
-                prefixIcon: Icon(Icons.person_outline),
+              decoration: InputDecoration(
+                labelText: l10n.accountName,
+                prefixIcon: const Icon(Icons.person_outline),
               ),
             ),
           ],
@@ -119,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Iptal'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () {
@@ -132,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               widget.storageService.updateAccount(account);
               Navigator.pop(context, true);
             },
-            child: const Text('Kaydet'),
+            child: Text(l10n.save),
           ),
         ],
       ),
@@ -145,15 +149,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _deleteAccount(AccountModel account) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Hesabi Sil'),
+        title: Text(l10n.deleteAccount),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${account.issuer} hesabini silmek istediginizden emin misiniz?'),
+            Text(l10n.deleteAccountConfirm(account.issuer)),
             const SizedBox(height: AppConstants.paddingSM),
             Container(
               padding: const EdgeInsets.all(AppConstants.paddingSM),
@@ -161,15 +166,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 color: AppColors.errorLight,
                 borderRadius: BorderRadius.circular(AppConstants.radiusSM),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.warning_amber_rounded,
+                  const Icon(Icons.warning_amber_rounded,
                       color: AppColors.error, size: 16),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Bu islem geri alinamaz',
-                      style: TextStyle(
+                      l10n.actionIrreversible,
+                      style: const TextStyle(
                         color: AppColors.error,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -184,14 +189,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Iptal'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.error,
             ),
-            child: const Text('Sil'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -202,8 +207,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _loadAccounts();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Hesap silindi'),
+          SnackBar(
+            content: Text(l10n.accountDeleted),
             backgroundColor: AppColors.error,
           ),
         );
@@ -231,6 +236,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           storageService: widget.storageService,
           authService: widget.authService,
           onThemeChanged: widget.onThemeChanged,
+          onLocaleChanged: widget.onLocaleChanged,
         ),
       ),
     );
@@ -242,6 +248,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     await widget.authService.secureCopy(code);
 
     if (mounted) {
+      final l10n = AppLocalizations.of(context)!;
       final settings = widget.storageService.getSettings();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -249,8 +256,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             children: [
               const Icon(Icons.check_circle, color: Colors.white, size: 18),
               const SizedBox(width: 8),
-              Text(
-                  'Kod kopyalandi (${settings.clipboardClearSeconds}sn sonra silinecek)'),
+              Text(l10n.codeCopied(settings.clipboardClearSeconds)),
             ],
           ),
           duration: const Duration(seconds: 2),
@@ -262,6 +268,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final filtered = _filteredAccounts;
 
@@ -274,7 +281,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 onChanged: (value) => setState(() => _searchQuery = value),
                 style: TextStyle(color: theme.colorScheme.onSurface),
                 decoration: InputDecoration(
-                  hintText: 'Hesap ara...',
+                  hintText: l10n.searchAccounts,
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
@@ -299,7 +306,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         size: 16, color: Colors.white),
                   ),
                   const SizedBox(width: 10),
-                  const Text('SecureAuth'),
+                  Text(l10n.appName),
                 ],
               ),
         actions: [
@@ -323,14 +330,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ],
       ),
       body: _accounts.isEmpty
-          ? _buildEmptyState(theme)
+          ? _buildEmptyState(theme, l10n)
           : filtered.isEmpty
-              ? _buildNoResults(theme)
+              ? _buildNoResults(theme, l10n)
               : _buildAccountList(filtered),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _addAccount,
         icon: const Icon(Icons.add),
-        label: const Text('Hesap Ekle'),
+        label: Text(l10n.addAccount),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 4,
@@ -338,7 +345,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildEmptyState(ThemeData theme) {
+  Widget _buildEmptyState(ThemeData theme, AppLocalizations l10n) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppConstants.paddingXL),
@@ -360,7 +367,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
             const SizedBox(height: AppConstants.paddingLG),
             Text(
-              'Henuz hesap eklemediniz',
+              l10n.noAccountsYet,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: theme.colorScheme.onSurface.withAlpha(179),
@@ -368,7 +375,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
             const SizedBox(height: AppConstants.paddingSM),
             Text(
-              '2FA hesaplarinizi ekleyerek\nguvenliginizi artirin',
+              l10n.addAccountsToImprove,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurface.withAlpha(102),
               ),
@@ -380,7 +387,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildNoResults(ThemeData theme) {
+  Widget _buildNoResults(ThemeData theme, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -392,7 +399,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           ),
           const SizedBox(height: AppConstants.paddingMD),
           Text(
-            'Hesap bulunamadi',
+            l10n.accountNotFound,
             style: theme.textTheme.titleMedium?.copyWith(
               color: theme.colorScheme.onSurface.withAlpha(153),
             ),

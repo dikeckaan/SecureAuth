@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:secure_auth/l10n/app_localizations.dart';
 
 import 'services/storage_service.dart';
 import 'services/auth_service.dart';
@@ -47,6 +49,7 @@ class SecureAuthApp extends StatefulWidget {
 class _SecureAuthAppState extends State<SecureAuthApp>
     with WidgetsBindingObserver {
   late ThemeMode _themeMode;
+  Locale? _locale;
   Timer? _inactivityTimer;
   bool _isLocked = false;
 
@@ -55,6 +58,7 @@ class _SecureAuthAppState extends State<SecureAuthApp>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _loadTheme();
+    _loadLocale();
     _startInactivityTimer();
   }
 
@@ -70,10 +74,28 @@ class _SecureAuthAppState extends State<SecureAuthApp>
     _themeMode = settings.isDarkMode ? ThemeMode.dark : ThemeMode.light;
   }
 
+  void _loadLocale() {
+    final settings = widget.storageService.getSettings();
+    if (settings.languageCode != null) {
+      _locale = Locale(settings.languageCode!);
+    }
+  }
+
   void _onThemeChanged() {
     final settings = widget.storageService.getSettings();
     setState(() {
       _themeMode = settings.isDarkMode ? ThemeMode.dark : ThemeMode.light;
+    });
+  }
+
+  void _onLocaleChanged() {
+    final settings = widget.storageService.getSettings();
+    setState(() {
+      if (settings.languageCode != null) {
+        _locale = Locale(settings.languageCode!);
+      } else {
+        _locale = null;
+      }
     });
   }
 
@@ -122,6 +144,14 @@ class _SecureAuthAppState extends State<SecureAuthApp>
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: _themeMode,
+      locale: _locale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
       home: _determineScreen(),
     );
   }
@@ -137,6 +167,7 @@ class _SecureAuthAppState extends State<SecureAuthApp>
         storageService: widget.storageService,
         authService: widget.authService,
         onThemeChanged: _onThemeChanged,
+        onLocaleChanged: _onLocaleChanged,
       );
     }
 
@@ -146,6 +177,7 @@ class _SecureAuthAppState extends State<SecureAuthApp>
         storageService: widget.storageService,
         authService: widget.authService,
         onThemeChanged: _onThemeChanged,
+        onLocaleChanged: _onLocaleChanged,
       );
     }
 
@@ -155,6 +187,7 @@ class _SecureAuthAppState extends State<SecureAuthApp>
         storageService: widget.storageService,
         authService: widget.authService,
         onThemeChanged: _onThemeChanged,
+        onLocaleChanged: _onLocaleChanged,
       );
     }
 
@@ -163,6 +196,7 @@ class _SecureAuthAppState extends State<SecureAuthApp>
       storageService: widget.storageService,
       authService: widget.authService,
       onThemeChanged: _onThemeChanged,
+      onLocaleChanged: _onLocaleChanged,
     );
   }
 }

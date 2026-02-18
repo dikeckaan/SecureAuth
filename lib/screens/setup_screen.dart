@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:secure_auth/l10n/app_localizations.dart';
 
 import '../services/auth_service.dart';
 import '../services/storage_service.dart';
@@ -10,12 +11,14 @@ class SetupScreen extends StatefulWidget {
   final StorageService storageService;
   final AuthService authService;
   final VoidCallback onThemeChanged;
+  final VoidCallback onLocaleChanged;
 
   const SetupScreen({
     super.key,
     required this.storageService,
     required this.authService,
     required this.onThemeChanged,
+    required this.onLocaleChanged,
   });
 
   @override
@@ -65,12 +68,13 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 
   String _getStrengthLabel(double strength) {
+    final l10n = AppLocalizations.of(context)!;
     if (strength == 0) return '';
-    if (strength < 0.3) return 'Zayif';
-    if (strength < 0.5) return 'Orta';
-    if (strength < 0.7) return 'Iyi';
-    if (strength < 0.9) return 'Guclu';
-    return 'Cok Guclu';
+    if (strength < 0.3) return l10n.strengthWeak;
+    if (strength < 0.5) return l10n.strengthMedium;
+    if (strength < 0.7) return l10n.strengthGood;
+    if (strength < 0.9) return l10n.strengthStrong;
+    return l10n.strengthVeryStrong;
   }
 
   Color _getStrengthColor(double strength) {
@@ -81,21 +85,22 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 
   Future<void> _setupSecurity() async {
+    final l10n = AppLocalizations.of(context)!;
     final password = _passwordController.text;
     final confirm = _confirmPasswordController.text;
 
     if (password.isEmpty) {
-      _showError('Lutfen bir sifre belirleyin');
+      _showError(l10n.pleaseSetPassword);
       return;
     }
 
     if (password.length < AppConstants.minPasswordLength) {
-      _showError('Sifre en az ${AppConstants.minPasswordLength} karakter olmalidir');
+      _showError(l10n.passwordMinLength(AppConstants.minPasswordLength));
       return;
     }
 
     if (password != confirm) {
-      _showError('Sifreler eslesmyor');
+      _showError(l10n.passwordsDoNotMatch);
       return;
     }
 
@@ -107,7 +112,7 @@ class _SetupScreenState extends State<SetupScreen> {
 
       if (mounted) _navigateToHome();
     } catch (e) {
-      if (mounted) _showError('Bir hata olustu');
+      if (mounted) _showError(l10n.anErrorOccurred);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -128,6 +133,7 @@ class _SetupScreenState extends State<SetupScreen> {
           storageService: widget.storageService,
           authService: widget.authService,
           onThemeChanged: widget.onThemeChanged,
+          onLocaleChanged: widget.onLocaleChanged,
         ),
       ),
     );
@@ -144,6 +150,7 @@ class _SetupScreenState extends State<SetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final strength = _getPasswordStrength(_passwordController.text);
     final strengthLabel = _getStrengthLabel(strength);
 
@@ -177,9 +184,9 @@ class _SetupScreenState extends State<SetupScreen> {
                     ),
                   ),
                   const SizedBox(height: AppConstants.paddingLG),
-                  const Text(
-                    'Hos Geldiniz',
-                    style: TextStyle(
+                  Text(
+                    l10n.welcome,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 28,
                       fontWeight: FontWeight.w700,
@@ -188,7 +195,7 @@ class _SetupScreenState extends State<SetupScreen> {
                   ),
                   const SizedBox(height: AppConstants.paddingSM),
                   Text(
-                    'Hesaplarinizi guvende tutmak icin\nbir sifre belirleyin',
+                    l10n.setupSubtitle,
                     style: TextStyle(
                       color: Colors.white.withAlpha(179),
                       fontSize: 14,
@@ -218,7 +225,7 @@ class _SetupScreenState extends State<SetupScreen> {
                           onChanged: (_) => setState(() {}),
                           style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(
-                            labelText: 'Sifre',
+                            labelText: l10n.password,
                             labelStyle: TextStyle(
                                 color: Colors.white.withAlpha(153)),
                             prefixIcon: Icon(Icons.lock_outline,
@@ -279,7 +286,7 @@ class _SetupScreenState extends State<SetupScreen> {
                           obscureText: _obscureConfirm,
                           style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(
-                            labelText: 'Sifre Tekrar',
+                            labelText: l10n.confirmPassword,
                             labelStyle: TextStyle(
                                 color: Colors.white.withAlpha(153)),
                             prefixIcon: Icon(Icons.lock_outline,
@@ -326,13 +333,13 @@ class _SetupScreenState extends State<SetupScreen> {
                                   color: Colors.white.withAlpha(26)),
                             ),
                             child: SwitchListTile(
-                              title: const Text(
-                                'Biyometrik Dogrulama',
-                                style: TextStyle(
+                              title: Text(
+                                l10n.biometricAuth,
+                                style: const TextStyle(
                                     color: Colors.white, fontSize: 14),
                               ),
                               subtitle: Text(
-                                'Parmak izi veya yuz tanima',
+                                l10n.fingerprintOrFace,
                                 style: TextStyle(
                                   color: Colors.white.withAlpha(128),
                                   fontSize: 12,
@@ -350,7 +357,7 @@ class _SetupScreenState extends State<SetupScreen> {
                         const SizedBox(height: AppConstants.paddingLG),
                         // Setup button
                         GradientButton(
-                          text: 'Kurulumu Tamamla',
+                          text: l10n.completeSetup,
                           onPressed: _setupSecurity,
                           isLoading: _isLoading,
                           icon: Icons.check,
@@ -360,7 +367,7 @@ class _SetupScreenState extends State<SetupScreen> {
                         TextButton(
                           onPressed: _skipSetup,
                           child: Text(
-                            'Sifresiz Devam Et',
+                            l10n.continueWithoutPassword,
                             style: TextStyle(
                               color: Colors.white.withAlpha(153),
                               fontWeight: FontWeight.w500,
@@ -378,7 +385,7 @@ class _SetupScreenState extends State<SetupScreen> {
                           size: 14, color: Colors.white.withAlpha(102)),
                       const SizedBox(width: 6),
                       Text(
-                        'PBKDF2-SHA512 ile guclu sifreleme',
+                        l10n.strongEncryption,
                         style: TextStyle(
                           color: Colors.white.withAlpha(102),
                           fontSize: 12,
