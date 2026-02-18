@@ -14,33 +14,22 @@ import 'utils/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  debugPrint('=== SECUREAUTH: main() started ===');
 
   // Lock orientation to portrait for better security UX
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  debugPrint('=== SECUREAUTH: orientation set ===');
 
   final storageService = StorageService();
   await storageService.init();
-  debugPrint('=== SECUREAUTH: storage initialized ===');
 
   final authService = AuthService(storageService);
-  debugPrint('=== SECUREAUTH: auth service created ===');
-
-  FlutterError.onError = (details) {
-    FlutterError.presentError(details);
-    debugPrint('=== SECUREAUTH FlutterError: ${details.exception} ===');
-    debugPrint('=== Stack: ${details.stack} ===');
-  };
 
   runApp(SecureAuthApp(
     storageService: storageService,
     authService: authService,
   ));
-  debugPrint('=== SECUREAUTH: runApp called ===');
 }
 
 class SecureAuthApp extends StatefulWidget {
@@ -149,7 +138,6 @@ class _SecureAuthAppState extends State<SecureAuthApp>
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('=== SECUREAUTH: build() called ===');
     return MaterialApp(
       title: 'SecureAuth',
       debugShowCheckedModeBanner: false,
@@ -177,10 +165,8 @@ class _SecureAuthAppState extends State<SecureAuthApp>
   }
 
   Widget _determineScreen() {
-    debugPrint('=== SECUREAUTH: _determineScreen() called ===');
     final hasPassword = widget.authService.hasPassword();
     final settings = widget.storageService.getSettings();
-    debugPrint('=== SECUREAUTH: hasPassword=$hasPassword, requireAuth=${settings.requireAuthOnLaunch} ===');
 
     // If locked by inactivity timer, show auth
     if (_isLocked && hasPassword) {
