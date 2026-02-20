@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:secure_auth/l10n/app_localizations.dart';
 
@@ -217,22 +219,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   return;
                 }
               }
-
               if (newPasswordController.text.length <
                   AppConstants.minPasswordLength) {
                 _showError(
                     l10n.passwordMinLength(AppConstants.minPasswordLength));
                 return;
               }
-
-              if (newPasswordController.text !=
-                  confirmPasswordController.text) {
+              if (newPasswordController.text != confirmPasswordController.text) {
                 _showError(l10n.passwordsDoNotMatch);
                 return;
               }
-
-              await widget.authService
-                  .setPassword(newPasswordController.text);
+              await widget.authService.setPassword(newPasswordController.text);
               if (context.mounted) Navigator.pop(context, true);
             },
             child: Text(l10n.save),
@@ -250,6 +247,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  // ─── EXPORT FIX: use getTemporaryDirectory() instead of Directory.systemTemp ───
   Future<void> _exportAccounts() async {
     final l10n = AppLocalizations.of(context)!;
     try {
@@ -257,7 +255,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final fileName =
           'secureauth_backup_${DateTime.now().millisecondsSinceEpoch}.json';
 
-      final directory = Directory.systemTemp;
+      // getTemporaryDirectory() returns the app's sandbox temp dir (works on iOS)
+      final directory = await getTemporaryDirectory();
       final file = File('${directory.path}/$fileName');
       await file.writeAsString(jsonString);
 
@@ -273,28 +272,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  // ─── IMPORT FIX: withData:true + bytes fallback for iCloud / cloud files ───
   Future<void> _importAccounts() async {
     final l10n = AppLocalizations.of(context)!;
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
+        withData: true, // ensures bytes are populated even for cloud-backed files
       );
 
       if (result == null || result.files.isEmpty) return;
 
-      final filePath = result.files.first.path;
-      if (filePath == null) return;
+      final pickedFile = result.files.first;
+      final String jsonString;
 
-      final file = File(filePath);
-      final jsonString = await file.readAsString();
+      if (pickedFile.path != null) {
+        jsonString = await File(pickedFile.path!).readAsString();
+      } else if (pickedFile.bytes != null) {
+        jsonString = utf8.decode(pickedFile.bytes!);
+      } else {
+        if (mounted) _showError(l10n.importError);
+        return;
+      }
 
       final imported =
           await widget.storageService.importAccountsFromJson(jsonString);
 
-      if (mounted) {
-        _showSuccess(l10n.nAccountsImported(imported));
-      }
+      if (mounted) _showSuccess(l10n.nAccountsImported(imported));
     } catch (e) {
       if (mounted) _showError(l10n.importError);
     }
@@ -439,167 +444,214 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: Text(l10n.settings),
       ),
       body: ListView(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppConstants.paddingMD,
+          vertical: AppConstants.paddingSM,
+        ),
         children: [
-          // --- Language ---
-          _buildSectionHeader(theme, l10n.language, Icons.language_outlined),
-          ListTile(
-            leading: const Icon(Icons.translate_outlined),
-            title: Text(l10n.language),
-            subtitle: Text(_getCurrentLanguageName()),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: _showLanguagePicker,
-          ),
-          const Divider(indent: 16, endIndent: 16),
+          // ── Language ─────────────────────────────────────────────
+          _buildSectionLabel(theme, l10n.language, Icons.language_outlined),
+          _buildCard([
+            ListTile(
+              leading: _buildLeadingIcon(
+                  Icons.translate_outlined, theme.colorScheme.primary),
+              title: Text(l10n.language),
+              subtitle: Text(_getCurrentLanguageName()),
+              trailing: const Icon(Icons.chevron_right, size: 18),
+              onTap: _showLanguagePicker,
+            ),
+          ]),
 
-          // --- Appearance ---
-          _buildSectionHeader(theme, l10n.appearance, Icons.palette_outlined),
-          SwitchListTile(
-            title: Text(l10n.darkMode),
-            subtitle: Text(l10n.useDarkTheme),
-            value: _isDarkMode,
-            onChanged: _toggleDarkMode,
-            secondary: const Icon(Icons.dark_mode_outlined),
-          ),
-          const Divider(indent: 16, endIndent: 16),
-
-          // --- Security ---
-          _buildSectionHeader(theme, l10n.security, Icons.shield_outlined),
-          SwitchListTile(
-            title: Text(l10n.appLock),
-            subtitle: Text(l10n.requirePasswordOnLaunch),
-            value: _requireAuthOnLaunch,
-            onChanged: _toggleRequireAuth,
-            secondary: const Icon(Icons.lock_outline),
-          ),
-          if (_biometricAvailable)
+          // ── Appearance ────────────────────────────────────────────
+          _buildSectionLabel(
+              theme, l10n.appearance, Icons.palette_outlined),
+          _buildCard([
             SwitchListTile(
-              title: Text(l10n.biometricAuth),
-              subtitle: Text(l10n.fingerprintFaceId),
-              value: _useBiometric,
-              onChanged: _toggleBiometric,
-              secondary: const Icon(Icons.fingerprint),
+              secondary: _buildLeadingIcon(
+                  Icons.dark_mode_outlined, theme.colorScheme.primary),
+              title: Text(l10n.darkMode),
+              subtitle: Text(l10n.useDarkTheme),
+              value: _isDarkMode,
+              onChanged: _toggleDarkMode,
             ),
-          ListTile(
-            leading: const Icon(Icons.key_outlined),
-            title: Text(widget.authService.hasPassword()
-                ? l10n.changePassword
-                : l10n.setPassword),
-            onTap: _changePassword,
-            trailing: const Icon(Icons.chevron_right),
-          ),
-          const Divider(indent: 16, endIndent: 16),
+          ]),
 
-          // --- Advanced Security ---
-          _buildSectionHeader(
-              theme, l10n.advancedSecurity, Icons.security_outlined),
-          ListTile(
-            leading: const Icon(Icons.timer_outlined),
-            title: Text(l10n.autoLock),
-            subtitle: Text(_formatAutoLock(_autoLockSeconds)),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showAutoLockPicker(),
-          ),
-          ListTile(
-            leading: const Icon(Icons.content_paste_off_outlined),
-            title: Text(l10n.clipboardClear),
-            subtitle: Text(l10n.clipboardClearAfterSeconds(_clipboardClearSeconds)),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showClipboardClearPicker(),
-          ),
-          ListTile(
-            leading: const Icon(Icons.pin_outlined),
-            title: Text(l10n.maxFailedAttemptsLabel),
-            subtitle: Text(l10n.attemptsCount(_maxFailedAttempts)),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showMaxAttemptsPicker(),
-          ),
-          SwitchListTile(
-            title: Text(l10n.wipeOnMaxAttemptsLabel),
-            subtitle: Text(
-              l10n.wipeAllDataOnMax,
-              style: TextStyle(
-                color: _wipeOnMaxAttempts ? AppColors.error : null,
+          // ── Security ──────────────────────────────────────────────
+          _buildSectionLabel(theme, l10n.security, Icons.shield_outlined),
+          _buildCard([
+            SwitchListTile(
+              secondary: _buildLeadingIcon(
+                  Icons.lock_outline, theme.colorScheme.primary),
+              title: Text(l10n.appLock),
+              subtitle: Text(l10n.requirePasswordOnLaunch),
+              value: _requireAuthOnLaunch,
+              onChanged: _toggleRequireAuth,
+            ),
+            if (_biometricAvailable) ...[
+              _buildInternalDivider(),
+              SwitchListTile(
+                secondary: _buildLeadingIcon(
+                    Icons.fingerprint, theme.colorScheme.primary),
+                title: Text(l10n.biometricAuth),
+                subtitle: Text(l10n.fingerprintFaceId),
+                value: _useBiometric,
+                onChanged: _toggleBiometric,
               ),
+            ],
+            _buildInternalDivider(),
+            ListTile(
+              leading: _buildLeadingIcon(
+                  Icons.key_outlined, theme.colorScheme.primary),
+              title: Text(widget.authService.hasPassword()
+                  ? l10n.changePassword
+                  : l10n.setPassword),
+              trailing: const Icon(Icons.chevron_right, size: 18),
+              onTap: _changePassword,
             ),
-            value: _wipeOnMaxAttempts,
-            onChanged: _toggleWipeOnMax,
-            secondary: Icon(
-              Icons.delete_forever_outlined,
-              color: _wipeOnMaxAttempts ? AppColors.error : null,
+          ]),
+
+          // ── Advanced Security ─────────────────────────────────────
+          _buildSectionLabel(
+              theme, l10n.advancedSecurity, Icons.security_outlined),
+          _buildCard([
+            ListTile(
+              leading: _buildLeadingIcon(
+                  Icons.timer_outlined, theme.colorScheme.primary),
+              title: Text(l10n.autoLock),
+              subtitle: Text(_formatAutoLock(_autoLockSeconds)),
+              trailing: const Icon(Icons.chevron_right, size: 18),
+              onTap: _showAutoLockPicker,
             ),
-          ),
-          const Divider(indent: 16, endIndent: 16),
-
-          // --- Backup ---
-          _buildSectionHeader(theme, l10n.backup, Icons.backup_outlined),
-          ListTile(
-            leading: const Icon(Icons.upload_outlined),
-            title: Text(l10n.exportAccounts),
-            subtitle: Text(l10n.nAccounts(accountCount)),
-            onTap: accountCount > 0 ? _exportAccounts : null,
-            trailing: const Icon(Icons.chevron_right),
-          ),
-          ListTile(
-            leading: const Icon(Icons.download_outlined),
-            title: Text(l10n.importAccounts),
-            subtitle: Text(l10n.loadFromJSON),
-            onTap: _importAccounts,
-            trailing: const Icon(Icons.chevron_right),
-          ),
-          const Divider(indent: 16, endIndent: 16),
-
-          // --- Danger Zone ---
-          _buildSectionHeader(theme, l10n.dangerZone, Icons.warning_outlined,
-              color: AppColors.error),
-          ListTile(
-            leading: const Icon(Icons.delete_forever, color: AppColors.error),
-            title: Text(
-              l10n.deleteAllData,
-              style: const TextStyle(color: AppColors.error),
+            _buildInternalDivider(),
+            ListTile(
+              leading: _buildLeadingIcon(
+                  Icons.content_paste_off_outlined, theme.colorScheme.primary),
+              title: Text(l10n.clipboardClear),
+              subtitle:
+                  Text(l10n.clipboardClearAfterSeconds(_clipboardClearSeconds)),
+              trailing: const Icon(Icons.chevron_right, size: 18),
+              onTap: _showClipboardClearPicker,
             ),
-            subtitle: Text(l10n.actionIrreversible),
-            onTap: _clearAllData,
-          ),
-          const Divider(indent: 16, endIndent: 16),
+            _buildInternalDivider(),
+            ListTile(
+              leading: _buildLeadingIcon(
+                  Icons.pin_outlined, theme.colorScheme.primary),
+              title: Text(l10n.maxFailedAttemptsLabel),
+              subtitle: Text(l10n.attemptsCount(_maxFailedAttempts)),
+              trailing: const Icon(Icons.chevron_right, size: 18),
+              onTap: _showMaxAttemptsPicker,
+            ),
+            _buildInternalDivider(),
+            SwitchListTile(
+              secondary: _buildLeadingIcon(
+                Icons.delete_forever_outlined,
+                _wipeOnMaxAttempts ? AppColors.error : theme.colorScheme.primary,
+              ),
+              title: Text(l10n.wipeOnMaxAttemptsLabel),
+              subtitle: Text(
+                l10n.wipeAllDataOnMax,
+                style: TextStyle(
+                  color: _wipeOnMaxAttempts ? AppColors.error : null,
+                ),
+              ),
+              value: _wipeOnMaxAttempts,
+              onChanged: _toggleWipeOnMax,
+            ),
+          ]),
 
-          // --- About ---
-          Padding(
-            padding: const EdgeInsets.all(AppConstants.paddingLG),
-            child: Column(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    borderRadius:
-                        BorderRadius.circular(AppConstants.radiusMD),
+          // ── Backup ────────────────────────────────────────────────
+          _buildSectionLabel(theme, l10n.backup, Icons.backup_outlined),
+          _buildCard([
+            ListTile(
+              leading:
+                  _buildLeadingIcon(Icons.upload_outlined, AppColors.success),
+              title: Text(l10n.exportAccounts),
+              subtitle: Text(l10n.nAccounts(accountCount)),
+              trailing: accountCount > 0
+                  ? const Icon(Icons.chevron_right, size: 18)
+                  : null,
+              enabled: accountCount > 0,
+              onTap: accountCount > 0 ? _exportAccounts : null,
+            ),
+            _buildInternalDivider(),
+            ListTile(
+              leading:
+                  _buildLeadingIcon(Icons.download_outlined, AppColors.accent),
+              title: Text(l10n.importAccounts),
+              subtitle: Text(l10n.loadFromJSON),
+              trailing: const Icon(Icons.chevron_right, size: 18),
+              onTap: _importAccounts,
+            ),
+          ]),
+
+          // ── Danger Zone ───────────────────────────────────────────
+          _buildSectionLabel(
+            theme,
+            l10n.dangerZone,
+            Icons.warning_outlined,
+            color: AppColors.error,
+          ),
+          _buildCard(
+            [
+              ListTile(
+                leading: _buildLeadingIcon(
+                    Icons.delete_forever, AppColors.error),
+                title: Text(
+                  l10n.deleteAllData,
+                  style: const TextStyle(
+                    color: AppColors.error,
+                    fontWeight: FontWeight.w600,
                   ),
-                  child:
-                      const Icon(Icons.shield, size: 22, color: Colors.white),
                 ),
-                const SizedBox(height: AppConstants.paddingSM),
-                Text(
-                  l10n.appName,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
+                subtitle: Text(l10n.actionIrreversible),
+                onTap: _clearAllData,
+              ),
+            ],
+            borderColor: AppColors.error.withAlpha(77),
+          ),
+
+          // ── About ─────────────────────────────────────────────────
+          const SizedBox(height: AppConstants.paddingLG),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppConstants.paddingLG),
+              child: Column(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      borderRadius:
+                          BorderRadius.circular(AppConstants.radiusMD),
+                    ),
+                    child: const Icon(Icons.shield, size: 24, color: Colors.white),
                   ),
-                ),
-                Text(
-                  'v${AppConstants.appVersion}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withAlpha(128),
+                  const SizedBox(height: AppConstants.paddingSM),
+                  Text(
+                    l10n.appName,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  l10n.aboutEncryption,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withAlpha(102),
-                    fontSize: 11,
+                  Text(
+                    'v${AppConstants.appVersion}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withAlpha(128),
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.aboutEncryption,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withAlpha(102),
+                      fontSize: 11,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: AppConstants.paddingXL),
@@ -608,26 +660,72 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSectionHeader(ThemeData theme, String title, IconData icon,
+  // ─── UI helpers ────────────────────────────────────────────────────────────
+
+  Widget _buildSectionLabel(ThemeData theme, String title, IconData icon,
       {Color? color}) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+      padding: const EdgeInsets.fromLTRB(4, 20, 4, 8),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: color ?? theme.colorScheme.primary),
-          const SizedBox(width: 8),
+          Icon(icon, size: 14, color: color ?? theme.colorScheme.primary),
+          const SizedBox(width: 6),
           Text(
-            title,
-            style: theme.textTheme.labelLarge?.copyWith(
+            title.toUpperCase(),
+            style: theme.textTheme.labelSmall?.copyWith(
               color: color ?? theme.colorScheme.primary,
               fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
+              letterSpacing: 0.8,
             ),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildCard(List<Widget> children, {Color? borderColor}) {
+    final theme = Theme.of(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 2),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppConstants.radiusLG),
+        border: Border.all(
+          color: borderColor ?? theme.colorScheme.outline.withAlpha(60),
+          width: 1,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppConstants.radiusLG),
+        child: Column(children: children),
+      ),
+    );
+  }
+
+  Widget _buildInternalDivider() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMD),
+      child: Divider(
+        height: 1,
+        thickness: 1,
+        color: Theme.of(context).colorScheme.outline.withAlpha(40),
+      ),
+    );
+  }
+
+  Widget _buildLeadingIcon(IconData icon, Color color) {
+    return Container(
+      width: 34,
+      height: 34,
+      decoration: BoxDecoration(
+        color: color.withAlpha(22),
+        borderRadius: BorderRadius.circular(AppConstants.radiusSM),
+      ),
+      child: Icon(icon, size: 18, color: color),
+    );
+  }
+
+  // ─── Pickers ───────────────────────────────────────────────────────────────
 
   String _formatAutoLock(int seconds) {
     final l10n = AppLocalizations.of(context)!;
@@ -645,12 +743,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       300: l10n.nMinutes(5),
       600: l10n.nMinutes(10),
     };
-    _showOptionPicker(
-      l10n.autoLock,
-      options,
-      _autoLockSeconds,
-      (v) => _setAutoLockSeconds(v),
-    );
+    _showOptionPicker(l10n.autoLock, options, _autoLockSeconds,
+        _setAutoLockSeconds);
   }
 
   void _showClipboardClearPicker() {
@@ -662,12 +756,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       60: l10n.nMinutes(1),
       120: l10n.nMinutes(2),
     };
-    _showOptionPicker(
-      l10n.clipboardClearTime,
-      options,
-      _clipboardClearSeconds,
-      (v) => _setClipboardClearSeconds(v),
-    );
+    _showOptionPicker(l10n.clipboardClearTime, options, _clipboardClearSeconds,
+        _setClipboardClearSeconds);
   }
 
   void _showMaxAttemptsPicker() {
@@ -679,12 +769,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       15: l10n.attemptsCount(15),
       20: l10n.attemptsCount(20),
     };
-    _showOptionPicker(
-      l10n.maxFailedAttemptsLabel,
-      options,
-      _maxFailedAttempts,
-      (v) => _setMaxFailedAttempts(v),
-    );
+    _showOptionPicker(l10n.maxFailedAttemptsLabel, options, _maxFailedAttempts,
+        _setMaxFailedAttempts);
   }
 
   void _showOptionPicker(
