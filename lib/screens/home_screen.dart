@@ -261,8 +261,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _incrementHOTP(AccountModel account) async {
-    await widget.storageService.incrementHOTPCounter(account);
+  Future<void> _setHOTPCounter(AccountModel account, int counter) async {
+    await widget.storageService.setHOTPCounter(account, counter);
+    // Reload so the card gets a new key (includes counter) → full rebuild
     _loadAccounts();
   }
 
@@ -489,15 +490,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       itemBuilder: (context, index) {
         final account = accounts[index];
         return AccountCard(
-          key: ValueKey(account.id),
+          // Key includes counter so Flutter destroys & recreates the card
+          // whenever the HOTP counter changes → initState() reruns → new code
+          key: ValueKey('${account.id}_${account.counter}'),
           account: account,
           totpService: _totpService,
           onEdit: () => _editAccount(account),
           onDelete: () => _deleteAccount(account),
           onShowQR: () => _showQRCode(account),
           onCopy: _copyCode,
-          onNextHOTP:
-              account.isHotp ? () => _incrementHOTP(account) : null,
+          onSetCounter:
+              account.isHotp ? (c) => _setHOTPCounter(account, c) : null,
         );
       },
     );

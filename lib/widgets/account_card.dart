@@ -15,7 +15,10 @@ class AccountCard extends StatefulWidget {
   final VoidCallback onDelete;
   final VoidCallback onShowQR;
   final Future<void> Function(String code) onCopy;
-  final Future<void> Function()? onNextHOTP; // HOTP counter increment
+
+  /// Called with the new counter value when the user navigates HOTP codes.
+  /// Only set for HOTP accounts.
+  final Future<void> Function(int counter)? onSetCounter;
 
   const AccountCard({
     super.key,
@@ -25,7 +28,7 @@ class AccountCard extends StatefulWidget {
     required this.onDelete,
     required this.onShowQR,
     required this.onCopy,
-    this.onNextHOTP,
+    this.onSetCounter,
   });
 
   @override
@@ -43,17 +46,10 @@ class _AccountCardState extends State<AccountCard> {
   void initState() {
     super.initState();
     _refresh();
+    // HOTP has no time-based refresh; TOTP/Steam tick every second
     if (!widget.account.isHotp) {
-      _timer =
-          Timer.periodic(const Duration(seconds: 1), (_) => _refresh());
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) => _refresh());
     }
-  }
-
-  @override
-  void didUpdateWidget(AccountCard old) {
-    super.didUpdateWidget(old);
-    // Refresh when HOTP counter changes
-    if (old.account.counter != widget.account.counter) _refresh();
   }
 
   @override
@@ -81,15 +77,72 @@ class _AccountCardState extends State<AccountCard> {
     });
   }
 
+  /// Open a number-input dialog to jump to any counter value.
+  Future<void> _showCounterPicker() async {
+    final ctrl =
+        TextEditingController(text: '${widget.account.counter}');
+    final result = await showDialog<int>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Sayaç Seç'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Mevcut sayaç: ${widget.account.counter}',
+              style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(ctx)
+                        .colorScheme
+                        .onSurface
+                        .withAlpha(153),
+                  ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: ctrl,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'Yeni sayaç değeri',
+                prefixIcon: Icon(Icons.tag_outlined),
+              ),
+              onSubmitted: (v) {
+                final val = int.tryParse(v);
+                if (val != null && val >= 0) Navigator.pop(ctx, val);
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('İptal'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final val = int.tryParse(ctrl.text);
+              if (val != null && val >= 0) Navigator.pop(ctx, val);
+            },
+            child: const Text('Uygula'),
+          ),
+        ],
+      ),
+    );
+    ctrl.dispose();
+    if (result != null && mounted) {
+      widget.onSetCounter?.call(result);
+    }
+  }
+
   Color get _timerColor {
     if (_remaining <= 5) return AppColors.error;
     if (_remaining <= 10) return AppColors.warning;
     return AppColors.primary;
   }
 
-  // Service-brand color for the left accent strip
-  Color get _serviceColor =>
-      AppColors.getServiceColor(widget.account.issuer);
+  Color get _serviceColor => AppColors.getServiceColor(widget.account.issuer);
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +150,7 @@ class _AccountCardState extends State<AccountCard> {
     final theme = Theme.of(context);
 
     final formattedCode = widget.account.isSteam
-        ? _code // Steam: no split
+        ? _code
         : widget.totpService.formatCode(_code);
 
     return Card(
@@ -108,7 +161,7 @@ class _AccountCardState extends State<AccountCard> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // ── Left colour accent strip ──────────────────────────────
+              // Left colour accent strip
               Container(
                 width: 4,
                 decoration: BoxDecoration(
@@ -120,7 +173,7 @@ class _AccountCardState extends State<AccountCard> {
                 ),
               ),
 
-              // ── Card body ─────────────────────────────────────────────
+              // Card body
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -135,15 +188,13 @@ class _AccountCardState extends State<AccountCard> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Header row
                           _buildHeader(theme, l10n),
                           const SizedBox(height: AppConstants.paddingMD),
-                          // Code row
                           _buildCodeRow(theme, l10n, formattedCode),
                         ],
                       ),
                     ),
-                    // Bottom progress bar (TOTP / Steam only)
+                    // Bottom progress bar — TOTP & Steam only
                     if (!widget.account.isHotp)
                       LinearProgressIndicator(
                         value: _progress,
@@ -162,6 +213,8 @@ class _AccountCardState extends State<AccountCard> {
       ),
     );
   }
+
+  // ── Header (avatar + issuer/name + type badge + menu) ────────────────────
 
   Widget _buildHeader(ThemeData theme, AppLocalizations l10n) {
     return Row(
@@ -191,7 +244,6 @@ class _AccountCardState extends State<AccountCard> {
         ),
         const SizedBox(width: AppConstants.paddingSM + 4),
 
-        // Issuer + name + type badge
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -209,8 +261,7 @@ class _AccountCardState extends State<AccountCard> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  // Type badge
-                  _buildTypeBadge(theme),
+                  _buildTypeBadge(),
                 ],
               ),
               const SizedBox(height: 2),
@@ -276,31 +327,30 @@ class _AccountCardState extends State<AccountCard> {
     );
   }
 
-  Widget _buildTypeBadge(ThemeData theme) {
-    Color badgeColor;
+  Widget _buildTypeBadge() {
+    Color color;
     String label;
     if (widget.account.isHotp) {
-      badgeColor = AppColors.secondary;
+      color = AppColors.secondary;
       label = 'HOTP';
     } else if (widget.account.isSteam) {
-      badgeColor = AppColors.accent;
+      color = AppColors.accent;
       label = 'Steam';
     } else {
       return const SizedBox.shrink();
     }
-
     return Container(
       margin: const EdgeInsets.only(left: 6),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: badgeColor.withAlpha(26),
+        color: color.withAlpha(26),
         borderRadius: BorderRadius.circular(AppConstants.radiusFull),
-        border: Border.all(color: badgeColor.withAlpha(77)),
+        border: Border.all(color: color.withAlpha(77)),
       ),
       child: Text(
         label,
         style: TextStyle(
-          color: badgeColor,
+          color: color,
           fontSize: 10,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.4,
@@ -309,12 +359,13 @@ class _AccountCardState extends State<AccountCard> {
     );
   }
 
+  // ── Code row ─────────────────────────────────────────────────────────────
+
   Widget _buildCodeRow(
       ThemeData theme, AppLocalizations l10n, String formattedCode) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // OTP code
         Expanded(
           child: Row(
             children: [
@@ -340,22 +391,22 @@ class _AccountCardState extends State<AccountCard> {
                         size: 18)
                     : Icon(Icons.copy,
                         key: const ValueKey('copy'),
-                        color:
-                            theme.colorScheme.onSurface.withAlpha(102),
+                        color: theme.colorScheme.onSurface.withAlpha(102),
                         size: 16),
               ),
             ],
           ),
         ),
-
-        // Right side: timer (TOTP/Steam) or next-code button (HOTP)
+        // Right side: timer (TOTP/Steam) or counter controls (HOTP)
         if (widget.account.isHotp)
-          _buildNextButton(theme, l10n)
+          _buildCounterControls(theme)
         else
           _buildTimerWidget(theme),
       ],
     );
   }
+
+  // ── TOTP/Steam circular timer ─────────────────────────────────────────────
 
   Widget _buildTimerWidget(ThemeData theme) {
     return SizedBox(
@@ -389,34 +440,112 @@ class _AccountCardState extends State<AccountCard> {
     );
   }
 
-  Widget _buildNextButton(ThemeData theme, AppLocalizations l10n) {
-    return GestureDetector(
-      onTap: () async {
-        HapticFeedback.mediumImpact();
-        if (widget.onNextHOTP != null) {
-          await widget.onNextHOTP!();
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          gradient: AppColors.primaryGradient,
-          borderRadius: BorderRadius.circular(AppConstants.radiusFull),
+  // ── HOTP counter controls [←] [counter] [→] ─────────────────────────────
+
+  Widget _buildCounterControls(ThemeData theme) {
+    final counter = widget.account.counter;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Decrement button
+        _CounterNavBtn(
+          icon: Icons.chevron_left,
+          enabled: counter > 0,
+          onTap: () {
+            HapticFeedback.lightImpact();
+            widget.onSetCounter?.call(counter - 1);
+          },
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.refresh, size: 14, color: Colors.white),
-            const SizedBox(width: 4),
-            Text(
-              'Sonraki',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-              ),
+
+        const SizedBox(width: 4),
+
+        // Counter display — tappable to open picker
+        GestureDetector(
+          onTap: () {
+            HapticFeedback.selectionClick();
+            _showCounterPicker();
+          },
+          child: Container(
+            constraints: const BoxConstraints(minWidth: 40),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+            decoration: BoxDecoration(
+              color: AppColors.secondary.withAlpha(20),
+              borderRadius: BorderRadius.circular(AppConstants.radiusSM),
+              border: Border.all(color: AppColors.secondary.withAlpha(70)),
             ),
-          ],
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '$counter',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: AppColors.secondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
+                ),
+                Text(
+                  '#',
+                  style: TextStyle(
+                    color: AppColors.secondary.withAlpha(150),
+                    fontSize: 9,
+                    height: 1.1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(width: 4),
+
+        // Increment button
+        _CounterNavBtn(
+          icon: Icons.chevron_right,
+          enabled: true,
+          onTap: () {
+            HapticFeedback.lightImpact();
+            widget.onSetCounter?.call(counter + 1);
+          },
+        ),
+      ],
+    );
+  }
+}
+
+// ── Small reusable nav button ─────────────────────────────────────────────────
+
+class _CounterNavBtn extends StatelessWidget {
+  final IconData icon;
+  final bool enabled;
+  final VoidCallback? onTap;
+
+  const _CounterNavBtn({
+    required this.icon,
+    required this.enabled,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: 30,
+        height: 30,
+        decoration: BoxDecoration(
+          gradient: enabled ? AppColors.primaryGradient : null,
+          color: enabled ? null : Colors.grey.withAlpha(60),
+          borderRadius: BorderRadius.circular(AppConstants.radiusSM),
+        ),
+        child: Icon(
+          icon,
+          size: 18,
+          color: enabled ? Colors.white : Colors.grey.withAlpha(130),
         ),
       ),
     );
