@@ -247,7 +247,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // ─── EXPORT FIX: use getTemporaryDirectory() instead of Directory.systemTemp ───
+  // ─── EXPORT: Documents dir primary, plain-text share as fallback ─────────
   Future<void> _exportAccounts() async {
     final l10n = AppLocalizations.of(context)!;
     try {
@@ -255,20 +255,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final fileName =
           'secureauth_backup_${DateTime.now().millisecondsSinceEpoch}.json';
 
-      // getTemporaryDirectory() returns the app's sandbox temp dir (works on iOS)
-      final directory = await getTemporaryDirectory();
-      final file = File('${directory.path}/$fileName');
-      await file.writeAsString(jsonString);
-
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        subject: l10n.secureAuthBackup,
-        text: l10n.backupFileDescription,
-      );
+      // Primary: write to Documents directory and share as a JSON file.
+      // Documents dir is accessible from Files.app on iOS and is stable.
+      try {
+        final dir = await getApplicationDocumentsDirectory();
+        final file = File('${dir.path}/$fileName');
+        await file.writeAsString(jsonString, flush: true);
+        await Share.shareXFiles([
+          XFile(file.path, mimeType: 'application/json', name: fileName),
+        ]);
+      } catch (_) {
+        // Fallback: share raw JSON text — works everywhere, no file perms needed
+        await Share.share(jsonString, subject: fileName);
+      }
 
       if (mounted) _showSuccess(l10n.accountsExported);
     } catch (e) {
-      if (mounted) _showError(l10n.exportError);
+      if (mounted) _showError('${l10n.exportError} ($e)');
     }
   }
 

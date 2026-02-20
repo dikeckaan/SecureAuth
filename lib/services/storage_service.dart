@@ -96,6 +96,12 @@ class StorageService {
     await settingsBox.put('settings', settings);
   }
 
+  /// Increments the HOTP counter and persists the change.
+  Future<void> incrementHOTPCounter(AccountModel account) async {
+    account.counter++;
+    await account.save();
+  }
+
   // --- Import / Export ---
 
   Future<String> exportAccountsToJson() async {

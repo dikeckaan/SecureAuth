@@ -34,10 +34,11 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final TOTPService _totpService = TOTPService();
   final QRService _qrService = QRService();
+  final _searchController = TextEditingController();
+
   List<AccountModel> _accounts = [];
   String _searchQuery = '';
   bool _isSearching = false;
-  final _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -67,17 +68,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     });
   }
 
-  List<AccountModel> get _filteredAccounts {
+  List<AccountModel> get _filtered {
     if (_searchQuery.isEmpty) return _accounts;
-    final query = _searchQuery.toLowerCase();
-    return _accounts.where((account) {
-      return account.issuer.toLowerCase().contains(query) ||
-          account.name.toLowerCase().contains(query);
+    final q = _searchQuery.toLowerCase();
+    return _accounts.where((a) {
+      return a.issuer.toLowerCase().contains(q) ||
+          a.name.toLowerCase().contains(q);
     }).toList();
   }
 
   Future<void> _addAccount() async {
-    final result = await Navigator.push(
+    final result = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
         builder: (context) => AddAccountScreen(
@@ -86,24 +87,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
       ),
     );
-
     if (result == true) _loadAccounts();
   }
 
   Future<void> _editAccount(AccountModel account) async {
     final l10n = AppLocalizations.of(context)!;
-    final nameController = TextEditingController(text: account.name);
-    final issuerController = TextEditingController(text: account.issuer);
+    final nameCtrl = TextEditingController(text: account.name);
+    final issuerCtrl = TextEditingController(text: account.issuer);
 
     final result = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: Text(l10n.editAccount),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              controller: issuerController,
+              controller: issuerCtrl,
               decoration: InputDecoration(
                 labelText: l10n.serviceName,
                 prefixIcon: const Icon(Icons.business_outlined),
@@ -112,7 +112,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
             const SizedBox(height: AppConstants.paddingMD),
             TextField(
-              controller: nameController,
+              controller: nameCtrl,
               decoration: InputDecoration(
                 labelText: l10n.accountName,
                 prefixIcon: const Icon(Icons.person_outline),
@@ -122,19 +122,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(ctx, false),
             child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () {
-              if (issuerController.text.trim().isEmpty ||
-                  nameController.text.trim().isEmpty) {
+              if (issuerCtrl.text.trim().isEmpty ||
+                  nameCtrl.text.trim().isEmpty) {
                 return;
               }
-              account.issuer = issuerController.text.trim();
-              account.name = nameController.text.trim();
+              account.issuer = issuerCtrl.text.trim();
+              account.name = nameCtrl.text.trim();
               widget.storageService.updateAccount(account);
-              Navigator.pop(context, true);
+              Navigator.pop(ctx, true);
             },
             child: Text(l10n.save),
           ),
@@ -142,9 +142,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ),
     );
 
-    nameController.dispose();
-    issuerController.dispose();
-
+    nameCtrl.dispose();
+    issuerCtrl.dispose();
     if (result == true) _loadAccounts();
   }
 
@@ -152,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: Text(l10n.deleteAccount),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -164,7 +163,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               padding: const EdgeInsets.all(AppConstants.paddingSM),
               decoration: BoxDecoration(
                 color: AppColors.errorLight,
-                borderRadius: BorderRadius.circular(AppConstants.radiusSM),
+                borderRadius:
+                    BorderRadius.circular(AppConstants.radiusSM),
               ),
               child: Row(
                 children: [
@@ -188,14 +188,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(ctx, false),
             child: Text(l10n.cancel),
           ),
           FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.error,
-            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
             child: Text(l10n.delete),
           ),
         ],
@@ -220,10 +218,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => QRDisplayScreen(
-          account: account,
-          qrService: _qrService,
-        ),
+        builder: (context) =>
+            QRDisplayScreen(account: account, qrService: _qrService),
       ),
     );
   }
@@ -246,7 +242,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _copyCode(String code) async {
     HapticFeedback.lightImpact();
     await widget.authService.secureCopy(code);
-
     if (mounted) {
       final l10n = AppLocalizations.of(context)!;
       final settings = widget.storageService.getSettings();
@@ -266,19 +261,35 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _incrementHOTP(AccountModel account) async {
+    await widget.storageService.incrementHOTPCounter(account);
+    _loadAccounts();
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _isSearching = !_isSearching;
+      if (!_isSearching) {
+        _searchQuery = '';
+        _searchController.clear();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final filtered = _filteredAccounts;
+    final filtered = _filtered;
 
     return Scaffold(
       appBar: AppBar(
+        titleSpacing: AppConstants.paddingMD,
         title: _isSearching
             ? TextField(
                 controller: _searchController,
                 autofocus: true,
-                onChanged: (value) => setState(() => _searchQuery = value),
+                onChanged: (v) => setState(() => _searchQuery = v),
                 style: TextStyle(color: theme.colorScheme.onSurface),
                 decoration: InputDecoration(
                   hintText: l10n.searchAccounts,
@@ -291,57 +302,70 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ),
                 ),
               )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      borderRadius:
-                          BorderRadius.circular(AppConstants.radiusSM),
-                    ),
-                    child: const Icon(Icons.shield,
-                        size: 16, color: Colors.white),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(l10n.appName),
-                ],
-              ),
+            : _buildAppBarTitle(theme, l10n),
         actions: [
           if (_accounts.isNotEmpty)
             IconButton(
               icon: Icon(_isSearching ? Icons.close : Icons.search),
-              onPressed: () {
-                setState(() {
-                  _isSearching = !_isSearching;
-                  if (!_isSearching) {
-                    _searchQuery = '';
-                    _searchController.clear();
-                  }
-                });
-              },
+              onPressed: _toggleSearch,
             ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: _goToSettings,
           ),
+          const SizedBox(width: 4),
         ],
       ),
       body: _accounts.isEmpty
           ? _buildEmptyState(theme, l10n)
           : filtered.isEmpty
               ? _buildNoResults(theme, l10n)
-              : _buildAccountList(filtered),
-      floatingActionButton: FloatingActionButton.extended(
+              : _buildAccountList(filtered, l10n),
+      floatingActionButton: FloatingActionButton(
         onPressed: _addAccount,
-        icon: const Icon(Icons.add),
-        label: Text(l10n.addAccount),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 4,
+        child: const Icon(Icons.add, size: 28),
       ),
+    );
+  }
+
+  Widget _buildAppBarTitle(ThemeData theme, AppLocalizations l10n) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            gradient: AppColors.primaryGradient,
+            borderRadius: BorderRadius.circular(AppConstants.radiusSM),
+          ),
+          child: const Icon(Icons.shield, size: 16, color: Colors.white),
+        ),
+        const SizedBox(width: 10),
+        Text(l10n.appName),
+        if (_accounts.isNotEmpty) ...[
+          const SizedBox(width: 8),
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withAlpha(26),
+              borderRadius: BorderRadius.circular(AppConstants.radiusFull),
+            ),
+            child: Text(
+              '${_accounts.length}',
+              style: TextStyle(
+                color: theme.colorScheme.primary,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -353,24 +377,31 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 100,
-              height: 100,
+              width: 96,
+              height: 96,
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withAlpha(26),
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primary.withAlpha(30),
+                    AppColors.secondary.withAlpha(30),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.security,
-                size: 48,
-                color: theme.colorScheme.primary.withAlpha(128),
+                size: 44,
+                color: theme.colorScheme.primary.withAlpha(140),
               ),
             ),
             const SizedBox(height: AppConstants.paddingLG),
             Text(
               l10n.noAccountsYet,
               style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurface.withAlpha(179),
+                fontWeight: FontWeight.w700,
+                color: theme.colorScheme.onSurface.withAlpha(200),
               ),
             ),
             const SizedBox(height: AppConstants.paddingSM),
@@ -378,11 +409,51 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               l10n.addAccountsToImprove,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurface.withAlpha(102),
+                height: 1.5,
               ),
               textAlign: TextAlign.center,
             ),
+            const SizedBox(height: AppConstants.paddingXL),
+            // Quick-start type chips
+            Wrap(
+              spacing: AppConstants.paddingSM,
+              children: [
+                _buildTypeChip('TOTP', Icons.access_time_outlined,
+                    AppColors.primary),
+                _buildTypeChip(
+                    'HOTP', Icons.tag_outlined, AppColors.secondary),
+                _buildTypeChip('Steam',
+                    Icons.videogame_asset_outlined, AppColors.accent),
+              ],
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTypeChip(String label, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withAlpha(20),
+        borderRadius: BorderRadius.circular(AppConstants.radiusFull),
+        border: Border.all(color: color.withAlpha(60)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -392,11 +463,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.search_off,
-            size: 48,
-            color: theme.colorScheme.onSurface.withAlpha(102),
-          ),
+          Icon(Icons.search_off,
+              size: 48,
+              color: theme.colorScheme.onSurface.withAlpha(102)),
           const SizedBox(height: AppConstants.paddingMD),
           Text(
             l10n.accountNotFound,
@@ -409,7 +478,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildAccountList(List<AccountModel> accounts) {
+  Widget _buildAccountList(
+      List<AccountModel> accounts, AppLocalizations l10n) {
     return ListView.builder(
       padding: const EdgeInsets.only(
         top: AppConstants.paddingSM,
@@ -419,12 +489,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       itemBuilder: (context, index) {
         final account = accounts[index];
         return AccountCard(
+          key: ValueKey(account.id),
           account: account,
           totpService: _totpService,
           onEdit: () => _editAccount(account),
           onDelete: () => _deleteAccount(account),
           onShowQR: () => _showQRCode(account),
           onCopy: _copyCode,
+          onNextHOTP:
+              account.isHotp ? () => _incrementHOTP(account) : null,
         );
       },
     );
