@@ -129,5 +129,8 @@
   "decryptBackup": "バックアップを復号",
   "enterBackupPassword": "このバックアップのエクスポート時に使用したパスワードを入力してください。",
   "wrongPasswordOrCorrupted": "パスワードが違うか、ファイルが破損しています",
-  "loadFromFile": "JSONまたは暗号化.saencファイルから読み込む"
+  "loadFromFile": "JSONまたは暗号化.saencファイルから読み込む",
+  "ok": "OK",
+  "dataWipedTitle": "全データが削除されました",
+  "dataWipedBody": "パスワードの最大失敗試行回数を超えました。\n\nセキュリティのため、すべてのアカウントと設定が完全に削除されました。OKをタップして最初からやり直してください。"
 }

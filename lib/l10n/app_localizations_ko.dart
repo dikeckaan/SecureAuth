@@ -429,4 +429,14 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get loadFromFile => 'JSON 또는 암호화된 .saenc 파일에서 불러오기';
+
+  @override
+  String get ok => '확인';
+
+  @override
+  String get dataWipedTitle => '모든 데이터 삭제됨';
+
+  @override
+  String get dataWipedBody =>
+      '최대 비밀번호 시도 횟수를 초과했습니다.\n\n보안을 위해 모든 계정과 설정이 영구적으로 삭제되었습니다. 확인을 탭하여 처음부터 시작하세요.';
 }

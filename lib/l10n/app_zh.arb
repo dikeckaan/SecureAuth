@@ -129,5 +129,8 @@
   "decryptBackup": "解密备份",
   "enterBackupPassword": "请输入导出此备份时使用的密码。",
   "wrongPasswordOrCorrupted": "密码错误或文件已损坏",
-  "loadFromFile": "从JSON或加密的.saenc文件加载"
+  "loadFromFile": "从JSON或加密的.saenc文件加载",
+  "ok": "确定",
+  "dataWipedTitle": "所有数据已删除",
+  "dataWipedBody": "超过最大密码尝试次数。\n\n为了安全，所有账户和设置已被永久删除。点击确定重新开始。"
 }

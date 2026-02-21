@@ -129,5 +129,8 @@
   "decryptBackup": "백업 복호화",
   "enterBackupPassword": "이 백업을 내보낼 때 사용한 비밀번호를 입력하세요.",
   "wrongPasswordOrCorrupted": "잘못된 비밀번호 또는 손상된 파일",
-  "loadFromFile": "JSON 또는 암호화된 .saenc 파일에서 불러오기"
+  "loadFromFile": "JSON 또는 암호화된 .saenc 파일에서 불러오기",
+  "ok": "확인",
+  "dataWipedTitle": "모든 데이터 삭제됨",
+  "dataWipedBody": "최대 비밀번호 시도 횟수를 초과했습니다.\n\n보안을 위해 모든 계정과 설정이 영구적으로 삭제되었습니다. 확인을 탭하여 처음부터 시작하세요."
 }

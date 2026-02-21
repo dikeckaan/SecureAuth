@@ -237,5 +237,8 @@
   "decryptBackup": "Decrypt Backup",
   "enterBackupPassword": "Enter the password you used when exporting this backup.",
   "wrongPasswordOrCorrupted": "Wrong password or corrupted file",
-  "loadFromFile": "Load from JSON or encrypted .saenc file"
+  "loadFromFile": "Load from JSON or encrypted .saenc file",
+  "ok": "OK",
+  "dataWipedTitle": "All Data Deleted",
+  "dataWipedBody": "Maximum failed password attempts exceeded.\n\nAll your accounts and settings have been permanently deleted for security. Tap OK to start over."
 }

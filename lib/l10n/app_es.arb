@@ -129,5 +129,8 @@
   "decryptBackup": "Descifrar Copia",
   "enterBackupPassword": "Ingresa la contraseña que usaste al exportar esta copia de seguridad.",
   "wrongPasswordOrCorrupted": "Contraseña incorrecta o archivo corrupto",
-  "loadFromFile": "Cargar desde JSON o archivo .saenc cifrado"
+  "loadFromFile": "Cargar desde JSON o archivo .saenc cifrado",
+  "ok": "Aceptar",
+  "dataWipedTitle": "Todos los Datos Eliminados",
+  "dataWipedBody": "Se excedió el número máximo de intentos fallidos.\n\nTodas sus cuentas y configuraciones han sido eliminadas permanentemente. Toca Aceptar para comenzar de nuevo."
 }

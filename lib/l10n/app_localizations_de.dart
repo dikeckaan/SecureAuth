@@ -442,4 +442,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get loadFromFile => 'Aus JSON oder verschlüsselter .saenc-Datei laden';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get dataWipedTitle => 'Alle Daten Gelöscht';
+
+  @override
+  String get dataWipedBody =>
+      'Maximale Anzahl fehlgeschlagener Versuche überschritten.\n\nAlle Konten und Einstellungen wurden aus Sicherheitsgründen dauerhaft gelöscht. Tippen Sie auf OK, um neu zu beginnen.';
 }

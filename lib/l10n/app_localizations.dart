@@ -897,6 +897,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Load from JSON or encrypted .saenc file'**
   String get loadFromFile;
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @dataWipedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All Data Deleted'**
+  String get dataWipedTitle;
+
+  /// No description provided for @dataWipedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum failed password attempts exceeded.\n\nAll your accounts and settings have been permanently deleted for security. Tap OK to start over.'**
+  String get dataWipedBody;
 }
 
 class _AppLocalizationsDelegate

@@ -9,6 +9,7 @@ import '../services/storage_service.dart';
 import '../utils/constants.dart';
 import '../widgets/custom_button.dart';
 import 'home_screen.dart';
+import 'setup_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   final StorageService storageService;
@@ -132,19 +133,16 @@ class _AuthScreenState extends State<AuthScreen>
         HapticFeedback.heavyImpact();
         _shakeController.forward().then((_) => _shakeController.reset());
 
+        // If verifyPassword wiped all data, hasPassword() is now false.
+        // Show the big warning dialog then go to SetupScreen.
+        if (!widget.authService.hasPassword()) {
+          if (mounted) _showDataWipedDialog(l10n);
+          return;
+        }
+
         final attempts = await widget.authService.getFailedAttempts();
         final remaining = await widget.authService.getRemainingLockout();
         final settings = widget.storageService.getSettings();
-
-        if (settings.wipeOnMaxAttempts &&
-            attempts >= settings.maxFailedAttempts) {
-          if (mounted) {
-            setState(() {
-              _errorMessage = l10n.maxAttemptsExceeded;
-            });
-          }
-          return;
-        }
 
         if (mounted) {
           setState(() {
@@ -167,6 +165,100 @@ class _AuthScreenState extends State<AuthScreen>
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  void _showDataWipedDialog(AppLocalizations l10n) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogCtx) => PopScope(
+        canPop: false,
+        child: Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppConstants.radiusLG),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(AppConstants.paddingXL),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: AppColors.error.withAlpha(26),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.delete_forever_rounded,
+                    size: 40,
+                    color: AppColors.error,
+                  ),
+                ),
+                const SizedBox(height: AppConstants.paddingLG),
+                Text(
+                  l10n.dataWipedTitle,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.error,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppConstants.paddingMD),
+                Text(
+                  l10n.dataWipedBody,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    height: 1.6,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppConstants.paddingXL),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.error,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: AppConstants.paddingMD),
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppConstants.radiusMD),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(dialogCtx).pop();
+                      _navigateToSetup();
+                    },
+                    child: Text(
+                      l10n.ok,
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _navigateToSetup() {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => SetupScreen(
+          storageService: widget.storageService,
+          authService: widget.authService,
+          onThemeChanged: widget.onThemeChanged,
+          onLocaleChanged: widget.onLocaleChanged,
+        ),
+      ),
+      (route) => false,
+    );
   }
 
   void _navigateToHome() {

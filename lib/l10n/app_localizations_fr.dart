@@ -443,4 +443,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get loadFromFile => 'Charger depuis un fichier JSON ou .saenc chiffré';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get dataWipedTitle => 'Toutes les données supprimées';
+
+  @override
+  String get dataWipedBody =>
+      'Nombre maximum de tentatives échouées dépassé.\n\nTous vos comptes et paramètres ont été définitivement supprimés. Appuyez sur OK pour recommencer.';
 }

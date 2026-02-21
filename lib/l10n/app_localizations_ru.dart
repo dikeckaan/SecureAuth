@@ -438,4 +438,14 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get loadFromFile =>
       'Загрузить из JSON или зашифрованного .saenc файла';
+
+  @override
+  String get ok => 'ОК';
+
+  @override
+  String get dataWipedTitle => 'Все данные удалены';
+
+  @override
+  String get dataWipedBody =>
+      'Превышено максимальное количество неудачных попыток.\n\nВсе аккаунты и настройки безвозвратно удалены в целях безопасности. Нажмите ОК, чтобы начать заново.';
 }

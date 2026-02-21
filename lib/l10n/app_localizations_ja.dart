@@ -428,4 +428,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get loadFromFile => 'JSONまたは暗号化.saencファイルから読み込む';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get dataWipedTitle => '全データが削除されました';
+
+  @override
+  String get dataWipedBody =>
+      'パスワードの最大失敗試行回数を超えました。\n\nセキュリティのため、すべてのアカウントと設定が完全に削除されました。OKをタップして最初からやり直してください。';
 }

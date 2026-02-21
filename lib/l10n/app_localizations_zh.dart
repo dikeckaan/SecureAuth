@@ -427,4 +427,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get loadFromFile => '从JSON或加密的.saenc文件加载';
+
+  @override
+  String get ok => '确定';
+
+  @override
+  String get dataWipedTitle => '所有数据已删除';
+
+  @override
+  String get dataWipedBody => '超过最大密码尝试次数。\n\n为了安全，所有账户和设置已被永久删除。点击确定重新开始。';
 }

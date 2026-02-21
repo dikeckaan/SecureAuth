@@ -438,4 +438,14 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get loadFromFile => 'JSON veya şifreli .saenc dosyasından yükle';
+
+  @override
+  String get ok => 'Tamam';
+
+  @override
+  String get dataWipedTitle => 'Tüm Veriler Silindi';
+
+  @override
+  String get dataWipedBody =>
+      'Maksimum başarısız giriş denemesi aşıldı.\n\nGüvenliğiniz için tüm hesaplarınız ve ayarlarınız kalıcı olarak silindi. Baştan başlamak için Tamam\'a dokunun.';
 }

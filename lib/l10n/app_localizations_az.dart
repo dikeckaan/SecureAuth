@@ -438,4 +438,14 @@ class AppLocalizationsAz extends AppLocalizations {
 
   @override
   String get loadFromFile => 'JSON və ya şifrəli .saenc faylından yüklə';
+
+  @override
+  String get ok => 'Tamam';
+
+  @override
+  String get dataWipedTitle => 'Bütün Məlumatlar Silindi';
+
+  @override
+  String get dataWipedBody =>
+      'Maksimum uğursuz cəhd sayı aşıldı.\n\nTəhlükəsizlik üçün bütün hesablarınız və parametrləriniz birdəfəlik silindi. Yenidən başlamaq üçün Tamam\'a toxunun.';
 }

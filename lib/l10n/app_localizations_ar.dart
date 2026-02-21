@@ -434,4 +434,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get loadFromFile => 'تحميل من ملف JSON أو .saenc مشفر';
+
+  @override
+  String get ok => 'موافق';
+
+  @override
+  String get dataWipedTitle => 'تم حذف جميع البيانات';
+
+  @override
+  String get dataWipedBody =>
+      'تم تجاوز الحد الأقصى لمحاولات كلمة المرور.\n\nتم حذف جميع حساباتك وإعداداتك نهائيًا لأسباب أمنية. اضغط موافق للبدء من جديد.';
 }

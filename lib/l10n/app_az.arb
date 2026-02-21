@@ -129,5 +129,8 @@
   "decryptBackup": "Ehtiyat Nüsxəni Aç",
   "enterBackupPassword": "Bu ehtiyat nüsxəni ixrac edərkən istifadə etdiyiniz şifrəni daxil edin.",
   "wrongPasswordOrCorrupted": "Yanlış şifrə və ya zədəli fayl",
-  "loadFromFile": "JSON və ya şifrəli .saenc faylından yüklə"
+  "loadFromFile": "JSON və ya şifrəli .saenc faylından yüklə",
+  "ok": "Tamam",
+  "dataWipedTitle": "Bütün Məlumatlar Silindi",
+  "dataWipedBody": "Maksimum uğursuz cəhd sayı aşıldı.\n\nTəhlükəsizlik üçün bütün hesablarınız və parametrləriniz birdəfəlik silindi. Yenidən başlamaq üçün Tamam'a toxunun."
 }

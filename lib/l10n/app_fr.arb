@@ -129,5 +129,8 @@
   "decryptBackup": "Déchiffrer la Sauvegarde",
   "enterBackupPassword": "Entrez le mot de passe utilisé lors de l'exportation de cette sauvegarde.",
   "wrongPasswordOrCorrupted": "Mot de passe incorrect ou fichier corrompu",
-  "loadFromFile": "Charger depuis un fichier JSON ou .saenc chiffré"
+  "loadFromFile": "Charger depuis un fichier JSON ou .saenc chiffré",
+  "ok": "OK",
+  "dataWipedTitle": "Toutes les données supprimées",
+  "dataWipedBody": "Nombre maximum de tentatives échouées dépassé.\n\nTous vos comptes et paramètres ont été définitivement supprimés. Appuyez sur OK pour recommencer."
 }

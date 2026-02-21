@@ -434,4 +434,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loadFromFile => 'Load from JSON or encrypted .saenc file';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get dataWipedTitle => 'All Data Deleted';
+
+  @override
+  String get dataWipedBody =>
+      'Maximum failed password attempts exceeded.\n\nAll your accounts and settings have been permanently deleted for security. Tap OK to start over.';
 }

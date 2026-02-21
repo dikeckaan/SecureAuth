@@ -442,4 +442,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get loadFromFile => 'Cargar desde JSON o archivo .saenc cifrado';
+
+  @override
+  String get ok => 'Aceptar';
+
+  @override
+  String get dataWipedTitle => 'Todos los Datos Eliminados';
+
+  @override
+  String get dataWipedBody =>
+      'Se excedió el número máximo de intentos fallidos.\n\nTodas sus cuentas y configuraciones han sido eliminadas permanentemente. Toca Aceptar para comenzar de nuevo.';
 }

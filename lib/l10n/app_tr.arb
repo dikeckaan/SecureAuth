@@ -129,5 +129,8 @@
   "decryptBackup": "Yedeği Çöz",
   "enterBackupPassword": "Bu yedeği dışa aktarırken belirlediğiniz şifreyi girin.",
   "wrongPasswordOrCorrupted": "Yanlış şifre veya bozuk dosya",
-  "loadFromFile": "JSON veya şifreli .saenc dosyasından yükle"
+  "loadFromFile": "JSON veya şifreli .saenc dosyasından yükle",
+  "ok": "Tamam",
+  "dataWipedTitle": "Tüm Veriler Silindi",
+  "dataWipedBody": "Maksimum başarısız giriş denemesi aşıldı.\n\nGüvenliğiniz için tüm hesaplarınız ve ayarlarınız kalıcı olarak silindi. Baştan başlamak için Tamam'a dokunun."
 }

@@ -129,5 +129,8 @@
   "decryptBackup": "Descriptografar Backup",
   "enterBackupPassword": "Digite a senha usada ao exportar este backup.",
   "wrongPasswordOrCorrupted": "Senha incorreta ou arquivo corrompido",
-  "loadFromFile": "Carregar de arquivo JSON ou .saenc criptografado"
+  "loadFromFile": "Carregar de arquivo JSON ou .saenc criptografado",
+  "ok": "OK",
+  "dataWipedTitle": "Todos os Dados Excluídos",
+  "dataWipedBody": "Número máximo de tentativas falhas excedido.\n\nTodas as contas e configurações foram excluídas permanentemente. Toque em OK para recomeçar."
 }
