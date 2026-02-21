@@ -1027,15 +1027,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   horizontal: AppConstants.paddingLG),
               child: Column(
                 children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      borderRadius:
-                          BorderRadius.circular(AppConstants.radiusMD),
+                  ClipRRect(
+                    borderRadius:
+                        BorderRadius.circular(AppConstants.radiusMD),
+                    child: Image.asset(
+                      'assets/icon/app_icon.png',
+                      width: 48,
+                      height: 48,
+                      fit: BoxFit.cover,
                     ),
-                    child: const Icon(Icons.shield, size: 24, color: Colors.white),
                   ),
                   const SizedBox(height: AppConstants.paddingSM),
                   Text(

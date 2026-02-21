@@ -300,22 +300,14 @@ class _AuthScreenState extends State<AuthScreen>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Logo
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(26),
-                      borderRadius:
-                          BorderRadius.circular(AppConstants.radiusXL),
-                      border: Border.all(
-                        color: Colors.white.withAlpha(51),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.shield,
-                      size: 40,
-                      color: Colors.white,
+                  ClipRRect(
+                    borderRadius:
+                        BorderRadius.circular(AppConstants.radiusXL),
+                    child: Image.asset(
+                      'assets/icon/app_icon.png',
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.cover,
                     ),
                   ),
                   const SizedBox(height: AppConstants.paddingLG),

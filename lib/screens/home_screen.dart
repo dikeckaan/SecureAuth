@@ -336,14 +336,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 28,
-          height: 28,
-          decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.circular(AppConstants.radiusSM),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(AppConstants.radiusSM),
+          child: Image.asset(
+            'assets/icon/app_icon.png',
+            width: 28,
+            height: 28,
+            fit: BoxFit.cover,
           ),
-          child: const Icon(Icons.shield, size: 16, color: Colors.white),
         ),
         const SizedBox(width: 10),
         Text(l10n.appName),
@@ -377,24 +377,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.primary.withAlpha(30),
-                    AppColors.secondary.withAlpha(30),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.security,
-                size: 44,
-                color: theme.colorScheme.primary.withAlpha(140),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(AppConstants.radiusXL),
+              child: Image.asset(
+                'assets/icon/app_icon.png',
+                width: 96,
+                height: 96,
+                fit: BoxFit.cover,
               ),
             ),
             const SizedBox(height: AppConstants.paddingLG),
