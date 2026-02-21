@@ -148,6 +148,13 @@ class AuthService {
     );
   }
 
+  // --- Full Reset (manual "Delete All Data") ---
+
+  /// Clears brute-force counters, lockout timer, and activity timestamp from
+  /// secure storage. Call this after [StorageService.clearAllData] so that
+  /// the user is not left in a locked-out state after a manual data wipe.
+  Future<void> clearSecurityState() => _securityService.clearSecurityState();
+
   // --- Full Auth Flow ---
 
   Future<bool> authenticate() async {

@@ -12,6 +12,7 @@ import '../services/auth_service.dart';
 import '../services/backup_encryption_service.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
+import 'setup_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final StorageService storageService;
@@ -406,9 +407,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _importAccounts() async {
     final l10n = AppLocalizations.of(context)!;
     try {
+      // FileType.any instead of FileType.custom: iOS doesn't have a registered
+      // UTI for .saenc, so custom-extension filtering would hide those files.
+      // We detect the format ourselves via magic bytes after picking.
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['json', BackupEncryptionService.fileExtension],
+        type: FileType.any,
         withData: true, // required for cloud-backed files (iCloud etc.)
       );
 
@@ -744,10 +747,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
 
     if (confirmed == true) {
+      // Clear Hive data and reset settings to factory defaults.
       await widget.storageService.clearAllData();
+      // Clear brute-force counters / lockout from secure storage.
+      await widget.authService.clearSecurityState();
+
       if (mounted) {
-        _showSuccess(l10n.allDataDeleted);
-        Navigator.pop(context);
+        // Pop the entire navigation stack and replace it with SetupScreen.
+        // AppSettings() defaults: requireAuthOnLaunch=true, no passwordHash
+        // → SetupScreen is the correct "fresh install" starting point.
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => SetupScreen(
+              storageService: widget.storageService,
+              authService: widget.authService,
+              onThemeChanged: widget.onThemeChanged,
+              onLocaleChanged: widget.onLocaleChanged,
+            ),
+          ),
+          (route) => false, // remove all existing routes
+        );
       }
     }
   }
