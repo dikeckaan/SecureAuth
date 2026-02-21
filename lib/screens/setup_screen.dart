@@ -180,12 +180,33 @@ class _SetupScreenState extends State<SetupScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final strength = _getPasswordStrength(_passwordController.text);
     final strengthLabel = _getStrengthLabel(strength);
 
+    // Adaptive colours: dark modes keep the cinematic look, light uses theme.
+    final Color fg = isDark ? Colors.white : theme.colorScheme.onSurface;
+    final Color fgMuted = fg.withAlpha(179);
+    final Color fgHint = fg.withAlpha(153);
+    final Color fgSubtle = fg.withAlpha(128);
+    final Color fgFaint = fg.withAlpha(102);
+    final Color cardBg = isDark
+        ? Colors.white.withAlpha(26)
+        : theme.colorScheme.surfaceContainerHighest.withAlpha(120);
+    final Color cardBorder =
+        isDark ? Colors.white.withAlpha(38) : theme.colorScheme.outline.withAlpha(60);
+    final Color fieldFill =
+        isDark ? Colors.white.withAlpha(18) : theme.colorScheme.surfaceContainerHighest.withAlpha(80);
+    final Color fieldBorder =
+        isDark ? Colors.white.withAlpha(51) : theme.colorScheme.outline.withAlpha(100);
+    final Color fieldFocusBorder = isDark ? Colors.white : theme.colorScheme.primary;
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.authGradient),
+        decoration: isDark
+            ? const BoxDecoration(gradient: AppColors.authGradient)
+            : BoxDecoration(color: theme.scaffoldBackgroundColor),
         child: SafeArea(
           child: Stack(
             children: [
@@ -195,7 +216,7 @@ class _SetupScreenState extends State<SetupScreen> {
                 right: AppConstants.paddingSM,
                 child: IconButton(
                   onPressed: _cycleTheme,
-                  icon: Icon(_themeIcon(), color: Colors.white.withAlpha(179)),
+                  icon: Icon(_themeIcon(), color: fgMuted),
                   tooltip: l10n.themeMode,
                 ),
               ),
@@ -220,8 +241,8 @@ class _SetupScreenState extends State<SetupScreen> {
                   const SizedBox(height: AppConstants.paddingLG),
                   Text(
                     l10n.welcome,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: fg,
                       fontSize: 28,
                       fontWeight: FontWeight.w700,
                       letterSpacing: -0.5,
@@ -231,7 +252,7 @@ class _SetupScreenState extends State<SetupScreen> {
                   Text(
                     l10n.setupSubtitle,
                     style: TextStyle(
-                      color: Colors.white.withAlpha(179),
+                      color: fgMuted,
                       fontSize: 14,
                       height: 1.5,
                     ),
@@ -242,12 +263,10 @@ class _SetupScreenState extends State<SetupScreen> {
                   Container(
                     padding: const EdgeInsets.all(AppConstants.paddingLG),
                     decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(26),
+                      color: cardBg,
                       borderRadius:
                           BorderRadius.circular(AppConstants.radiusLG),
-                      border: Border.all(
-                        color: Colors.white.withAlpha(38),
-                      ),
+                      border: Border.all(color: cardBorder),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -257,36 +276,33 @@ class _SetupScreenState extends State<SetupScreen> {
                           controller: _passwordController,
                           obscureText: _obscurePassword,
                           onChanged: (_) => setState(() {}),
-                          style: const TextStyle(color: Colors.white),
+                          style: TextStyle(color: fg),
                           decoration: InputDecoration(
                             labelText: l10n.password,
-                            labelStyle: TextStyle(
-                                color: Colors.white.withAlpha(153)),
-                            prefixIcon: Icon(Icons.lock_outline,
-                                color: Colors.white.withAlpha(153)),
+                            labelStyle: TextStyle(color: fgHint),
+                            prefixIcon: Icon(Icons.lock_outline, color: fgHint),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword
                                     ? Icons.visibility_outlined
                                     : Icons.visibility_off_outlined,
-                                color: Colors.white.withAlpha(153),
+                                color: fgHint,
                               ),
                               onPressed: () => setState(
                                   () => _obscurePassword = !_obscurePassword),
                             ),
                             filled: true,
-                            fillColor: Colors.white.withAlpha(18),
+                            fillColor: fieldFill,
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(
                                   AppConstants.radiusMD),
-                              borderSide: BorderSide(
-                                  color: Colors.white.withAlpha(51)),
+                              borderSide: BorderSide(color: fieldBorder),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(
                                   AppConstants.radiusMD),
-                              borderSide: const BorderSide(
-                                  color: Colors.white, width: 2),
+                              borderSide: BorderSide(
+                                  color: fieldFocusBorder, width: 2),
                             ),
                           ),
                         ),
@@ -297,7 +313,7 @@ class _SetupScreenState extends State<SetupScreen> {
                             borderRadius: BorderRadius.circular(4),
                             child: LinearProgressIndicator(
                               value: strength,
-                              backgroundColor: Colors.white.withAlpha(26),
+                              backgroundColor: fg.withAlpha(26),
                               valueColor: AlwaysStoppedAnimation(
                                   _getStrengthColor(strength)),
                               minHeight: 4,
@@ -318,36 +334,33 @@ class _SetupScreenState extends State<SetupScreen> {
                         TextField(
                           controller: _confirmPasswordController,
                           obscureText: _obscureConfirm,
-                          style: const TextStyle(color: Colors.white),
+                          style: TextStyle(color: fg),
                           decoration: InputDecoration(
                             labelText: l10n.confirmPassword,
-                            labelStyle: TextStyle(
-                                color: Colors.white.withAlpha(153)),
-                            prefixIcon: Icon(Icons.lock_outline,
-                                color: Colors.white.withAlpha(153)),
+                            labelStyle: TextStyle(color: fgHint),
+                            prefixIcon: Icon(Icons.lock_outline, color: fgHint),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscureConfirm
                                     ? Icons.visibility_outlined
                                     : Icons.visibility_off_outlined,
-                                color: Colors.white.withAlpha(153),
+                                color: fgHint,
                               ),
                               onPressed: () => setState(
                                   () => _obscureConfirm = !_obscureConfirm),
                             ),
                             filled: true,
-                            fillColor: Colors.white.withAlpha(18),
+                            fillColor: fieldFill,
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(
                                   AppConstants.radiusMD),
-                              borderSide: BorderSide(
-                                  color: Colors.white.withAlpha(51)),
+                              borderSide: BorderSide(color: fieldBorder),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(
                                   AppConstants.radiusMD),
-                              borderSide: const BorderSide(
-                                  color: Colors.white, width: 2),
+                              borderSide: BorderSide(
+                                  color: fieldFocusBorder, width: 2),
                             ),
                           ),
                         ),
@@ -360,30 +373,27 @@ class _SetupScreenState extends State<SetupScreen> {
                               vertical: AppConstants.paddingSM,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withAlpha(13),
+                              color: fg.withAlpha(13),
                               borderRadius: BorderRadius.circular(
                                   AppConstants.radiusMD),
-                              border: Border.all(
-                                  color: Colors.white.withAlpha(26)),
+                              border: Border.all(color: fg.withAlpha(26)),
                             ),
                             child: SwitchListTile(
                               title: Text(
                                 l10n.biometricAuth,
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 14),
+                                style: TextStyle(color: fg, fontSize: 14),
                               ),
                               subtitle: Text(
                                 l10n.fingerprintOrFace,
                                 style: TextStyle(
-                                  color: Colors.white.withAlpha(128),
+                                  color: fgSubtle,
                                   fontSize: 12,
                                 ),
                               ),
                               value: _useBiometric,
                               onChanged: (value) =>
                                   setState(() => _useBiometric = value),
-                              secondary: Icon(Icons.fingerprint,
-                                  color: Colors.white.withAlpha(179)),
+                              secondary: Icon(Icons.fingerprint, color: fgMuted),
                               contentPadding: EdgeInsets.zero,
                             ),
                           ),
@@ -403,7 +413,7 @@ class _SetupScreenState extends State<SetupScreen> {
                           child: Text(
                             l10n.continueWithoutPassword,
                             style: TextStyle(
-                              color: Colors.white.withAlpha(153),
+                              color: fgHint,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -415,13 +425,12 @@ class _SetupScreenState extends State<SetupScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.info_outline,
-                          size: 14, color: Colors.white.withAlpha(102)),
+                      Icon(Icons.info_outline, size: 14, color: fgFaint),
                       const SizedBox(width: 6),
                       Text(
                         l10n.strongEncryption,
                         style: TextStyle(
-                          color: Colors.white.withAlpha(102),
+                          color: fgFaint,
                           fontSize: 12,
                         ),
                       ),
