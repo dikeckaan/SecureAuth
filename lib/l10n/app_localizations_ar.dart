@@ -232,6 +232,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get useDarkTheme => 'استخدام السمة الداكنة';
 
   @override
+  String get systemTheme => 'النظام';
+
+  @override
+  String get lightTheme => 'فاتح';
+
+  @override
+  String get darkTheme => 'داكن';
+
+  @override
+  String get themeMode => 'السمة';
+
+  @override
   String get security => 'الأمان';
 
   @override

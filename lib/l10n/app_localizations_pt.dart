@@ -235,6 +235,18 @@ class AppLocalizationsPt extends AppLocalizations {
   String get useDarkTheme => 'Usar tema escuro';
 
   @override
+  String get systemTheme => 'Sistema';
+
+  @override
+  String get lightTheme => 'Claro';
+
+  @override
+  String get darkTheme => 'Escuro';
+
+  @override
+  String get themeMode => 'Tema';
+
+  @override
   String get security => 'Segurança';
 
   @override

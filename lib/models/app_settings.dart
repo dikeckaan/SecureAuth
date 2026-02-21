@@ -34,6 +34,10 @@ class AppSettings extends HiveObject {
   @HiveField(9)
   String? languageCode;
 
+  /// 0 = system, 1 = light, 2 = dark
+  @HiveField(10)
+  int themePreference;
+
   AppSettings({
     this.useBiometric = false,
     this.requireAuthOnLaunch = true,
@@ -45,5 +49,6 @@ class AppSettings extends HiveObject {
     this.wipeOnMaxAttempts = false,
     this.passwordSalt,
     this.languageCode,
+    this.themePreference = 0,
   });
 }

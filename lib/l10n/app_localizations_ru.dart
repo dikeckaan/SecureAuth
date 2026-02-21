@@ -234,6 +234,18 @@ class AppLocalizationsRu extends AppLocalizations {
   String get useDarkTheme => 'Использовать тёмную тему';
 
   @override
+  String get systemTheme => 'Системная';
+
+  @override
+  String get lightTheme => 'Светлая';
+
+  @override
+  String get darkTheme => 'Тёмная';
+
+  @override
+  String get themeMode => 'Тема';
+
+  @override
   String get security => 'Безопасность';
 
   @override

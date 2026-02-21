@@ -33,7 +33,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  late bool _isDarkMode;
+  late int _themePreference;
   late bool _useBiometric;
   late bool _requireAuthOnLaunch;
   late int _autoLockSeconds;
@@ -67,7 +67,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _loadSettings() {
     final settings = widget.storageService.getSettings();
-    _isDarkMode = settings.isDarkMode;
+    _themePreference = settings.themePreference;
     _useBiometric = settings.useBiometric;
     _requireAuthOnLaunch = settings.requireAuthOnLaunch;
     _autoLockSeconds = settings.autoLockSeconds;
@@ -88,10 +88,85 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await widget.storageService.updateSettings(settings);
   }
 
-  Future<void> _toggleDarkMode(bool value) async {
-    await _updateSetting((s) => s.isDarkMode = value);
-    setState(() => _isDarkMode = value);
+  Future<void> _setThemePreference(int value) async {
+    await _updateSetting((s) => s.themePreference = value);
+    setState(() => _themePreference = value);
     widget.onThemeChanged();
+  }
+
+  String _getThemeLabel() {
+    final l10n = AppLocalizations.of(context)!;
+    switch (_themePreference) {
+      case 1:
+        return l10n.lightTheme;
+      case 2:
+        return l10n.darkTheme;
+      default:
+        return l10n.systemTheme;
+    }
+  }
+
+  void _showThemePicker() {
+    final l10n = AppLocalizations.of(context)!;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppConstants.radiusLG),
+        ),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppConstants.paddingMD),
+              child: Text(
+                l10n.themeMode,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.smartphone),
+              title: Text(l10n.systemTheme),
+              trailing: _themePreference == 0
+                  ? const Icon(Icons.check, color: AppColors.primary)
+                  : null,
+              onTap: () {
+                _setThemePreference(0);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.light_mode),
+              title: Text(l10n.lightTheme),
+              trailing: _themePreference == 1
+                  ? const Icon(Icons.check, color: AppColors.primary)
+                  : null,
+              onTap: () {
+                _setThemePreference(1);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.dark_mode),
+              title: Text(l10n.darkTheme),
+              trailing: _themePreference == 2
+                  ? const Icon(Icons.check, color: AppColors.primary)
+                  : null,
+              onTap: () {
+                _setThemePreference(2);
+                Navigator.pop(context);
+              },
+            ),
+            const SizedBox(height: AppConstants.paddingSM),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _toggleBiometric(bool value) async {
@@ -871,13 +946,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildSectionLabel(
               theme, l10n.appearance, Icons.palette_outlined),
           _buildCard([
-            SwitchListTile(
-              secondary: _buildLeadingIcon(
-                  Icons.dark_mode_outlined, theme.colorScheme.primary),
-              title: Text(l10n.darkMode),
-              subtitle: Text(l10n.useDarkTheme),
-              value: _isDarkMode,
-              onChanged: _toggleDarkMode,
+            ListTile(
+              leading: _buildLeadingIcon(
+                  Icons.palette_outlined, theme.colorScheme.primary),
+              title: Text(l10n.themeMode),
+              subtitle: Text(_getThemeLabel()),
+              trailing: const Icon(Icons.chevron_right, size: 18),
+              onTap: _showThemePicker,
             ),
           ]),
 

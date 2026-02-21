@@ -33,10 +33,12 @@ class _SetupScreenState extends State<SetupScreen> {
   bool _useBiometric = false;
   bool _biometricAvailable = false;
   bool _isLoading = false;
+  late int _themePreference;
 
   @override
   void initState() {
     super.initState();
+    _themePreference = widget.storageService.getSettings().themePreference;
     _checkBiometric();
   }
 
@@ -52,6 +54,14 @@ class _SetupScreenState extends State<SetupScreen> {
     if (mounted) {
       setState(() => _biometricAvailable = available);
     }
+  }
+
+  Future<void> _setThemePreference(int value) async {
+    final settings = widget.storageService.getSettings();
+    settings.themePreference = value;
+    await widget.storageService.updateSettings(settings);
+    setState(() => _themePreference = value);
+    widget.onThemeChanged();
   }
 
   double _getPasswordStrength(String password) {
@@ -210,6 +220,48 @@ class _SetupScreenState extends State<SetupScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        // Theme selector
+                        SizedBox(
+                          width: double.infinity,
+                          child: SegmentedButton<int>(
+                            segments: [
+                              ButtonSegment<int>(
+                                value: 1,
+                                label: Text(l10n.lightTheme),
+                                icon: const Icon(Icons.light_mode, size: 16),
+                              ),
+                              ButtonSegment<int>(
+                                value: 0,
+                                label: Text(l10n.systemTheme),
+                                icon: const Icon(Icons.smartphone, size: 16),
+                              ),
+                              ButtonSegment<int>(
+                                value: 2,
+                                label: Text(l10n.darkTheme),
+                                icon: const Icon(Icons.dark_mode, size: 16),
+                              ),
+                            ],
+                            selected: {_themePreference},
+                            onSelectionChanged: (Set<int> selected) {
+                              _setThemePreference(selected.first);
+                            },
+                            style: ButtonStyle(
+                              backgroundColor:
+                                  WidgetStateProperty.resolveWith((states) {
+                                if (states.contains(WidgetState.selected)) {
+                                  return Colors.white.withAlpha(51);
+                                }
+                                return Colors.transparent;
+                              }),
+                              foregroundColor:
+                                  WidgetStateProperty.all(Colors.white),
+                              side: WidgetStateProperty.all(
+                                BorderSide(color: Colors.white.withAlpha(51)),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: AppConstants.paddingLG),
                         // Password field
                         TextField(
                           controller: _passwordController,

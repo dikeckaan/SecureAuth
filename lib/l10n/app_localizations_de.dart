@@ -237,6 +237,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get useDarkTheme => 'Dunkles Design verwenden';
 
   @override
+  String get systemTheme => 'System';
+
+  @override
+  String get lightTheme => 'Hell';
+
+  @override
+  String get darkTheme => 'Dunkel';
+
+  @override
+  String get themeMode => 'Design';
+
+  @override
   String get security => 'Sicherheit';
 
   @override

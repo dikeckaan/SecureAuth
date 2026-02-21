@@ -235,6 +235,18 @@ class AppLocalizationsAz extends AppLocalizations {
   String get useDarkTheme => 'Tund tema istifade et';
 
   @override
+  String get systemTheme => 'Sistem';
+
+  @override
+  String get lightTheme => 'Isiqli';
+
+  @override
+  String get darkTheme => 'Tund';
+
+  @override
+  String get themeMode => 'Tema';
+
+  @override
   String get security => 'Tehlukezizlik';
 
   @override

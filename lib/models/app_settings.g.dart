@@ -27,13 +27,14 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       wipeOnMaxAttempts: fields[7] as bool? ?? false,
       passwordSalt: fields[8] as String?,
       languageCode: fields[9] as String?,
+      themePreference: fields[10] as int? ?? 0,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettings obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.useBiometric)
       ..writeByte(1)
@@ -53,7 +54,9 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       ..writeByte(8)
       ..write(obj.passwordSalt)
       ..writeByte(9)
-      ..write(obj.languageCode);
+      ..write(obj.languageCode)
+      ..writeByte(10)
+      ..write(obj.themePreference);
   }
 
   @override

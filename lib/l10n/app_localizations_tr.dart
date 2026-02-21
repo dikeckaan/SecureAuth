@@ -235,6 +235,18 @@ class AppLocalizationsTr extends AppLocalizations {
   String get useDarkTheme => 'Koyu tema kullan';
 
   @override
+  String get systemTheme => 'Sistem';
+
+  @override
+  String get lightTheme => 'Acik';
+
+  @override
+  String get darkTheme => 'Koyu';
+
+  @override
+  String get themeMode => 'Tema';
+
+  @override
   String get security => 'Guvenlik';
 
   @override

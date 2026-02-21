@@ -61,11 +61,11 @@ class AppColors {
   static const Color textSecondaryLight = Color(0xFF6B7280);
   static const Color textTertiaryLight = Color(0xFF9CA3AF);
 
-  // Dark theme
-  static const Color bgDark = Color(0xFF0F0F1A);
-  static const Color surfaceDark = Color(0xFF1A1A2E);
-  static const Color cardDark = Color(0xFF1E1E32);
-  static const Color borderDark = Color(0xFF2D2D44);
+  // Dark theme (AMOLED)
+  static const Color bgDark = Color(0xFF000000);
+  static const Color surfaceDark = Color(0xFF0A0A0A);
+  static const Color cardDark = Color(0xFF111111);
+  static const Color borderDark = Color(0xFF1C1C1C);
   static const Color textPrimaryDark = Color(0xFFF9FAFB);
   static const Color textSecondaryDark = Color(0xFF9CA3AF);
   static const Color textTertiaryDark = Color(0xFF6B7280);

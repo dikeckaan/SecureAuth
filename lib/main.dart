@@ -71,7 +71,18 @@ class _SecureAuthAppState extends State<SecureAuthApp>
 
   void _loadTheme() {
     final settings = widget.storageService.getSettings();
-    _themeMode = settings.isDarkMode ? ThemeMode.dark : ThemeMode.light;
+    _themeMode = _themeModeFromPreference(settings.themePreference);
+  }
+
+  ThemeMode _themeModeFromPreference(int preference) {
+    switch (preference) {
+      case 1:
+        return ThemeMode.light;
+      case 2:
+        return ThemeMode.dark;
+      default:
+        return ThemeMode.system;
+    }
   }
 
   void _loadLocale() {
@@ -84,7 +95,7 @@ class _SecureAuthAppState extends State<SecureAuthApp>
   void _onThemeChanged() {
     final settings = widget.storageService.getSettings();
     setState(() {
-      _themeMode = settings.isDarkMode ? ThemeMode.dark : ThemeMode.light;
+      _themeMode = _themeModeFromPreference(settings.themePreference);
     });
   }
 
