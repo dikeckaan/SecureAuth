@@ -473,4 +473,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get accentColor => 'Color de acento';
+
+  @override
+  String get customColor => 'Personalizado';
+
+  @override
+  String get apply => 'Aplicar';
+
+  @override
+  String get primary => 'Primario';
+
+  @override
+  String get secondary => 'Secundario';
 }

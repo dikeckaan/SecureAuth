@@ -465,4 +465,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get accentColor => 'لون التمييز';
+
+  @override
+  String get customColor => 'مخصص';
+
+  @override
+  String get apply => 'تطبيق';
+
+  @override
+  String get primary => 'أساسي';
+
+  @override
+  String get secondary => 'ثانوي';
 }

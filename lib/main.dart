@@ -76,8 +76,12 @@ class _SecureAuthAppState extends State<SecureAuthApp>
 
   void _loadTheme() {
     final settings = widget.storageService.getSettings();
-    _accentColorIndex = settings.accentColorIndex.clamp(0, AccentColorPalette.palettes.length - 1);
-    final accent = AccentColorPalette.palettes[_accentColorIndex];
+    _accentColorIndex = settings.accentColorIndex;
+    final accent = AccentColorPalette.resolve(
+      _accentColorIndex,
+      settings.customPrimaryColor,
+      settings.customSecondaryColor,
+    );
     _themeMode = _themeModeFromPreference(settings.themePreference);
     _pureDark = settings.themePreference == 3;
     _lightTheme = AppTheme.buildLightTheme(accent);
@@ -106,8 +110,12 @@ class _SecureAuthAppState extends State<SecureAuthApp>
 
   void _onThemeChanged() {
     final settings = widget.storageService.getSettings();
-    _accentColorIndex = settings.accentColorIndex.clamp(0, AccentColorPalette.palettes.length - 1);
-    final accent = AccentColorPalette.palettes[_accentColorIndex];
+    _accentColorIndex = settings.accentColorIndex;
+    final accent = AccentColorPalette.resolve(
+      _accentColorIndex,
+      settings.customPrimaryColor,
+      settings.customSecondaryColor,
+    );
     final pureDark = settings.themePreference == 3;
     setState(() {
       _themeMode = _themeModeFromPreference(settings.themePreference);

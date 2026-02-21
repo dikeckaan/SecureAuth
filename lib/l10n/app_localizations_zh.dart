@@ -457,4 +457,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get accentColor => '主题色';
+
+  @override
+  String get customColor => '自定义';
+
+  @override
+  String get apply => '应用';
+
+  @override
+  String get primary => '主色';
+
+  @override
+  String get secondary => '辅色';
 }

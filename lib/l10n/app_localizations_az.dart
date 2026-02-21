@@ -469,4 +469,16 @@ class AppLocalizationsAz extends AppLocalizations {
 
   @override
   String get accentColor => 'Vurğu Rəngi';
+
+  @override
+  String get customColor => 'Xüsusi';
+
+  @override
+  String get apply => 'Tətbiq et';
+
+  @override
+  String get primary => 'Əsas Rəng';
+
+  @override
+  String get secondary => 'İkinci Rəng';
 }

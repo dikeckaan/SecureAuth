@@ -12,6 +12,7 @@ import '../services/auth_service.dart';
 import '../services/backup_encryption_service.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
+import '../widgets/color_picker_widget.dart';
 import 'setup_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -69,7 +70,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _loadSettings() {
     final settings = widget.storageService.getSettings();
     _themePreference = settings.themePreference;
-    _accentColorIndex = settings.accentColorIndex.clamp(0, AccentColorPalette.palettes.length - 1);
+    _accentColorIndex = settings.accentColorIndex == -1
+        ? -1
+        : settings.accentColorIndex.clamp(0, AccentColorPalette.palettes.length - 1);
     _useBiometric = settings.useBiometric;
     _requireAuthOnLaunch = settings.requireAuthOnLaunch;
     _autoLockSeconds = settings.autoLockSeconds;
@@ -191,85 +194,237 @@ class _SettingsScreenState extends State<SettingsScreen> {
     widget.onThemeChanged();
   }
 
+  Future<void> _setCustomColors(Color primary, Color secondary) async {
+    final pHex = primary.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase();
+    final sHex = secondary.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase();
+    await _updateSetting((s) {
+      s.accentColorIndex = -1;
+      s.customPrimaryColor = pHex;
+      s.customSecondaryColor = sHex;
+    });
+    setState(() => _accentColorIndex = -1);
+    widget.onThemeChanged();
+  }
+
+  AccentColorPalette _resolveCurrentPalette() {
+    final settings = widget.storageService.getSettings();
+    return AccentColorPalette.resolve(
+      _accentColorIndex,
+      settings.customPrimaryColor,
+      settings.customSecondaryColor,
+    );
+  }
+
   void _showAccentColorPicker() {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
+    final settings = widget.storageService.getSettings();
+
+    // Initialise custom picker colours from persisted values or defaults.
+    Color customPrimary = const Color(0xFF4F46E5);
+    Color customSecondary = const Color(0xFF7C3AED);
+    if (settings.customPrimaryColor != null) {
+      customPrimary = Color(int.parse(settings.customPrimaryColor!, radix: 16));
+    }
+    if (settings.customSecondaryColor != null) {
+      customSecondary = Color(int.parse(settings.customSecondaryColor!, radix: 16));
+    }
+
+    int selectedIndex = _accentColorIndex;
+
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppConstants.radiusLG),
         ),
       ),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(AppConstants.paddingMD),
-              child: Text(
-                l10n.accentColor,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          final theme = Theme.of(ctx);
+          final isCustom = selectedIndex == -1;
+          return SafeArea(
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom,
               ),
-            ),
-            const Divider(height: 1),
-            Padding(
-              padding: const EdgeInsets.all(AppConstants.paddingLG),
-              child: Wrap(
-                spacing: 16,
-                runSpacing: 16,
-                alignment: WrapAlignment.center,
-                children: List.generate(
-                  AccentColorPalette.palettes.length,
-                  (i) {
-                    final palette = AccentColorPalette.palettes[i];
-                    final isSelected = _accentColorIndex == i;
-                    return GestureDetector(
-                      onTap: () {
-                        _setAccentColorIndex(i);
-                        Navigator.pop(context);
-                      },
-                      child: Container(
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [palette.primary, palette.secondary],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          border: isSelected
-                              ? Border.all(
-                                  color: theme.colorScheme.onSurface,
-                                  width: 3,
-                                )
-                              : null,
-                          boxShadow: isSelected
-                              ? [
-                                  BoxShadow(
-                                    color: palette.primary.withAlpha(100),
-                                    blurRadius: 8,
-                                    spreadRadius: 1,
-                                  ),
-                                ]
-                              : null,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Title
+                    Padding(
+                      padding: const EdgeInsets.all(AppConstants.paddingMD),
+                      child: Text(
+                        l10n.accentColor,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
                         ),
-                        child: isSelected
-                            ? const Icon(Icons.check,
-                                color: Colors.white, size: 24)
-                            : null,
                       ),
-                    );
-                  },
+                    ),
+                    const Divider(height: 1),
+                    // Preset circles + custom circle
+                    Padding(
+                      padding: const EdgeInsets.all(AppConstants.paddingLG),
+                      child: Wrap(
+                        spacing: 16,
+                        runSpacing: 16,
+                        alignment: WrapAlignment.center,
+                        children: [
+                          // 8 presets
+                          ...List.generate(
+                            AccentColorPalette.palettes.length,
+                            (i) {
+                              final palette = AccentColorPalette.palettes[i];
+                              final isSelected = selectedIndex == i;
+                              return GestureDetector(
+                                onTap: () {
+                                  _setAccentColorIndex(i);
+                                  Navigator.pop(ctx);
+                                },
+                                child: Container(
+                                  width: 52,
+                                  height: 52,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      colors: [palette.primary, palette.secondary],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    border: isSelected
+                                        ? Border.all(
+                                            color: theme.colorScheme.onSurface,
+                                            width: 3,
+                                          )
+                                        : null,
+                                    boxShadow: isSelected
+                                        ? [
+                                            BoxShadow(
+                                              color: palette.primary.withAlpha(100),
+                                              blurRadius: 8,
+                                              spreadRadius: 1,
+                                            ),
+                                          ]
+                                        : null,
+                                  ),
+                                  child: isSelected
+                                      ? const Icon(Icons.check,
+                                          color: Colors.white, size: 24)
+                                      : null,
+                                ),
+                              );
+                            },
+                          ),
+                          // Custom circle (rainbow gradient + icon)
+                          GestureDetector(
+                            onTap: () {
+                              setSheetState(() => selectedIndex = -1);
+                            },
+                            child: Container(
+                              width: 52,
+                              height: 52,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: const SweepGradient(
+                                  colors: [
+                                    Color(0xFFFF0000),
+                                    Color(0xFFFFFF00),
+                                    Color(0xFF00FF00),
+                                    Color(0xFF00FFFF),
+                                    Color(0xFF0000FF),
+                                    Color(0xFFFF00FF),
+                                    Color(0xFFFF0000),
+                                  ],
+                                ),
+                                border: isCustom
+                                    ? Border.all(
+                                        color: theme.colorScheme.onSurface,
+                                        width: 3,
+                                      )
+                                    : null,
+                                boxShadow: isCustom
+                                    ? [
+                                        BoxShadow(
+                                          color: Colors.purple.withAlpha(100),
+                                          blurRadius: 8,
+                                          spreadRadius: 1,
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: Icon(
+                                isCustom ? Icons.check : Icons.add,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Custom picker area
+                    if (isCustom) ...[
+                      const Divider(height: 1),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppConstants.paddingLG,
+                          vertical: AppConstants.paddingMD,
+                        ),
+                        child: Column(
+                          children: [
+                            // Primary picker
+                            Text(
+                              l10n.primary,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            ColorPickerWidget(
+                              initialColor: customPrimary,
+                              onColorChanged: (c) {
+                                setSheetState(() => customPrimary = c);
+                              },
+                            ),
+                            const SizedBox(height: 20),
+                            // Secondary picker
+                            Text(
+                              l10n.secondary,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            ColorPickerWidget(
+                              initialColor: customSecondary,
+                              onColorChanged: (c) {
+                                setSheetState(() => customSecondary = c);
+                              },
+                            ),
+                            const SizedBox(height: 20),
+                            // Apply button
+                            SizedBox(
+                              width: double.infinity,
+                              child: FilledButton(
+                                onPressed: () {
+                                  _setCustomColors(customPrimary, customSecondary);
+                                  Navigator.pop(ctx);
+                                },
+                                child: Text(l10n.apply),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: AppConstants.paddingSM),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: AppConstants.paddingSM),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -1060,34 +1215,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onTap: _showThemePicker,
             ),
             _buildInternalDivider(),
-            ListTile(
-              leading: _buildLeadingIcon(
-                  Icons.color_lens_outlined, theme.colorScheme.primary),
-              title: Text(l10n.accentColor),
-              subtitle: Text(AccentColorPalette.palettes[_accentColorIndex].name),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 22,
-                    height: 22,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [
-                          AccentColorPalette.palettes[_accentColorIndex].primary,
-                          AccentColorPalette.palettes[_accentColorIndex].secondary,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+            Builder(
+              builder: (_) {
+                final palette = _resolveCurrentPalette();
+                final subtitleText = _accentColorIndex == -1
+                    ? l10n.customColor
+                    : palette.name;
+                return ListTile(
+                  leading: _buildLeadingIcon(
+                      Icons.color_lens_outlined, theme.colorScheme.primary),
+                  title: Text(l10n.accentColor),
+                  subtitle: Text(subtitleText),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [palette.primary, palette.secondary],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.chevron_right, size: 18),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.chevron_right, size: 18),
-                ],
-              ),
-              onTap: _showAccentColorPicker,
+                  onTap: _showAccentColorPicker,
+                );
+              },
             ),
           ]),
 

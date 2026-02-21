@@ -460,4 +460,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get accentColor => '강조 색상';
+
+  @override
+  String get customColor => '사용자 지정';
+
+  @override
+  String get apply => '적용';
+
+  @override
+  String get primary => '기본 색상';
+
+  @override
+  String get secondary => '보조 색상';
 }

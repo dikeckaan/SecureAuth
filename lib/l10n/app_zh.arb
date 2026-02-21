@@ -139,5 +139,9 @@
   "dataWipedBody": "超过最大密码尝试次数。\n\n为了安全，所有账户和设置已被永久删除。点击确定重新开始。",
   "normalDark": "深色",
   "pureDark": "纯黑",
-  "accentColor": "主题色"
+  "accentColor": "主题色",
+  "customColor": "自定义",
+  "apply": "应用",
+  "primary": "主色",
+  "secondary": "辅色"
 }

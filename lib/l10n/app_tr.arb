@@ -139,5 +139,9 @@
   "dataWipedBody": "Maksimum başarısız giriş denemesi aşıldı.\n\nGüvenliğiniz için tüm hesaplarınız ve ayarlarınız kalıcı olarak silindi. Baştan başlamak için Tamam'a dokunun.",
   "normalDark": "Koyu",
   "pureDark": "Saf Koyu",
-  "accentColor": "Vurgu Rengi"
+  "accentColor": "Vurgu Rengi",
+  "customColor": "Özel",
+  "apply": "Uygula",
+  "primary": "Ana Renk",
+  "secondary": "İkincil Renk"
 }

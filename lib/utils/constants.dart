@@ -122,6 +122,39 @@ class AccentColorPalette {
     required this.secondaryLight,
   });
 
+  /// Creates a custom palette from two user-chosen colours.
+  /// Light variants are computed by bumping HSL lightness +15 %.
+  factory AccentColorPalette.fromCustom(Color primary, Color secondary) {
+    return AccentColorPalette(
+      name: 'Custom',
+      primary: primary,
+      primaryLight: _lighten(primary, 0.15),
+      secondary: secondary,
+      secondaryLight: _lighten(secondary, 0.15),
+    );
+  }
+
+  static Color _lighten(Color color, double amount) {
+    final hsl = HSLColor.fromColor(color);
+    return hsl
+        .withLightness((hsl.lightness + amount).clamp(0.0, 1.0))
+        .toColor();
+  }
+
+  /// Resolves the active palette.
+  /// [index] == -1 with non-null hex strings → custom palette.
+  /// Otherwise returns the preset at [index].
+  static AccentColorPalette resolve(
+      int index, String? customPrimary, String? customSecondary) {
+    if (index == -1 && customPrimary != null && customSecondary != null) {
+      return AccentColorPalette.fromCustom(
+        Color(int.parse(customPrimary, radix: 16)),
+        Color(int.parse(customSecondary, radix: 16)),
+      );
+    }
+    return palettes[index.clamp(0, palettes.length - 1)];
+  }
+
   static const List<AccentColorPalette> palettes = [
     AccentColorPalette(
       name: 'Indigo',

@@ -470,4 +470,16 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get accentColor => 'Cor de destaque';
+
+  @override
+  String get customColor => 'Personalizado';
+
+  @override
+  String get apply => 'Aplicar';
+
+  @override
+  String get primary => 'Primária';
+
+  @override
+  String get secondary => 'Secundária';
 }

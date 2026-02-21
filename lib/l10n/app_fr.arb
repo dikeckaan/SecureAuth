@@ -139,5 +139,9 @@
   "dataWipedBody": "Nombre maximum de tentatives échouées dépassé.\n\nTous vos comptes et paramètres ont été définitivement supprimés. Appuyez sur OK pour recommencer.",
   "normalDark": "Sombre",
   "pureDark": "Noir pur",
-  "accentColor": "Couleur d'accent"
+  "accentColor": "Couleur d'accent",
+  "customColor": "Personnalisé",
+  "apply": "Appliquer",
+  "primary": "Primaire",
+  "secondary": "Secondaire"
 }

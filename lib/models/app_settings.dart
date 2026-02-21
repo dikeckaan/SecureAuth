@@ -38,9 +38,17 @@ class AppSettings extends HiveObject {
   @HiveField(10)
   int themePreference;
 
-  /// 0-7 accent color index (default 0 = Indigo)
+  /// 0-7 accent color index (default 0 = Indigo), -1 = custom
   @HiveField(11)
   int accentColorIndex;
+
+  /// Hex string for custom primary color, e.g. "FF4F46E5"
+  @HiveField(12)
+  String? customPrimaryColor;
+
+  /// Hex string for custom secondary color
+  @HiveField(13)
+  String? customSecondaryColor;
 
   AppSettings({
     this.useBiometric = false,
@@ -55,5 +63,7 @@ class AppSettings extends HiveObject {
     this.languageCode,
     this.themePreference = 0,
     this.accentColorIndex = 0,
+    this.customPrimaryColor,
+    this.customSecondaryColor,
   });
 }

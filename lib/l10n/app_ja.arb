@@ -139,5 +139,9 @@
   "dataWipedBody": "パスワードの最大失敗試行回数を超えました。\n\nセキュリティのため、すべてのアカウントと設定が完全に削除されました。OKをタップして最初からやり直してください。",
   "normalDark": "ダーク",
   "pureDark": "ピュアダーク",
-  "accentColor": "アクセントカラー"
+  "accentColor": "アクセントカラー",
+  "customColor": "カスタム",
+  "apply": "適用",
+  "primary": "プライマリ",
+  "secondary": "セカンダリ"
 }

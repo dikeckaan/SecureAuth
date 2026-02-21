@@ -139,5 +139,9 @@
   "dataWipedBody": "Maximale Anzahl fehlgeschlagener Versuche überschritten.\n\nAlle Konten und Einstellungen wurden aus Sicherheitsgründen dauerhaft gelöscht. Tippen Sie auf OK, um neu zu beginnen.",
   "normalDark": "Dunkel",
   "pureDark": "Reines Dunkel",
-  "accentColor": "Akzentfarbe"
+  "accentColor": "Akzentfarbe",
+  "customColor": "Benutzerdefiniert",
+  "apply": "Anwenden",
+  "primary": "Primärfarbe",
+  "secondary": "Sekundärfarbe"
 }

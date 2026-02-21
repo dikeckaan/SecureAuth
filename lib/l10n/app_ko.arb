@@ -139,5 +139,9 @@
   "dataWipedBody": "최대 비밀번호 시도 횟수를 초과했습니다.\n\n보안을 위해 모든 계정과 설정이 영구적으로 삭제되었습니다. 확인을 탭하여 처음부터 시작하세요.",
   "normalDark": "다크",
   "pureDark": "퓨어 다크",
-  "accentColor": "강조 색상"
+  "accentColor": "강조 색상",
+  "customColor": "사용자 지정",
+  "apply": "적용",
+  "primary": "기본 색상",
+  "secondary": "보조 색상"
 }

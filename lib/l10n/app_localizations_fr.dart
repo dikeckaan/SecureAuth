@@ -474,4 +474,16 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get accentColor => 'Couleur d\'accent';
+
+  @override
+  String get customColor => 'Personnalisé';
+
+  @override
+  String get apply => 'Appliquer';
+
+  @override
+  String get primary => 'Primaire';
+
+  @override
+  String get secondary => 'Secondaire';
 }

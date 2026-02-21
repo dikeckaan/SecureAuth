@@ -139,5 +139,9 @@
   "dataWipedBody": "Maksimum uğursuz cəhd sayı aşıldı.\n\nTəhlükəsizlik üçün bütün hesablarınız və parametrləriniz birdəfəlik silindi. Yenidən başlamaq üçün Tamam'a toxunun.",
   "normalDark": "Tünd",
   "pureDark": "Saf Tünd",
-  "accentColor": "Vurğu Rəngi"
+  "accentColor": "Vurğu Rəngi",
+  "customColor": "Xüsusi",
+  "apply": "Tətbiq et",
+  "primary": "Əsas Rəng",
+  "secondary": "İkinci Rəng"
 }

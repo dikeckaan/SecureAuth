@@ -469,4 +469,16 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get accentColor => 'Цвет акцента';
+
+  @override
+  String get customColor => 'Свой';
+
+  @override
+  String get apply => 'Применить';
+
+  @override
+  String get primary => 'Основной';
+
+  @override
+  String get secondary => 'Вторичный';
 }

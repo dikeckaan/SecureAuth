@@ -469,4 +469,16 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get accentColor => 'Vurgu Rengi';
+
+  @override
+  String get customColor => 'Özel';
+
+  @override
+  String get apply => 'Uygula';
+
+  @override
+  String get primary => 'Ana Renk';
+
+  @override
+  String get secondary => 'İkincil Renk';
 }

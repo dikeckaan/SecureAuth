@@ -459,4 +459,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get accentColor => 'アクセントカラー';
+
+  @override
+  String get customColor => 'カスタム';
+
+  @override
+  String get apply => '適用';
+
+  @override
+  String get primary => 'プライマリ';
+
+  @override
+  String get secondary => 'セカンダリ';
 }

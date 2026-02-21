@@ -139,5 +139,9 @@
   "dataWipedBody": "Número máximo de tentativas falhas excedido.\n\nTodas as contas e configurações foram excluídas permanentemente. Toque em OK para recomeçar.",
   "normalDark": "Escuro",
   "pureDark": "Preto puro",
-  "accentColor": "Cor de destaque"
+  "accentColor": "Cor de destaque",
+  "customColor": "Personalizado",
+  "apply": "Aplicar",
+  "primary": "Primária",
+  "secondary": "Secundária"
 }

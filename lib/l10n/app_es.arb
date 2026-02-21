@@ -139,5 +139,9 @@
   "dataWipedBody": "Se excedió el número máximo de intentos fallidos.\n\nTodas sus cuentas y configuraciones han sido eliminadas permanentemente. Toca Aceptar para comenzar de nuevo.",
   "normalDark": "Oscuro",
   "pureDark": "Negro puro",
-  "accentColor": "Color de acento"
+  "accentColor": "Color de acento",
+  "customColor": "Personalizado",
+  "apply": "Aplicar",
+  "primary": "Primario",
+  "secondary": "Secundario"
 }
