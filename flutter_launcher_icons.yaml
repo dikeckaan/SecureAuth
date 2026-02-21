@@ -1,0 +1,35 @@
+flutter_launcher_icons:
+  # ── iOS ─────────────────────────────────────────────────────────────────────
+  # Default (light) icon – iOS applies its own corner-radius mask
+  ios: true
+  image_path_ios: "assets/icon/app_icon.png"
+
+  # Dark mode variant (iOS 18+ / iOS 26 Liquid Glass dark tint)
+  # The glass-dark aesthetic of the source image looks great in dark mode too.
+  ios_dark_image_path: "assets/icon/app_icon.png"
+
+  # Tinted variant (iOS 18+ / iOS 26 – system derives tint color automatically)
+  ios_tinted_image_path: "assets/icon/app_icon.png"
+
+  # ── Android ─────────────────────────────────────────────────────────────────
+  android: "launcher_icon"
+  image_path_android: "assets/icon/app_icon.png"
+
+  # Adaptive icon (API 26+ / Android 8+)
+  # Background: deep navy-black that matches the glass icon border.
+  # Foreground: our full 1024×1024 icon (OS clips to device shape).
+  adaptive_icon_background: "#0B0F1E"
+  adaptive_icon_foreground: "assets/icon/app_icon.png"
+
+  # Monochrome icon (Android 13+ / API 33 – themed / "Material You" icons)
+  adaptive_icon_monochrome: "assets/icon/app_icon.png"
+
+  min_sdk_android: 21
+
+  # ── Unused platforms ─────────────────────────────────────────────────────────
+  web:
+    generate: false
+  windows:
+    generate: false
+  macos:
+    generate: false
