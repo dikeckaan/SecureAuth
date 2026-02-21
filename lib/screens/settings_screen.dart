@@ -248,9 +248,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   // ─── EXPORT: Documents dir primary, plain-text share as fallback ─────────
-  Future<void> _exportAccounts() async {
+  // [originContext] is the BuildContext of the tapped tile — used on iOS to
+  // compute the sharePositionOrigin rect the share-sheet popover anchors to.
+  Future<void> _exportAccounts(BuildContext originContext) async {
     final l10n = AppLocalizations.of(context)!;
     try {
+      // Compute the anchor rect BEFORE any await so context is safe to use.
+      Rect originRect = Rect.zero;
+      final box = originContext.findRenderObject() as RenderBox?;
+      if (box != null && box.hasSize) {
+        originRect = box.localToGlobal(Offset.zero) & box.size;
+      }
+      if (originRect.isEmpty) {
+        // Sensible default: bottom-centre of screen.
+        final size = MediaQuery.sizeOf(context);
+        originRect = Rect.fromCenter(
+          center: Offset(size.width / 2, size.height - 100),
+          width: 1,
+          height: 1,
+        );
+      }
+
       final jsonString = await widget.storageService.exportAccountsToJson();
       final fileName =
           'secureauth_backup_${DateTime.now().millisecondsSinceEpoch}.json';
@@ -261,12 +279,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         final dir = await getApplicationDocumentsDirectory();
         final file = File('${dir.path}/$fileName');
         await file.writeAsString(jsonString, flush: true);
-        await Share.shareXFiles([
-          XFile(file.path, mimeType: 'application/json', name: fileName),
-        ]);
+        await Share.shareXFiles(
+          [XFile(file.path, mimeType: 'application/json', name: fileName)],
+          sharePositionOrigin: originRect,
+        );
       } catch (_) {
         // Fallback: share raw JSON text — works everywhere, no file perms needed
-        await Share.share(jsonString, subject: fileName);
+        await Share.share(jsonString,
+            subject: fileName, sharePositionOrigin: originRect);
       }
 
       if (mounted) _showSuccess(l10n.accountsExported);
@@ -565,16 +585,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // ── Backup ────────────────────────────────────────────────
           _buildSectionLabel(theme, l10n.backup, Icons.backup_outlined),
           _buildCard([
-            ListTile(
-              leading:
-                  _buildLeadingIcon(Icons.upload_outlined, AppColors.success),
-              title: Text(l10n.exportAccounts),
-              subtitle: Text(l10n.nAccounts(accountCount)),
-              trailing: accountCount > 0
-                  ? const Icon(Icons.chevron_right, size: 18)
-                  : null,
-              enabled: accountCount > 0,
-              onTap: accountCount > 0 ? _exportAccounts : null,
+            Builder(
+              builder: (tileCtx) => ListTile(
+                leading: _buildLeadingIcon(
+                    Icons.upload_outlined, AppColors.success),
+                title: Text(l10n.exportAccounts),
+                subtitle: Text(l10n.nAccounts(accountCount)),
+                trailing: accountCount > 0
+                    ? const Icon(Icons.chevron_right, size: 18)
+                    : null,
+                enabled: accountCount > 0,
+                onTap: accountCount > 0
+                    ? () => _exportAccounts(tileCtx)
+                    : null,
+              ),
             ),
             _buildInternalDivider(),
             ListTile(
