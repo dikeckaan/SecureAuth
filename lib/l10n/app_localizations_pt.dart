@@ -389,4 +389,54 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get selectLanguage => 'Selecionar Idioma';
+
+  @override
+  String get exportBackup => 'Exportar Backup';
+
+  @override
+  String get encryptedExport => 'Criptografado (Recomendado)';
+
+  @override
+  String get encryptedExportDesc =>
+      'Protegido por AES-256-GCM. Seguro para compartilhar em qualquer lugar.';
+
+  @override
+  String get unencryptedExport => 'Sem Criptografia';
+
+  @override
+  String get unencryptedExportDesc =>
+      'JSON simples. Apenas para armazenamento confiável.';
+
+  @override
+  String get setBackupPassword => 'Definir Senha do Backup';
+
+  @override
+  String get backupPassword => 'Senha do Backup';
+
+  @override
+  String get confirmBackupPassword => 'Confirmar Senha do Backup';
+
+  @override
+  String get backupPasswordWarning =>
+      'Guarde esta senha em local seguro. Sem ela, o backup não pode ser aberto.';
+
+  @override
+  String get encryptingBackup => 'Criptografando backup...';
+
+  @override
+  String get decryptingBackup => 'Descriptografando backup...';
+
+  @override
+  String get decryptBackup => 'Descriptografar Backup';
+
+  @override
+  String get enterBackupPassword =>
+      'Digite a senha usada ao exportar este backup.';
+
+  @override
+  String get wrongPasswordOrCorrupted =>
+      'Senha incorreta ou arquivo corrompido';
+
+  @override
+  String get loadFromFile => 'Carregar de arquivo JSON ou .saenc criptografado';
 }

@@ -807,6 +807,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select Language'**
   String get selectLanguage;
+
+  /// No description provided for @exportBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Backup'**
+  String get exportBackup;
+
+  /// No description provided for @encryptedExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted (Recommended)'**
+  String get encryptedExport;
+
+  /// No description provided for @encryptedExportDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'AES-256-GCM protected. Safe to share anywhere.'**
+  String get encryptedExportDesc;
+
+  /// No description provided for @unencryptedExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Unencrypted'**
+  String get unencryptedExport;
+
+  /// No description provided for @unencryptedExportDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Plain JSON. For trusted storage only.'**
+  String get unencryptedExportDesc;
+
+  /// No description provided for @setBackupPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Backup Password'**
+  String get setBackupPassword;
+
+  /// No description provided for @backupPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup Password'**
+  String get backupPassword;
+
+  /// No description provided for @confirmBackupPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Backup Password'**
+  String get confirmBackupPassword;
+
+  /// No description provided for @backupPasswordWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Store this password safely. Without it, your backup cannot be recovered.'**
+  String get backupPasswordWarning;
+
+  /// No description provided for @encryptingBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypting backup...'**
+  String get encryptingBackup;
+
+  /// No description provided for @decryptingBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrypting backup...'**
+  String get decryptingBackup;
+
+  /// No description provided for @decryptBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrypt Backup'**
+  String get decryptBackup;
+
+  /// No description provided for @enterBackupPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the password you used when exporting this backup.'**
+  String get enterBackupPassword;
+
+  /// No description provided for @wrongPasswordOrCorrupted.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong password or corrupted file'**
+  String get wrongPasswordOrCorrupted;
+
+  /// No description provided for @loadFromFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Load from JSON or encrypted .saenc file'**
+  String get loadFromFile;
 }
 
 class _AppLocalizationsDelegate

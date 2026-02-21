@@ -382,4 +382,51 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get selectLanguage => '언어 선택';
+
+  @override
+  String get exportBackup => '백업 내보내기';
+
+  @override
+  String get encryptedExport => '암호화됨 (권장)';
+
+  @override
+  String get encryptedExportDesc =>
+      'AES-256-GCM으로 보호됩니다. 어디서든 안전하게 공유할 수 있습니다.';
+
+  @override
+  String get unencryptedExport => '암호화되지 않음';
+
+  @override
+  String get unencryptedExportDesc => '일반 JSON. 신뢰할 수 있는 저장소에만 사용하세요.';
+
+  @override
+  String get setBackupPassword => '백업 비밀번호 설정';
+
+  @override
+  String get backupPassword => '백업 비밀번호';
+
+  @override
+  String get confirmBackupPassword => '백업 비밀번호 확인';
+
+  @override
+  String get backupPasswordWarning =>
+      '이 비밀번호를 안전한 곳에 보관하세요. 비밀번호 없이는 백업을 열 수 없습니다.';
+
+  @override
+  String get encryptingBackup => '백업 암호화 중...';
+
+  @override
+  String get decryptingBackup => '백업 복호화 중...';
+
+  @override
+  String get decryptBackup => '백업 복호화';
+
+  @override
+  String get enterBackupPassword => '이 백업을 내보낼 때 사용한 비밀번호를 입력하세요.';
+
+  @override
+  String get wrongPasswordOrCorrupted => '잘못된 비밀번호 또는 손상된 파일';
+
+  @override
+  String get loadFromFile => 'JSON 또는 암호화된 .saenc 파일에서 불러오기';
 }

@@ -382,4 +382,49 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get selectLanguage => '选择语言';
+
+  @override
+  String get exportBackup => '导出备份';
+
+  @override
+  String get encryptedExport => '加密（推荐）';
+
+  @override
+  String get encryptedExportDesc => 'AES-256-GCM保护，可安全分享。';
+
+  @override
+  String get unencryptedExport => '未加密';
+
+  @override
+  String get unencryptedExportDesc => '纯JSON格式，仅用于可信存储。';
+
+  @override
+  String get setBackupPassword => '设置备份密码';
+
+  @override
+  String get backupPassword => '备份密码';
+
+  @override
+  String get confirmBackupPassword => '确认备份密码';
+
+  @override
+  String get backupPasswordWarning => '请将此密码保存在安全的地方。没有密码，您将无法打开备份。';
+
+  @override
+  String get encryptingBackup => '正在加密备份...';
+
+  @override
+  String get decryptingBackup => '正在解密备份...';
+
+  @override
+  String get decryptBackup => '解密备份';
+
+  @override
+  String get enterBackupPassword => '请输入导出此备份时使用的密码。';
+
+  @override
+  String get wrongPasswordOrCorrupted => '密码错误或文件已损坏';
+
+  @override
+  String get loadFromFile => '从JSON或加密的.saenc文件加载';
 }

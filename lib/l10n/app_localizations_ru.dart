@@ -388,4 +388,54 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get selectLanguage => 'Выберите язык';
+
+  @override
+  String get exportBackup => 'Экспорт Резервной Копии';
+
+  @override
+  String get encryptedExport => 'Зашифрованный (Рекомендуется)';
+
+  @override
+  String get encryptedExportDesc => 'Защита AES-256-GCM. Безопасно для обмена.';
+
+  @override
+  String get unencryptedExport => 'Без Шифрования';
+
+  @override
+  String get unencryptedExportDesc =>
+      'Простой JSON. Только для надёжного хранения.';
+
+  @override
+  String get setBackupPassword => 'Установить Пароль Резервной Копии';
+
+  @override
+  String get backupPassword => 'Пароль Резервной Копии';
+
+  @override
+  String get confirmBackupPassword => 'Подтвердить Пароль Резервной Копии';
+
+  @override
+  String get backupPasswordWarning =>
+      'Сохраните этот пароль в надёжном месте. Без него резервную копию нельзя открыть.';
+
+  @override
+  String get encryptingBackup => 'Шифрование резервной копии...';
+
+  @override
+  String get decryptingBackup => 'Расшифровка резервной копии...';
+
+  @override
+  String get decryptBackup => 'Расшифровать Резервную Копию';
+
+  @override
+  String get enterBackupPassword =>
+      'Введите пароль, который вы использовали при экспорте этой резервной копии.';
+
+  @override
+  String get wrongPasswordOrCorrupted =>
+      'Неверный пароль или повреждённый файл';
+
+  @override
+  String get loadFromFile =>
+      'Загрузить из JSON или зашифрованного .saenc файла';
 }

@@ -389,4 +389,53 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get selectLanguage => 'Dil Secin';
+
+  @override
+  String get exportBackup => 'Yedeği Dışa Aktar';
+
+  @override
+  String get encryptedExport => 'Şifreli (Önerilen)';
+
+  @override
+  String get encryptedExportDesc =>
+      'AES-256-GCM korumalı. Her yerde güvenle paylaşılabilir.';
+
+  @override
+  String get unencryptedExport => 'Şifresiz';
+
+  @override
+  String get unencryptedExportDesc =>
+      'Ham JSON. Yalnızca güvenilir depolama için.';
+
+  @override
+  String get setBackupPassword => 'Yedek Şifresi Belirle';
+
+  @override
+  String get backupPassword => 'Yedek Şifresi';
+
+  @override
+  String get confirmBackupPassword => 'Yedek Şifresini Onayla';
+
+  @override
+  String get backupPasswordWarning =>
+      'Bu şifreyi güvenli bir yere kaydedin. Şifre olmadan yedeğinizi açamazsınız.';
+
+  @override
+  String get encryptingBackup => 'Yedek şifreleniyor...';
+
+  @override
+  String get decryptingBackup => 'Yedek çözülüyor...';
+
+  @override
+  String get decryptBackup => 'Yedeği Çöz';
+
+  @override
+  String get enterBackupPassword =>
+      'Bu yedeği dışa aktarırken belirlediğiniz şifreyi girin.';
+
+  @override
+  String get wrongPasswordOrCorrupted => 'Yanlış şifre veya bozuk dosya';
+
+  @override
+  String get loadFromFile => 'JSON veya şifreli .saenc dosyasından yükle';
 }

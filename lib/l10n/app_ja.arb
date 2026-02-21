@@ -114,5 +114,20 @@
   "aboutEncryption": "PBKDF2-SHA512 | AES-256 | 完全オフライン",
   "edit": "編集",
   "language": "言語",
-  "selectLanguage": "言語を選択"
+  "selectLanguage": "言語を選択",
+  "exportBackup": "バックアップのエクスポート",
+  "encryptedExport": "暗号化（推奨）",
+  "encryptedExportDesc": "AES-256-GCMで保護。どこでも安全に共有できます。",
+  "unencryptedExport": "暗号化なし",
+  "unencryptedExportDesc": "プレーンJSON。信頼できる保存場所のみ。",
+  "setBackupPassword": "バックアップパスワードの設定",
+  "backupPassword": "バックアップパスワード",
+  "confirmBackupPassword": "バックアップパスワードを確認",
+  "backupPasswordWarning": "このパスワードを安全な場所に保存してください。パスワードなしではバックアップを開けません。",
+  "encryptingBackup": "バックアップを暗号化中...",
+  "decryptingBackup": "バックアップを復号中...",
+  "decryptBackup": "バックアップを復号",
+  "enterBackupPassword": "このバックアップのエクスポート時に使用したパスワードを入力してください。",
+  "wrongPasswordOrCorrupted": "パスワードが違うか、ファイルが破損しています",
+  "loadFromFile": "JSONまたは暗号化.saencファイルから読み込む"
 }

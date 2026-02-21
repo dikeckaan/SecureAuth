@@ -114,5 +114,20 @@
   "aboutEncryption": "PBKDF2-SHA512 | AES-256 | 完全离线",
   "edit": "编辑",
   "language": "语言",
-  "selectLanguage": "选择语言"
+  "selectLanguage": "选择语言",
+  "exportBackup": "导出备份",
+  "encryptedExport": "加密（推荐）",
+  "encryptedExportDesc": "AES-256-GCM保护，可安全分享。",
+  "unencryptedExport": "未加密",
+  "unencryptedExportDesc": "纯JSON格式，仅用于可信存储。",
+  "setBackupPassword": "设置备份密码",
+  "backupPassword": "备份密码",
+  "confirmBackupPassword": "确认备份密码",
+  "backupPasswordWarning": "请将此密码保存在安全的地方。没有密码，您将无法打开备份。",
+  "encryptingBackup": "正在加密备份...",
+  "decryptingBackup": "正在解密备份...",
+  "decryptBackup": "解密备份",
+  "enterBackupPassword": "请输入导出此备份时使用的密码。",
+  "wrongPasswordOrCorrupted": "密码错误或文件已损坏",
+  "loadFromFile": "从JSON或加密的.saenc文件加载"
 }

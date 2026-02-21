@@ -386,4 +386,52 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get selectLanguage => 'اختر اللغة';
+
+  @override
+  String get exportBackup => 'تصدير النسخة الاحتياطية';
+
+  @override
+  String get encryptedExport => 'مشفر (موصى به)';
+
+  @override
+  String get encryptedExportDesc =>
+      'محمي بـ AES-256-GCM. آمن للمشاركة في أي مكان.';
+
+  @override
+  String get unencryptedExport => 'غير مشفر';
+
+  @override
+  String get unencryptedExportDesc => 'JSON بسيط. للتخزين الموثوق فقط.';
+
+  @override
+  String get setBackupPassword => 'تعيين كلمة مرور النسخة الاحتياطية';
+
+  @override
+  String get backupPassword => 'كلمة مرور النسخة الاحتياطية';
+
+  @override
+  String get confirmBackupPassword => 'تأكيد كلمة مرور النسخة الاحتياطية';
+
+  @override
+  String get backupPasswordWarning =>
+      'احتفظ بكلمة المرور هذه في مكان آمن. بدونها، لا يمكن فتح النسخة الاحتياطية.';
+
+  @override
+  String get encryptingBackup => 'جارٍ تشفير النسخة الاحتياطية...';
+
+  @override
+  String get decryptingBackup => 'جارٍ فك تشفير النسخة الاحتياطية...';
+
+  @override
+  String get decryptBackup => 'فك تشفير النسخة الاحتياطية';
+
+  @override
+  String get enterBackupPassword =>
+      'أدخل كلمة المرور التي استخدمتها عند تصدير هذه النسخة الاحتياطية.';
+
+  @override
+  String get wrongPasswordOrCorrupted => 'كلمة مرور خاطئة أو ملف تالف';
+
+  @override
+  String get loadFromFile => 'تحميل من ملف JSON أو .saenc مشفر';
 }

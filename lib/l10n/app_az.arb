@@ -114,5 +114,20 @@
   "aboutEncryption": "PBKDF2-SHA512 | AES-256 | Tamam Oflayn",
   "edit": "Redakte Et",
   "language": "Dil",
-  "selectLanguage": "Dil Secin"
+  "selectLanguage": "Dil Secin",
+  "exportBackup": "Ehtiyat Nüsxəni İxrac Et",
+  "encryptedExport": "Şifrəli (Tövsiyə edilir)",
+  "encryptedExportDesc": "AES-256-GCM ilə qorunur. Hər yerdə paylaşmaq üçün təhlükəsizdir.",
+  "unencryptedExport": "Şifrəsiz",
+  "unencryptedExportDesc": "Sadə JSON. Yalnız etibarlı saxlama üçün.",
+  "setBackupPassword": "Ehtiyat Şifrəsini Tənzimlə",
+  "backupPassword": "Ehtiyat Şifrəsi",
+  "confirmBackupPassword": "Ehtiyat Şifrəsini Təsdiqlə",
+  "backupPasswordWarning": "Bu şifrəni təhlükəsiz yerdə saxlayın. Şifrə olmadan ehtiyat nüsxənizi aça bilməzsiniz.",
+  "encryptingBackup": "Ehtiyat nüsxə şifrələnir...",
+  "decryptingBackup": "Ehtiyat nüsxə açılır...",
+  "decryptBackup": "Ehtiyat Nüsxəni Aç",
+  "enterBackupPassword": "Bu ehtiyat nüsxəni ixrac edərkən istifadə etdiyiniz şifrəni daxil edin.",
+  "wrongPasswordOrCorrupted": "Yanlış şifrə və ya zədəli fayl",
+  "loadFromFile": "JSON və ya şifrəli .saenc faylından yüklə"
 }

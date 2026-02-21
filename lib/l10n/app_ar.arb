@@ -114,5 +114,20 @@
   "aboutEncryption": "PBKDF2-SHA512 | AES-256 | غير متصل بالكامل",
   "edit": "تعديل",
   "language": "اللغة",
-  "selectLanguage": "اختر اللغة"
+  "selectLanguage": "اختر اللغة",
+  "exportBackup": "تصدير النسخة الاحتياطية",
+  "encryptedExport": "مشفر (موصى به)",
+  "encryptedExportDesc": "محمي بـ AES-256-GCM. آمن للمشاركة في أي مكان.",
+  "unencryptedExport": "غير مشفر",
+  "unencryptedExportDesc": "JSON بسيط. للتخزين الموثوق فقط.",
+  "setBackupPassword": "تعيين كلمة مرور النسخة الاحتياطية",
+  "backupPassword": "كلمة مرور النسخة الاحتياطية",
+  "confirmBackupPassword": "تأكيد كلمة مرور النسخة الاحتياطية",
+  "backupPasswordWarning": "احتفظ بكلمة المرور هذه في مكان آمن. بدونها، لا يمكن فتح النسخة الاحتياطية.",
+  "encryptingBackup": "جارٍ تشفير النسخة الاحتياطية...",
+  "decryptingBackup": "جارٍ فك تشفير النسخة الاحتياطية...",
+  "decryptBackup": "فك تشفير النسخة الاحتياطية",
+  "enterBackupPassword": "أدخل كلمة المرور التي استخدمتها عند تصدير هذه النسخة الاحتياطية.",
+  "wrongPasswordOrCorrupted": "كلمة مرور خاطئة أو ملف تالف",
+  "loadFromFile": "تحميل من ملف JSON أو .saenc مشفر"
 }

@@ -59,6 +59,9 @@ dependencies:
   share_plus: ^10.1.2
   permission_handler: ^11.3.1
 
+  # Yedek Şifreleme (AES-256-GCM)
+  encrypt: ^5.0.3
+
   # UI & Utilities
   intl: ^0.20.1
   uuid: ^4.5.1

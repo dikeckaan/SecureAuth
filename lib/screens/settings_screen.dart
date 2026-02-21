@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:secure_auth/l10n/app_localizations.dart';
 
 import '../services/auth_service.dart';
+import '../services/backup_encryption_service.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
 
@@ -247,34 +249,138 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // ─── EXPORT: Documents dir primary, plain-text share as fallback ─────────
-  // [originContext] is the BuildContext of the tapped tile — used on iOS to
-  // compute the sharePositionOrigin rect the share-sheet popover anchors to.
-  Future<void> _exportAccounts(BuildContext originContext) async {
+  // ─── EXPORT ───────────────────────────────────────────────────────────────
+
+  /// Shows a bottom sheet letting the user choose encrypted vs plain export.
+  Future<void> _onExportTapped(BuildContext tileCtx) async {
     final l10n = AppLocalizations.of(context)!;
+
+    // Compute iOS share-sheet anchor rect NOW (synchronous, before any await).
+    final originRect = _anchorRect(tileCtx);
+
+    final choice = await showModalBottomSheet<_ExportChoice>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppConstants.radiusLG)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+              AppConstants.paddingMD, 12, AppConstants.paddingMD, 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // drag handle
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(ctx).colorScheme.outline.withAlpha(80),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Text(
+                l10n.exportBackup,
+                style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              // ── Encrypted option ──────────────────────────────────────────
+              _ExportOptionTile(
+                icon: Icons.lock_outlined,
+                iconColor: AppColors.success,
+                title: l10n.encryptedExport,
+                subtitle: l10n.encryptedExportDesc,
+                onTap: () => Navigator.pop(ctx, _ExportChoice.encrypted),
+              ),
+              const SizedBox(height: 8),
+              // ── Unencrypted option ────────────────────────────────────────
+              _ExportOptionTile(
+                icon: Icons.lock_open_outlined,
+                iconColor: AppColors.warning,
+                title: l10n.unencryptedExport,
+                subtitle: l10n.unencryptedExportDesc,
+                onTap: () => Navigator.pop(ctx, _ExportChoice.plain),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (choice == null || !mounted) return;
+    if (choice == _ExportChoice.encrypted) {
+      await _exportEncrypted(originRect);
+    } else {
+      await _exportPlain(originRect);
+    }
+  }
+
+  /// Encrypted export: shows password dialog → PBKDF2+AES-256-GCM → share.
+  Future<void> _exportEncrypted(Rect originRect) async {
+    final l10n = AppLocalizations.of(context)!;
+
+    final password = await _showSetPasswordDialog(l10n);
+    if (password == null || !mounted) return;
+
+    // Show loading while running PBKDF2 (200 000 iterations in isolate).
+    _showLoadingDialog(l10n.encryptingBackup);
     try {
-      // Compute the anchor rect BEFORE any await so context is safe to use.
-      Rect originRect = Rect.zero;
-      final box = originContext.findRenderObject() as RenderBox?;
-      if (box != null && box.hasSize) {
-        originRect = box.localToGlobal(Offset.zero) & box.size;
-      }
-      if (originRect.isEmpty) {
-        // Sensible default: bottom-centre of screen.
-        final size = MediaQuery.sizeOf(context);
-        originRect = Rect.fromCenter(
-          center: Offset(size.width / 2, size.height - 100),
-          width: 1,
-          height: 1,
+      final jsonString = await widget.storageService.exportAccountsToJson();
+      final bytes =
+          await BackupEncryptionService.encryptBackup(jsonString, password);
+
+      final fileName =
+          'secureauth_backup_${DateTime.now().millisecondsSinceEpoch}'
+          '.${BackupEncryptionService.fileExtension}';
+
+      // Close loading dialog.
+      if (mounted) Navigator.of(context).pop();
+
+      // Write to Documents dir and share.
+      try {
+        final dir = await getApplicationDocumentsDirectory();
+        final file = File('${dir.path}/$fileName');
+        await file.writeAsBytes(bytes, flush: true);
+        await Share.shareXFiles(
+          [XFile(file.path, mimeType: 'application/octet-stream', name: fileName)],
+          sharePositionOrigin: originRect,
+        );
+      } catch (_) {
+        // Fallback: share the raw bytes as a temp file.
+        final tmp = await getTemporaryDirectory();
+        final file = File('${tmp.path}/$fileName');
+        await file.writeAsBytes(bytes, flush: true);
+        await Share.shareXFiles(
+          [XFile(file.path, name: fileName)],
+          sharePositionOrigin: originRect,
         );
       }
 
+      if (mounted) _showSuccess(l10n.accountsExported);
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context).pop(); // close loading if still open
+        _showError('${l10n.exportError} ($e)');
+      }
+    }
+  }
+
+  /// Plain JSON export (existing behaviour).
+  Future<void> _exportPlain(Rect originRect) async {
+    final l10n = AppLocalizations.of(context)!;
+    try {
       final jsonString = await widget.storageService.exportAccountsToJson();
       final fileName =
           'secureauth_backup_${DateTime.now().millisecondsSinceEpoch}.json';
 
-      // Primary: write to Documents directory and share as a JSON file.
-      // Documents dir is accessible from Files.app on iOS and is stable.
       try {
         final dir = await getApplicationDocumentsDirectory();
         final file = File('${dir.path}/$fileName');
@@ -284,7 +390,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           sharePositionOrigin: originRect,
         );
       } catch (_) {
-        // Fallback: share raw JSON text — works everywhere, no file perms needed
         await Share.share(jsonString,
             subject: fileName, sharePositionOrigin: originRect);
       }
@@ -295,37 +400,295 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // ─── IMPORT FIX: withData:true + bytes fallback for iCloud / cloud files ───
+  // ─── IMPORT ───────────────────────────────────────────────────────────────
+
+  /// Handles both plain `.json` and encrypted `.saenc` files.
   Future<void> _importAccounts() async {
     final l10n = AppLocalizations.of(context)!;
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['json'],
-        withData: true, // ensures bytes are populated even for cloud-backed files
+        allowedExtensions: ['json', BackupEncryptionService.fileExtension],
+        withData: true, // required for cloud-backed files (iCloud etc.)
       );
 
       if (result == null || result.files.isEmpty) return;
 
       final pickedFile = result.files.first;
-      final String jsonString;
+      final Uint8List bytes;
 
-      if (pickedFile.path != null) {
-        jsonString = await File(pickedFile.path!).readAsString();
-      } else if (pickedFile.bytes != null) {
-        jsonString = utf8.decode(pickedFile.bytes!);
+      if (pickedFile.bytes != null) {
+        bytes = pickedFile.bytes!;
+      } else if (pickedFile.path != null) {
+        bytes = await File(pickedFile.path!).readAsBytes();
       } else {
         if (mounted) _showError(l10n.importError);
         return;
       }
 
+      final String jsonString;
+
+      if (BackupEncryptionService.isEncryptedBackup(bytes)) {
+        // ── Encrypted backup ───────────────────────────────────────────────
+        final password = await _showDecryptPasswordDialog(l10n);
+        if (password == null || !mounted) return;
+
+        _showLoadingDialog(l10n.decryptingBackup);
+        try {
+          jsonString =
+              await BackupEncryptionService.decryptBackup(bytes, password);
+          if (mounted) Navigator.of(context).pop(); // close loading
+        } on FormatException catch (e) {
+          if (mounted) {
+            Navigator.of(context).pop();
+            _showError(e.message == 'Wrong password or corrupted backup file'
+                ? l10n.wrongPasswordOrCorrupted
+                : l10n.importError);
+          }
+          return;
+        }
+      } else {
+        // ── Plain JSON backup ──────────────────────────────────────────────
+        jsonString = utf8.decode(bytes);
+      }
+
       final imported =
           await widget.storageService.importAccountsFromJson(jsonString);
-
       if (mounted) _showSuccess(l10n.nAccountsImported(imported));
     } catch (e) {
       if (mounted) _showError(l10n.importError);
     }
+  }
+
+  // ─── Password dialogs ─────────────────────────────────────────────────────
+
+  /// Shows a password + confirm dialog with a strength indicator.
+  /// Returns the entered password, or null if cancelled.
+  Future<String?> _showSetPasswordDialog(AppLocalizations l10n) async {
+    final pwCtrl = TextEditingController();
+    final confirmCtrl = TextEditingController();
+    bool pwVisible = false;
+    bool confirmVisible = false;
+    String? error;
+
+    final result = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) => AlertDialog(
+          title: Text(l10n.setBackupPassword),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Password field
+                TextField(
+                  controller: pwCtrl,
+                  obscureText: !pwVisible,
+                  onChanged: (_) => setS(() {}),
+                  decoration: InputDecoration(
+                    labelText: l10n.backupPassword,
+                    prefixIcon: const Icon(Icons.lock_outlined),
+                    suffixIcon: IconButton(
+                      icon: Icon(pwVisible
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined),
+                      onPressed: () => setS(() => pwVisible = !pwVisible),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Confirm password field
+                TextField(
+                  controller: confirmCtrl,
+                  obscureText: !confirmVisible,
+                  onChanged: (_) => setS(() {}),
+                  decoration: InputDecoration(
+                    labelText: l10n.confirmBackupPassword,
+                    prefixIcon: const Icon(Icons.lock_outlined),
+                    suffixIcon: IconButton(
+                      icon: Icon(confirmVisible
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined),
+                      onPressed: () =>
+                          setS(() => confirmVisible = !confirmVisible),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Strength indicator
+                _PasswordStrengthBar(password: pwCtrl.text),
+                const SizedBox(height: 12),
+                // Warning note
+                Container(
+                  padding: const EdgeInsets.all(AppConstants.paddingSM),
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withAlpha(20),
+                    borderRadius:
+                        BorderRadius.circular(AppConstants.radiusSM),
+                    border: Border.all(color: AppColors.warning.withAlpha(60)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.warning_amber_rounded,
+                          color: AppColors.warning, size: 16),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          l10n.backupPasswordWarning,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.warning,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (error != null) ...[
+                  const SizedBox(height: 8),
+                  Text(error!,
+                      style: const TextStyle(
+                          color: AppColors.error, fontSize: 12)),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l10n.cancel),
+            ),
+            FilledButton(
+              onPressed: () {
+                final pw = pwCtrl.text;
+                final confirm = confirmCtrl.text;
+                if (pw.length < AppConstants.minPasswordLength) {
+                  setS(() => error = l10n
+                      .passwordMinLength(AppConstants.minPasswordLength));
+                  return;
+                }
+                if (pw != confirm) {
+                  setS(() => error = l10n.passwordsDoNotMatch);
+                  return;
+                }
+                Navigator.pop(ctx, pw);
+              },
+              child: Text(l10n.exportAccounts),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    pwCtrl.dispose();
+    confirmCtrl.dispose();
+    return result;
+  }
+
+  /// Shows a single-field password dialog for decryption.
+  Future<String?> _showDecryptPasswordDialog(AppLocalizations l10n) async {
+    final ctrl = TextEditingController();
+    bool visible = false;
+
+    final result = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) => AlertDialog(
+          title: Text(l10n.decryptBackup),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.enterBackupPassword,
+                  style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(ctx)
+                            .colorScheme
+                            .onSurface
+                            .withAlpha(153),
+                      )),
+              const SizedBox(height: 12),
+              TextField(
+                controller: ctrl,
+                obscureText: !visible,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: l10n.backupPassword,
+                  prefixIcon: const Icon(Icons.lock_outlined),
+                  suffixIcon: IconButton(
+                    icon: Icon(visible
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined),
+                    onPressed: () => setS(() => visible = !visible),
+                  ),
+                ),
+                onSubmitted: (v) {
+                  if (v.isNotEmpty) Navigator.pop(ctx, v);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l10n.cancel),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (ctrl.text.isNotEmpty) Navigator.pop(ctx, ctrl.text);
+              },
+              child: Text(l10n.decryptBackup),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    ctrl.dispose();
+    return result;
+  }
+
+  // ─── Utility helpers ──────────────────────────────────────────────────────
+
+  /// Compute the iOS share-sheet anchor rect from a tile's BuildContext.
+  /// Must be called synchronously BEFORE any await.
+  Rect _anchorRect(BuildContext tileCtx) {
+    final box = tileCtx.findRenderObject() as RenderBox?;
+    if (box != null && box.hasSize) {
+      return box.localToGlobal(Offset.zero) & box.size;
+    }
+    final size = MediaQuery.sizeOf(context);
+    return Rect.fromCenter(
+      center: Offset(size.width / 2, size.height - 100),
+      width: 1,
+      height: 1,
+    );
+  }
+
+  /// Shows a non-dismissible loading dialog during PBKDF2 / AES operations.
+  void _showLoadingDialog(String message) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => PopScope(
+        canPop: false,
+        child: AlertDialog(
+          content: Row(
+            children: [
+              const SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: CircularProgressIndicator(strokeWidth: 3)),
+              const SizedBox(width: 16),
+              Expanded(child: Text(message)),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _clearAllData() async {
@@ -596,7 +959,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     : null,
                 enabled: accountCount > 0,
                 onTap: accountCount > 0
-                    ? () => _exportAccounts(tileCtx)
+                    ? () => _onExportTapped(tileCtx)
                     : null,
               ),
             ),
@@ -605,7 +968,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               leading:
                   _buildLeadingIcon(Icons.download_outlined, AppColors.accent),
               title: Text(l10n.importAccounts),
-              subtitle: Text(l10n.loadFromJSON),
+              subtitle: Text(l10n.loadFromFile),
               trailing: const Icon(Icons.chevron_right, size: 18),
               onTap: _importAccounts,
             ),
@@ -846,6 +1209,160 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 }
+
+// ── Export choice enum ─────────────────────────────────────────────────────
+
+enum _ExportChoice { encrypted, plain }
+
+// ── Export option tile ─────────────────────────────────────────────────────
+
+class _ExportOptionTile extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _ExportOptionTile({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppConstants.radiusMD),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppConstants.paddingMD, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border.all(
+              color: theme.colorScheme.outline.withAlpha(60)),
+          borderRadius: BorderRadius.circular(AppConstants.radiusMD),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: iconColor.withAlpha(22),
+                borderRadius:
+                    BorderRadius.circular(AppConstants.radiusSM),
+              ),
+              child: Icon(icon, color: iconColor, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 2),
+                  Text(subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface
+                              .withAlpha(128))),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right,
+                size: 18,
+                color: theme.colorScheme.onSurface.withAlpha(100)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Password strength bar ──────────────────────────────────────────────────
+
+class _PasswordStrengthBar extends StatelessWidget {
+  final String password;
+
+  const _PasswordStrengthBar({required this.password});
+
+  static ({double value, Color color, String label}) _strength(
+      String pw, AppLocalizations l10n) {
+    if (pw.isEmpty) {
+      return (value: 0, color: Colors.transparent, label: '');
+    }
+    int score = 0;
+    if (pw.length >= 8) score++;
+    if (pw.length >= 12) score++;
+    if (pw.length >= 16) score++;
+    if (RegExp(r'[A-Z]').hasMatch(pw)) score++;
+    if (RegExp(r'[a-z]').hasMatch(pw)) score++;
+    if (RegExp(r'[0-9]').hasMatch(pw)) score++;
+    if (RegExp(r'[^A-Za-z0-9]').hasMatch(pw)) score += 2;
+
+    if (score <= 2) {
+      return (value: 0.2, color: AppColors.error, label: l10n.strengthWeak);
+    } else if (score <= 4) {
+      return (
+        value: 0.45,
+        color: AppColors.warning,
+        label: l10n.strengthMedium
+      );
+    } else if (score <= 6) {
+      return (
+        value: 0.70,
+        color: AppColors.primary,
+        label: l10n.strengthGood
+      );
+    } else if (score <= 7) {
+      return (
+        value: 0.85,
+        color: AppColors.success,
+        label: l10n.strengthStrong
+      );
+    } else {
+      return (
+        value: 1.0,
+        color: AppColors.success,
+        label: l10n.strengthVeryStrong
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final s = _strength(password, l10n);
+    if (password.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: s.value,
+            minHeight: 6,
+            backgroundColor:
+                Theme.of(context).colorScheme.outline.withAlpha(40),
+            valueColor: AlwaysStoppedAnimation<Color>(s.color),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          s.label,
+          style: TextStyle(
+              fontSize: 11, fontWeight: FontWeight.w600, color: s.color),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Language option ────────────────────────────────────────────────────────
 
 class _LanguageOption {
   final String code;

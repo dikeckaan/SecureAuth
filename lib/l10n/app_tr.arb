@@ -114,5 +114,20 @@
   "aboutEncryption": "PBKDF2-SHA512 | AES-256 | Tamamen Offline",
   "edit": "Duzenle",
   "language": "Dil",
-  "selectLanguage": "Dil Secin"
+  "selectLanguage": "Dil Secin",
+  "exportBackup": "Yedeği Dışa Aktar",
+  "encryptedExport": "Şifreli (Önerilen)",
+  "encryptedExportDesc": "AES-256-GCM korumalı. Her yerde güvenle paylaşılabilir.",
+  "unencryptedExport": "Şifresiz",
+  "unencryptedExportDesc": "Ham JSON. Yalnızca güvenilir depolama için.",
+  "setBackupPassword": "Yedek Şifresi Belirle",
+  "backupPassword": "Yedek Şifresi",
+  "confirmBackupPassword": "Yedek Şifresini Onayla",
+  "backupPasswordWarning": "Bu şifreyi güvenli bir yere kaydedin. Şifre olmadan yedeğinizi açamazsınız.",
+  "encryptingBackup": "Yedek şifreleniyor...",
+  "decryptingBackup": "Yedek çözülüyor...",
+  "decryptBackup": "Yedeği Çöz",
+  "enterBackupPassword": "Bu yedeği dışa aktarırken belirlediğiniz şifreyi girin.",
+  "wrongPasswordOrCorrupted": "Yanlış şifre veya bozuk dosya",
+  "loadFromFile": "JSON veya şifreli .saenc dosyasından yükle"
 }

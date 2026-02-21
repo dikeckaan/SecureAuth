@@ -114,5 +114,20 @@
   "aboutEncryption": "PBKDF2-SHA512 | AES-256 | Полностью офлайн",
   "edit": "Редактировать",
   "language": "Язык",
-  "selectLanguage": "Выберите язык"
+  "selectLanguage": "Выберите язык",
+  "exportBackup": "Экспорт Резервной Копии",
+  "encryptedExport": "Зашифрованный (Рекомендуется)",
+  "encryptedExportDesc": "Защита AES-256-GCM. Безопасно для обмена.",
+  "unencryptedExport": "Без Шифрования",
+  "unencryptedExportDesc": "Простой JSON. Только для надёжного хранения.",
+  "setBackupPassword": "Установить Пароль Резервной Копии",
+  "backupPassword": "Пароль Резервной Копии",
+  "confirmBackupPassword": "Подтвердить Пароль Резервной Копии",
+  "backupPasswordWarning": "Сохраните этот пароль в надёжном месте. Без него резервную копию нельзя открыть.",
+  "encryptingBackup": "Шифрование резервной копии...",
+  "decryptingBackup": "Расшифровка резервной копии...",
+  "decryptBackup": "Расшифровать Резервную Копию",
+  "enterBackupPassword": "Введите пароль, который вы использовали при экспорте этой резервной копии.",
+  "wrongPasswordOrCorrupted": "Неверный пароль или повреждённый файл",
+  "loadFromFile": "Загрузить из JSON или зашифрованного .saenc файла"
 }

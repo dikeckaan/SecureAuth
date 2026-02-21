@@ -7,20 +7,26 @@
   "lockedWithTime": "Locked: {time}",
   "@lockedWithTime": {
     "placeholders": {
-      "time": { "type": "String" }
+      "time": {
+        "type": "String"
+      }
     }
   },
   "failedAttemptsCount": "{count} failed attempt(s)",
   "@failedAttemptsCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "tooManyAttempts": "Too many failed attempts. Please wait.",
   "wrongPasswordWithRemaining": "Wrong password ({remaining} attempt(s) left)",
   "@wrongPasswordWithRemaining": {
     "placeholders": {
-      "remaining": { "type": "int" }
+      "remaining": {
+        "type": "int"
+      }
     }
   },
   "maxAttemptsExceeded": "Maximum attempts exceeded. All data deleted.",
@@ -29,20 +35,28 @@
   "codeCopied": "Code copied ({seconds}s auto-clear)",
   "@codeCopied": {
     "placeholders": {
-      "seconds": { "type": "int" }
+      "seconds": {
+        "type": "int"
+      }
     }
   },
   "minuteShortFormat": "{minutes} min {seconds} sec",
   "@minuteShortFormat": {
     "placeholders": {
-      "minutes": { "type": "int" },
-      "seconds": { "type": "int" }
+      "minutes": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "int"
+      }
     }
   },
   "secondShortFormat": "{seconds} sec",
   "@secondShortFormat": {
     "placeholders": {
-      "seconds": { "type": "int" }
+      "seconds": {
+        "type": "int"
+      }
     }
   },
   "welcome": "Welcome",
@@ -61,7 +75,9 @@
   "passwordMinLength": "Password must be at least {length} characters",
   "@passwordMinLength": {
     "placeholders": {
-      "length": { "type": "int" }
+      "length": {
+        "type": "int"
+      }
     }
   },
   "passwordsDoNotMatch": "Passwords do not match",
@@ -76,7 +92,9 @@
   "deleteAccountConfirm": "Are you sure you want to delete the {issuer} account?",
   "@deleteAccountConfirm": {
     "placeholders": {
-      "issuer": { "type": "String" }
+      "issuer": {
+        "type": "String"
+      }
     }
   },
   "actionIrreversible": "This action cannot be undone",
@@ -121,14 +139,18 @@
   "clipboardClearAfterSeconds": "{seconds} seconds later",
   "@clipboardClearAfterSeconds": {
     "placeholders": {
-      "seconds": { "type": "int" }
+      "seconds": {
+        "type": "int"
+      }
     }
   },
   "maxFailedAttemptsLabel": "Max Failed Attempts",
   "attemptsCount": "{count} attempts",
   "@attemptsCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "wipeOnMaxAttemptsLabel": "Wipe Data on Max Attempts",
@@ -138,7 +160,9 @@
   "nAccounts": "{count} accounts",
   "@nAccounts": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "importAccounts": "Import Accounts",
@@ -149,7 +173,9 @@
   "wipeWarning": "After {count} failed login attempts, all data will be automatically deleted. This feature may cause irreversible data loss.",
   "@wipeWarning": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "enable": "Enable",
@@ -166,13 +192,17 @@
   "nSeconds": "{count} seconds",
   "@nSeconds": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "nMinutes": "{count} minutes",
   "@nMinutes": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "clipboardClearTime": "Clipboard Clear Time",
@@ -182,7 +212,9 @@
   "nAccountsImported": "{count} accounts imported successfully",
   "@nAccountsImported": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "exportError": "Export error",
@@ -190,5 +222,20 @@
   "aboutEncryption": "PBKDF2-SHA512 | AES-256 | Fully Offline",
   "edit": "Edit",
   "language": "Language",
-  "selectLanguage": "Select Language"
+  "selectLanguage": "Select Language",
+  "exportBackup": "Export Backup",
+  "encryptedExport": "Encrypted (Recommended)",
+  "encryptedExportDesc": "AES-256-GCM protected. Safe to share anywhere.",
+  "unencryptedExport": "Unencrypted",
+  "unencryptedExportDesc": "Plain JSON. For trusted storage only.",
+  "setBackupPassword": "Set Backup Password",
+  "backupPassword": "Backup Password",
+  "confirmBackupPassword": "Confirm Backup Password",
+  "backupPasswordWarning": "Store this password safely. Without it, your backup cannot be recovered.",
+  "encryptingBackup": "Encrypting backup...",
+  "decryptingBackup": "Decrypting backup...",
+  "decryptBackup": "Decrypt Backup",
+  "enterBackupPassword": "Enter the password you used when exporting this backup.",
+  "wrongPasswordOrCorrupted": "Wrong password or corrupted file",
+  "loadFromFile": "Load from JSON or encrypted .saenc file"
 }

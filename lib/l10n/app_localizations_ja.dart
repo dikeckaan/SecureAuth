@@ -382,4 +382,50 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get selectLanguage => '言語を選択';
+
+  @override
+  String get exportBackup => 'バックアップのエクスポート';
+
+  @override
+  String get encryptedExport => '暗号化（推奨）';
+
+  @override
+  String get encryptedExportDesc => 'AES-256-GCMで保護。どこでも安全に共有できます。';
+
+  @override
+  String get unencryptedExport => '暗号化なし';
+
+  @override
+  String get unencryptedExportDesc => 'プレーンJSON。信頼できる保存場所のみ。';
+
+  @override
+  String get setBackupPassword => 'バックアップパスワードの設定';
+
+  @override
+  String get backupPassword => 'バックアップパスワード';
+
+  @override
+  String get confirmBackupPassword => 'バックアップパスワードを確認';
+
+  @override
+  String get backupPasswordWarning =>
+      'このパスワードを安全な場所に保存してください。パスワードなしではバックアップを開けません。';
+
+  @override
+  String get encryptingBackup => 'バックアップを暗号化中...';
+
+  @override
+  String get decryptingBackup => 'バックアップを復号中...';
+
+  @override
+  String get decryptBackup => 'バックアップを復号';
+
+  @override
+  String get enterBackupPassword => 'このバックアップのエクスポート時に使用したパスワードを入力してください。';
+
+  @override
+  String get wrongPasswordOrCorrupted => 'パスワードが違うか、ファイルが破損しています';
+
+  @override
+  String get loadFromFile => 'JSONまたは暗号化.saencファイルから読み込む';
 }

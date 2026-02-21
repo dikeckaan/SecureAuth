@@ -393,4 +393,54 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get selectLanguage => 'Sélectionner la langue';
+
+  @override
+  String get exportBackup => 'Exporter la Sauvegarde';
+
+  @override
+  String get encryptedExport => 'Chiffré (Recommandé)';
+
+  @override
+  String get encryptedExportDesc =>
+      'Protégé par AES-256-GCM. Sûr à partager partout.';
+
+  @override
+  String get unencryptedExport => 'Non Chiffré';
+
+  @override
+  String get unencryptedExportDesc =>
+      'JSON simple. Pour stockage de confiance uniquement.';
+
+  @override
+  String get setBackupPassword => 'Définir le Mot de Passe de Sauvegarde';
+
+  @override
+  String get backupPassword => 'Mot de Passe de Sauvegarde';
+
+  @override
+  String get confirmBackupPassword => 'Confirmer le Mot de Passe de Sauvegarde';
+
+  @override
+  String get backupPasswordWarning =>
+      'Conservez ce mot de passe en lieu sûr. Sans lui, votre sauvegarde ne peut être ouverte.';
+
+  @override
+  String get encryptingBackup => 'Chiffrement de la sauvegarde...';
+
+  @override
+  String get decryptingBackup => 'Déchiffrement de la sauvegarde...';
+
+  @override
+  String get decryptBackup => 'Déchiffrer la Sauvegarde';
+
+  @override
+  String get enterBackupPassword =>
+      'Entrez le mot de passe utilisé lors de l\'exportation de cette sauvegarde.';
+
+  @override
+  String get wrongPasswordOrCorrupted =>
+      'Mot de passe incorrect ou fichier corrompu';
+
+  @override
+  String get loadFromFile => 'Charger depuis un fichier JSON ou .saenc chiffré';
 }

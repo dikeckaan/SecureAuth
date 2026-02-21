@@ -114,5 +114,20 @@
   "aboutEncryption": "PBKDF2-SHA512 | AES-256 | Completamente Offline",
   "edit": "Editar",
   "language": "Idioma",
-  "selectLanguage": "Seleccionar Idioma"
+  "selectLanguage": "Seleccionar Idioma",
+  "exportBackup": "Exportar Copia de Seguridad",
+  "encryptedExport": "Cifrado (Recomendado)",
+  "encryptedExportDesc": "Protegido con AES-256-GCM. Seguro para compartir en cualquier lugar.",
+  "unencryptedExport": "Sin Cifrar",
+  "unencryptedExportDesc": "JSON simple. Solo para almacenamiento de confianza.",
+  "setBackupPassword": "Establecer Contraseña de Copia",
+  "backupPassword": "Contraseña de Copia",
+  "confirmBackupPassword": "Confirmar Contraseña de Copia",
+  "backupPasswordWarning": "Guarda esta contraseña en un lugar seguro. Sin ella, no podrás abrir tu copia de seguridad.",
+  "encryptingBackup": "Cifrando copia de seguridad...",
+  "decryptingBackup": "Descifrando copia de seguridad...",
+  "decryptBackup": "Descifrar Copia",
+  "enterBackupPassword": "Ingresa la contraseña que usaste al exportar esta copia de seguridad.",
+  "wrongPasswordOrCorrupted": "Contraseña incorrecta o archivo corrupto",
+  "loadFromFile": "Cargar desde JSON o archivo .saenc cifrado"
 }

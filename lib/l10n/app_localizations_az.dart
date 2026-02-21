@@ -389,4 +389,53 @@ class AppLocalizationsAz extends AppLocalizations {
 
   @override
   String get selectLanguage => 'Dil Secin';
+
+  @override
+  String get exportBackup => 'Ehtiyat Nüsxəni İxrac Et';
+
+  @override
+  String get encryptedExport => 'Şifrəli (Tövsiyə edilir)';
+
+  @override
+  String get encryptedExportDesc =>
+      'AES-256-GCM ilə qorunur. Hər yerdə paylaşmaq üçün təhlükəsizdir.';
+
+  @override
+  String get unencryptedExport => 'Şifrəsiz';
+
+  @override
+  String get unencryptedExportDesc =>
+      'Sadə JSON. Yalnız etibarlı saxlama üçün.';
+
+  @override
+  String get setBackupPassword => 'Ehtiyat Şifrəsini Tənzimlə';
+
+  @override
+  String get backupPassword => 'Ehtiyat Şifrəsi';
+
+  @override
+  String get confirmBackupPassword => 'Ehtiyat Şifrəsini Təsdiqlə';
+
+  @override
+  String get backupPasswordWarning =>
+      'Bu şifrəni təhlükəsiz yerdə saxlayın. Şifrə olmadan ehtiyat nüsxənizi aça bilməzsiniz.';
+
+  @override
+  String get encryptingBackup => 'Ehtiyat nüsxə şifrələnir...';
+
+  @override
+  String get decryptingBackup => 'Ehtiyat nüsxə açılır...';
+
+  @override
+  String get decryptBackup => 'Ehtiyat Nüsxəni Aç';
+
+  @override
+  String get enterBackupPassword =>
+      'Bu ehtiyat nüsxəni ixrac edərkən istifadə etdiyiniz şifrəni daxil edin.';
+
+  @override
+  String get wrongPasswordOrCorrupted => 'Yanlış şifrə və ya zədəli fayl';
+
+  @override
+  String get loadFromFile => 'JSON və ya şifrəli .saenc faylından yüklə';
 }

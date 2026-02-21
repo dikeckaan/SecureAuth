@@ -392,4 +392,54 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get selectLanguage => 'Sprache auswählen';
+
+  @override
+  String get exportBackup => 'Backup Exportieren';
+
+  @override
+  String get encryptedExport => 'Verschlüsselt (Empfohlen)';
+
+  @override
+  String get encryptedExportDesc =>
+      'Mit AES-256-GCM geschützt. Sicher zum Teilen.';
+
+  @override
+  String get unencryptedExport => 'Unverschlüsselt';
+
+  @override
+  String get unencryptedExportDesc =>
+      'Einfaches JSON. Nur für vertrauenswürdige Orte.';
+
+  @override
+  String get setBackupPassword => 'Backup-Passwort Festlegen';
+
+  @override
+  String get backupPassword => 'Backup-Passwort';
+
+  @override
+  String get confirmBackupPassword => 'Backup-Passwort Bestätigen';
+
+  @override
+  String get backupPasswordWarning =>
+      'Bewahren Sie dieses Passwort sicher auf. Ohne es kann das Backup nicht geöffnet werden.';
+
+  @override
+  String get encryptingBackup => 'Backup wird verschlüsselt...';
+
+  @override
+  String get decryptingBackup => 'Backup wird entschlüsselt...';
+
+  @override
+  String get decryptBackup => 'Backup Entschlüsseln';
+
+  @override
+  String get enterBackupPassword =>
+      'Geben Sie das Passwort ein, das Sie beim Exportieren verwendet haben.';
+
+  @override
+  String get wrongPasswordOrCorrupted =>
+      'Falsches Passwort oder beschädigte Datei';
+
+  @override
+  String get loadFromFile => 'Aus JSON oder verschlüsselter .saenc-Datei laden';
 }

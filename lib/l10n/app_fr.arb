@@ -114,5 +114,20 @@
   "aboutEncryption": "PBKDF2-SHA512 | AES-256 | Entièrement Hors Ligne",
   "edit": "Modifier",
   "language": "Langue",
-  "selectLanguage": "Sélectionner la langue"
+  "selectLanguage": "Sélectionner la langue",
+  "exportBackup": "Exporter la Sauvegarde",
+  "encryptedExport": "Chiffré (Recommandé)",
+  "encryptedExportDesc": "Protégé par AES-256-GCM. Sûr à partager partout.",
+  "unencryptedExport": "Non Chiffré",
+  "unencryptedExportDesc": "JSON simple. Pour stockage de confiance uniquement.",
+  "setBackupPassword": "Définir le Mot de Passe de Sauvegarde",
+  "backupPassword": "Mot de Passe de Sauvegarde",
+  "confirmBackupPassword": "Confirmer le Mot de Passe de Sauvegarde",
+  "backupPasswordWarning": "Conservez ce mot de passe en lieu sûr. Sans lui, votre sauvegarde ne peut être ouverte.",
+  "encryptingBackup": "Chiffrement de la sauvegarde...",
+  "decryptingBackup": "Déchiffrement de la sauvegarde...",
+  "decryptBackup": "Déchiffrer la Sauvegarde",
+  "enterBackupPassword": "Entrez le mot de passe utilisé lors de l'exportation de cette sauvegarde.",
+  "wrongPasswordOrCorrupted": "Mot de passe incorrect ou fichier corrompu",
+  "loadFromFile": "Charger depuis un fichier JSON ou .saenc chiffré"
 }
