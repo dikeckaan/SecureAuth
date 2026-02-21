@@ -136,5 +136,8 @@
   "loadFromFile": "Aus JSON oder verschlüsselter .saenc-Datei laden",
   "ok": "OK",
   "dataWipedTitle": "Alle Daten Gelöscht",
-  "dataWipedBody": "Maximale Anzahl fehlgeschlagener Versuche überschritten.\n\nAlle Konten und Einstellungen wurden aus Sicherheitsgründen dauerhaft gelöscht. Tippen Sie auf OK, um neu zu beginnen."
+  "dataWipedBody": "Maximale Anzahl fehlgeschlagener Versuche überschritten.\n\nAlle Konten und Einstellungen wurden aus Sicherheitsgründen dauerhaft gelöscht. Tippen Sie auf OK, um neu zu beginnen.",
+  "normalDark": "Dunkel",
+  "pureDark": "Reines Dunkel",
+  "accentColor": "Akzentfarbe"
 }

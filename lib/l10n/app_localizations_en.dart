@@ -456,4 +456,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dataWipedBody =>
       'Maximum failed password attempts exceeded.\n\nAll your accounts and settings have been permanently deleted for security. Tap OK to start over.';
+
+  @override
+  String get normalDark => 'Dark';
+
+  @override
+  String get pureDark => 'Pure Dark';
+
+  @override
+  String get accentColor => 'Accent Color';
 }

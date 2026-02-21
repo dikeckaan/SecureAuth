@@ -136,5 +136,8 @@
   "loadFromFile": "从JSON或加密的.saenc文件加载",
   "ok": "确定",
   "dataWipedTitle": "所有数据已删除",
-  "dataWipedBody": "超过最大密码尝试次数。\n\n为了安全，所有账户和设置已被永久删除。点击确定重新开始。"
+  "dataWipedBody": "超过最大密码尝试次数。\n\n为了安全，所有账户和设置已被永久删除。点击确定重新开始。",
+  "normalDark": "深色",
+  "pureDark": "纯黑",
+  "accentColor": "主题色"
 }

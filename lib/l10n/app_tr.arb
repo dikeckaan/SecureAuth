@@ -136,5 +136,8 @@
   "loadFromFile": "JSON veya şifreli .saenc dosyasından yükle",
   "ok": "Tamam",
   "dataWipedTitle": "Tüm Veriler Silindi",
-  "dataWipedBody": "Maksimum başarısız giriş denemesi aşıldı.\n\nGüvenliğiniz için tüm hesaplarınız ve ayarlarınız kalıcı olarak silindi. Baştan başlamak için Tamam'a dokunun."
+  "dataWipedBody": "Maksimum başarısız giriş denemesi aşıldı.\n\nGüvenliğiniz için tüm hesaplarınız ve ayarlarınız kalıcı olarak silindi. Baştan başlamak için Tamam'a dokunun.",
+  "normalDark": "Koyu",
+  "pureDark": "Saf Koyu",
+  "accentColor": "Vurgu Rengi"
 }

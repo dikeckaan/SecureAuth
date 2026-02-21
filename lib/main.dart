@@ -10,6 +10,7 @@ import 'services/auth_service.dart';
 import 'screens/setup_screen.dart';
 import 'screens/auth_screen.dart';
 import 'screens/home_screen.dart';
+import 'utils/constants.dart';
 import 'utils/theme.dart';
 
 void main() async {
@@ -49,6 +50,10 @@ class SecureAuthApp extends StatefulWidget {
 class _SecureAuthAppState extends State<SecureAuthApp>
     with WidgetsBindingObserver {
   late ThemeMode _themeMode;
+  late ThemeData _lightTheme;
+  late ThemeData _darkTheme;
+  bool _pureDark = false;
+  int _accentColorIndex = 0;
   Locale? _locale;
   Timer? _inactivityTimer;
   bool _isLocked = false;
@@ -71,7 +76,13 @@ class _SecureAuthAppState extends State<SecureAuthApp>
 
   void _loadTheme() {
     final settings = widget.storageService.getSettings();
+    _accentColorIndex = settings.accentColorIndex.clamp(0, AccentColorPalette.palettes.length - 1);
+    final accent = AccentColorPalette.palettes[_accentColorIndex];
     _themeMode = _themeModeFromPreference(settings.themePreference);
+    _pureDark = settings.themePreference == 3;
+    _lightTheme = AppTheme.buildLightTheme(accent);
+    // System mode → normal dark; explicit pureDark only for preference 3
+    _darkTheme = AppTheme.buildDarkTheme(accent, pureDark: _pureDark);
   }
 
   ThemeMode _themeModeFromPreference(int preference) {
@@ -79,6 +90,7 @@ class _SecureAuthAppState extends State<SecureAuthApp>
       case 1:
         return ThemeMode.light;
       case 2:
+      case 3:
         return ThemeMode.dark;
       default:
         return ThemeMode.system;
@@ -94,8 +106,14 @@ class _SecureAuthAppState extends State<SecureAuthApp>
 
   void _onThemeChanged() {
     final settings = widget.storageService.getSettings();
+    _accentColorIndex = settings.accentColorIndex.clamp(0, AccentColorPalette.palettes.length - 1);
+    final accent = AccentColorPalette.palettes[_accentColorIndex];
+    final pureDark = settings.themePreference == 3;
     setState(() {
       _themeMode = _themeModeFromPreference(settings.themePreference);
+      _pureDark = pureDark;
+      _lightTheme = AppTheme.buildLightTheme(accent);
+      _darkTheme = AppTheme.buildDarkTheme(accent, pureDark: pureDark);
     });
   }
 
@@ -152,8 +170,8 @@ class _SecureAuthAppState extends State<SecureAuthApp>
     return MaterialApp(
       title: 'SecureAuth',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      theme: _lightTheme,
+      darkTheme: _darkTheme,
       themeMode: _themeMode,
       locale: _locale,
       localizationsDelegates: const [

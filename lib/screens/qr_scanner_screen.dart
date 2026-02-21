@@ -101,7 +101,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(AppConstants.radiusLG),
                 border: Border.all(
-                  color: AppColors.primary,
+                  color: Theme.of(context).colorScheme.primary,
                   width: 3,
                 ),
               ),
@@ -155,7 +155,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   List<Widget> _buildCorners() {
     const size = 24.0;
     const thickness = 4.0;
-    const color = AppColors.primaryLight;
+    final color = Theme.of(context).colorScheme.primary;
 
     return [
       // Top left

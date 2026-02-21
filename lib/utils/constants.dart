@@ -61,7 +61,13 @@ class AppColors {
   static const Color textSecondaryLight = Color(0xFF6B7280);
   static const Color textTertiaryLight = Color(0xFF9CA3AF);
 
-  // Dark theme (AMOLED)
+  // Dark theme — Normal (blue-purple tinted)
+  static const Color bgDarkNormal = Color(0xFF0F0F1A);
+  static const Color surfaceDarkNormal = Color(0xFF1A1A2E);
+  static const Color cardDarkNormal = Color(0xFF1E1E32);
+  static const Color borderDarkNormal = Color(0xFF2D2D44);
+
+  // Dark theme — Pure Dark (AMOLED)
   static const Color bgDark = Color(0xFF000000);
   static const Color surfaceDark = Color(0xFF0A0A0A);
   static const Color cardDark = Color(0xFF111111);
@@ -99,4 +105,79 @@ class AppColors {
     final index = name.isEmpty ? 0 : name.codeUnitAt(0) % serviceColors.length;
     return serviceColors[index];
   }
+}
+
+class AccentColorPalette {
+  final String name;
+  final Color primary;
+  final Color primaryLight;
+  final Color secondary;
+  final Color secondaryLight;
+
+  const AccentColorPalette({
+    required this.name,
+    required this.primary,
+    required this.primaryLight,
+    required this.secondary,
+    required this.secondaryLight,
+  });
+
+  static const List<AccentColorPalette> palettes = [
+    AccentColorPalette(
+      name: 'Indigo',
+      primary: Color(0xFF4F46E5),
+      primaryLight: Color(0xFF6366F1),
+      secondary: Color(0xFF7C3AED),
+      secondaryLight: Color(0xFF8B5CF6),
+    ),
+    AccentColorPalette(
+      name: 'Blue',
+      primary: Color(0xFF3B82F6),
+      primaryLight: Color(0xFF60A5FA),
+      secondary: Color(0xFF6366F1),
+      secondaryLight: Color(0xFF818CF8),
+    ),
+    AccentColorPalette(
+      name: 'Teal',
+      primary: Color(0xFF0D9488),
+      primaryLight: Color(0xFF14B8A6),
+      secondary: Color(0xFF06B6D4),
+      secondaryLight: Color(0xFF22D3EE),
+    ),
+    AccentColorPalette(
+      name: 'Green',
+      primary: Color(0xFF059669),
+      primaryLight: Color(0xFF10B981),
+      secondary: Color(0xFF10B981),
+      secondaryLight: Color(0xFF34D399),
+    ),
+    AccentColorPalette(
+      name: 'Orange',
+      primary: Color(0xFFEA580C),
+      primaryLight: Color(0xFFF97316),
+      secondary: Color(0xFFF59E0B),
+      secondaryLight: Color(0xFFFBBF24),
+    ),
+    AccentColorPalette(
+      name: 'Pink',
+      primary: Color(0xFFEC4899),
+      primaryLight: Color(0xFFF472B6),
+      secondary: Color(0xFFF472B6),
+      secondaryLight: Color(0xFFF9A8D4),
+    ),
+    AccentColorPalette(
+      name: 'Red',
+      primary: Color(0xFFDC2626),
+      primaryLight: Color(0xFFEF4444),
+      secondary: Color(0xFFEF4444),
+      secondaryLight: Color(0xFFF87171),
+    ),
+    AccentColorPalette(
+      name: 'Purple',
+      primary: Color(0xFF7C3AED),
+      primaryLight: Color(0xFF8B5CF6),
+      secondary: Color(0xFFA78BFA),
+      secondaryLight: Color(0xFFC4B5FD),
+    ),
+  ];
 }

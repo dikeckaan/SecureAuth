@@ -461,4 +461,13 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get dataWipedBody =>
       'Número máximo de tentativas falhas excedido.\n\nTodas as contas e configurações foram excluídas permanentemente. Toque em OK para recomeçar.';
+
+  @override
+  String get normalDark => 'Escuro';
+
+  @override
+  String get pureDark => 'Preto puro';
+
+  @override
+  String get accentColor => 'Cor de destaque';
 }

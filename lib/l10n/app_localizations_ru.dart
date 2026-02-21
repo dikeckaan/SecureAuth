@@ -460,4 +460,13 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get dataWipedBody =>
       'Превышено максимальное количество неудачных попыток.\n\nВсе аккаунты и настройки безвозвратно удалены в целях безопасности. Нажмите ОК, чтобы начать заново.';
+
+  @override
+  String get normalDark => 'Тёмная';
+
+  @override
+  String get pureDark => 'Чисто чёрная';
+
+  @override
+  String get accentColor => 'Цвет акцента';
 }

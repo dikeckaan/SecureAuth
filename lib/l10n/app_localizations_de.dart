@@ -464,4 +464,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get dataWipedBody =>
       'Maximale Anzahl fehlgeschlagener Versuche überschritten.\n\nAlle Konten und Einstellungen wurden aus Sicherheitsgründen dauerhaft gelöscht. Tippen Sie auf OK, um neu zu beginnen.';
+
+  @override
+  String get normalDark => 'Dunkel';
+
+  @override
+  String get pureDark => 'Reines Dunkel';
+
+  @override
+  String get accentColor => 'Akzentfarbe';
 }

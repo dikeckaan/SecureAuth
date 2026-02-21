@@ -136,5 +136,8 @@
   "loadFromFile": "Carregar de arquivo JSON ou .saenc criptografado",
   "ok": "OK",
   "dataWipedTitle": "Todos os Dados Excluídos",
-  "dataWipedBody": "Número máximo de tentativas falhas excedido.\n\nTodas as contas e configurações foram excluídas permanentemente. Toque em OK para recomeçar."
+  "dataWipedBody": "Número máximo de tentativas falhas excedido.\n\nTodas as contas e configurações foram excluídas permanentemente. Toque em OK para recomeçar.",
+  "normalDark": "Escuro",
+  "pureDark": "Preto puro",
+  "accentColor": "Cor de destaque"
 }

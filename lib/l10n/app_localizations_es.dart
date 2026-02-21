@@ -464,4 +464,13 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get dataWipedBody =>
       'Se excedió el número máximo de intentos fallidos.\n\nTodas sus cuentas y configuraciones han sido eliminadas permanentemente. Toca Aceptar para comenzar de nuevo.';
+
+  @override
+  String get normalDark => 'Oscuro';
+
+  @override
+  String get pureDark => 'Negro puro';
+
+  @override
+  String get accentColor => 'Color de acento';
 }

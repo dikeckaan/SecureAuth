@@ -34,9 +34,13 @@ class AppSettings extends HiveObject {
   @HiveField(9)
   String? languageCode;
 
-  /// 0 = system, 1 = light, 2 = dark
+  /// 0 = system, 1 = light, 2 = dark (normal), 3 = pure dark (AMOLED)
   @HiveField(10)
   int themePreference;
+
+  /// 0-7 accent color index (default 0 = Indigo)
+  @HiveField(11)
+  int accentColorIndex;
 
   AppSettings({
     this.useBiometric = false,
@@ -50,5 +54,6 @@ class AppSettings extends HiveObject {
     this.passwordSalt,
     this.languageCode,
     this.themePreference = 0,
+    this.accentColorIndex = 0,
   });
 }

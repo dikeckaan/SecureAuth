@@ -136,5 +136,8 @@
   "loadFromFile": "Charger depuis un fichier JSON ou .saenc chiffré",
   "ok": "OK",
   "dataWipedTitle": "Toutes les données supprimées",
-  "dataWipedBody": "Nombre maximum de tentatives échouées dépassé.\n\nTous vos comptes et paramètres ont été définitivement supprimés. Appuyez sur OK pour recommencer."
+  "dataWipedBody": "Nombre maximum de tentatives échouées dépassé.\n\nTous vos comptes et paramètres ont été définitivement supprimés. Appuyez sur OK pour recommencer.",
+  "normalDark": "Sombre",
+  "pureDark": "Noir pur",
+  "accentColor": "Couleur d'accent"
 }

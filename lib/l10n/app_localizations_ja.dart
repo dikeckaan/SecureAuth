@@ -450,4 +450,13 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get dataWipedBody =>
       'パスワードの最大失敗試行回数を超えました。\n\nセキュリティのため、すべてのアカウントと設定が完全に削除されました。OKをタップして最初からやり直してください。';
+
+  @override
+  String get normalDark => 'ダーク';
+
+  @override
+  String get pureDark => 'ピュアダーク';
+
+  @override
+  String get accentColor => 'アクセントカラー';
 }

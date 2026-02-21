@@ -460,4 +460,13 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get dataWipedBody =>
       'Maksimum başarısız giriş denemesi aşıldı.\n\nGüvenliğiniz için tüm hesaplarınız ve ayarlarınız kalıcı olarak silindi. Baştan başlamak için Tamam\'a dokunun.';
+
+  @override
+  String get normalDark => 'Koyu';
+
+  @override
+  String get pureDark => 'Saf Koyu';
+
+  @override
+  String get accentColor => 'Vurgu Rengi';
 }

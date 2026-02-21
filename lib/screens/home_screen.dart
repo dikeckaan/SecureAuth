@@ -324,7 +324,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               : _buildAccountList(filtered, l10n),
       floatingActionButton: FloatingActionButton(
         onPressed: _addAccount,
-        backgroundColor: AppColors.primary,
+        backgroundColor: theme.colorScheme.primary,
         foregroundColor: Colors.white,
         elevation: 4,
         child: const Icon(Icons.add, size: 28),
@@ -409,9 +409,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               spacing: AppConstants.paddingSM,
               children: [
                 _buildTypeChip('TOTP', Icons.access_time_outlined,
-                    AppColors.primary),
+                    theme.colorScheme.primary),
                 _buildTypeChip(
-                    'HOTP', Icons.tag_outlined, AppColors.secondary),
+                    'HOTP', Icons.tag_outlined, theme.colorScheme.secondary),
                 _buildTypeChip('Steam',
                     Icons.videogame_asset_outlined, AppColors.accent),
               ],

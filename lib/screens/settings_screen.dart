@@ -34,6 +34,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late int _themePreference;
+  late int _accentColorIndex;
   late bool _useBiometric;
   late bool _requireAuthOnLaunch;
   late int _autoLockSeconds;
@@ -68,6 +69,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _loadSettings() {
     final settings = widget.storageService.getSettings();
     _themePreference = settings.themePreference;
+    _accentColorIndex = settings.accentColorIndex.clamp(0, AccentColorPalette.palettes.length - 1);
     _useBiometric = settings.useBiometric;
     _requireAuthOnLaunch = settings.requireAuthOnLaunch;
     _autoLockSeconds = settings.autoLockSeconds;
@@ -100,7 +102,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       case 1:
         return l10n.lightTheme;
       case 2:
-        return l10n.darkTheme;
+        return l10n.normalDark;
+      case 3:
+        return l10n.pureDark;
       default:
         return l10n.systemTheme;
     }
@@ -108,6 +112,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showThemePicker() {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -133,7 +138,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               leading: const Icon(Icons.smartphone),
               title: Text(l10n.systemTheme),
               trailing: _themePreference == 0
-                  ? const Icon(Icons.check, color: AppColors.primary)
+                  ? Icon(Icons.check, color: theme.colorScheme.primary)
                   : null,
               onTap: () {
                 _setThemePreference(0);
@@ -144,7 +149,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               leading: const Icon(Icons.light_mode),
               title: Text(l10n.lightTheme),
               trailing: _themePreference == 1
-                  ? const Icon(Icons.check, color: AppColors.primary)
+                  ? Icon(Icons.check, color: theme.colorScheme.primary)
                   : null,
               onTap: () {
                 _setThemePreference(1);
@@ -153,14 +158,114 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.dark_mode),
-              title: Text(l10n.darkTheme),
+              title: Text(l10n.normalDark),
               trailing: _themePreference == 2
-                  ? const Icon(Icons.check, color: AppColors.primary)
+                  ? Icon(Icons.check, color: theme.colorScheme.primary)
                   : null,
               onTap: () {
                 _setThemePreference(2);
                 Navigator.pop(context);
               },
+            ),
+            ListTile(
+              leading: const Icon(Icons.nightlight_round),
+              title: Text(l10n.pureDark),
+              trailing: _themePreference == 3
+                  ? Icon(Icons.check, color: theme.colorScheme.primary)
+                  : null,
+              onTap: () {
+                _setThemePreference(3);
+                Navigator.pop(context);
+              },
+            ),
+            const SizedBox(height: AppConstants.paddingSM),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _setAccentColorIndex(int index) async {
+    await _updateSetting((s) => s.accentColorIndex = index);
+    setState(() => _accentColorIndex = index);
+    widget.onThemeChanged();
+  }
+
+  void _showAccentColorPicker() {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppConstants.radiusLG),
+        ),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppConstants.paddingMD),
+              child: Text(
+                l10n.accentColor,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ),
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.all(AppConstants.paddingLG),
+              child: Wrap(
+                spacing: 16,
+                runSpacing: 16,
+                alignment: WrapAlignment.center,
+                children: List.generate(
+                  AccentColorPalette.palettes.length,
+                  (i) {
+                    final palette = AccentColorPalette.palettes[i];
+                    final isSelected = _accentColorIndex == i;
+                    return GestureDetector(
+                      onTap: () {
+                        _setAccentColorIndex(i);
+                        Navigator.pop(context);
+                      },
+                      child: Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [palette.primary, palette.secondary],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          border: isSelected
+                              ? Border.all(
+                                  color: theme.colorScheme.onSurface,
+                                  width: 3,
+                                )
+                              : null,
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: palette.primary.withAlpha(100),
+                                    blurRadius: 8,
+                                    spreadRadius: 1,
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: isSelected
+                            ? const Icon(Icons.check,
+                                color: Colors.white, size: 24)
+                            : null,
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
             const SizedBox(height: AppConstants.paddingSM),
           ],
@@ -896,7 +1001,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     leading: Text(lang.flag, style: const TextStyle(fontSize: 24)),
                     title: Text(lang.name),
                     trailing: _languageCode == lang.code
-                        ? const Icon(Icons.check, color: AppColors.primary)
+                        ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
                         : null,
                     onTap: () {
                       _setLanguage(lang.code);
@@ -953,6 +1058,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: Text(_getThemeLabel()),
               trailing: const Icon(Icons.chevron_right, size: 18),
               onTap: _showThemePicker,
+            ),
+            _buildInternalDivider(),
+            ListTile(
+              leading: _buildLeadingIcon(
+                  Icons.color_lens_outlined, theme.colorScheme.primary),
+              title: Text(l10n.accentColor),
+              subtitle: Text(AccentColorPalette.palettes[_accentColorIndex].name),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 22,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          AccentColorPalette.palettes[_accentColorIndex].primary,
+                          AccentColorPalette.palettes[_accentColorIndex].secondary,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.chevron_right, size: 18),
+                ],
+              ),
+              onTap: _showAccentColorPicker,
             ),
           ]),
 
@@ -1288,7 +1423,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               (entry) => ListTile(
                 title: Text(entry.value),
                 trailing: currentValue == entry.key
-                    ? const Icon(Icons.check, color: AppColors.primary)
+                    ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
                     : null,
                 onTap: () {
                   onSelected(entry.key);

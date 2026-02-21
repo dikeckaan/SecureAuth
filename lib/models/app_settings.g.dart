@@ -28,13 +28,14 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       passwordSalt: fields[8] as String?,
       languageCode: fields[9] as String?,
       themePreference: fields[10] as int? ?? 0,
+      accentColorIndex: fields[11] as int? ?? 0,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettings obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.useBiometric)
       ..writeByte(1)
@@ -56,7 +57,9 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       ..writeByte(9)
       ..write(obj.languageCode)
       ..writeByte(10)
-      ..write(obj.themePreference);
+      ..write(obj.themePreference)
+      ..writeByte(11)
+      ..write(obj.accentColorIndex);
   }
 
   @override

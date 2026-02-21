@@ -136,5 +136,8 @@
   "loadFromFile": "Cargar desde JSON o archivo .saenc cifrado",
   "ok": "Aceptar",
   "dataWipedTitle": "Todos los Datos Eliminados",
-  "dataWipedBody": "Se excedió el número máximo de intentos fallidos.\n\nTodas sus cuentas y configuraciones han sido eliminadas permanentemente. Toca Aceptar para comenzar de nuevo."
+  "dataWipedBody": "Se excedió el número máximo de intentos fallidos.\n\nTodas sus cuentas y configuraciones han sido eliminadas permanentemente. Toca Aceptar para comenzar de nuevo.",
+  "normalDark": "Oscuro",
+  "pureDark": "Negro puro",
+  "accentColor": "Color de acento"
 }

@@ -244,5 +244,8 @@
   "loadFromFile": "Load from JSON or encrypted .saenc file",
   "ok": "OK",
   "dataWipedTitle": "All Data Deleted",
-  "dataWipedBody": "Maximum failed password attempts exceeded.\n\nAll your accounts and settings have been permanently deleted for security. Tap OK to start over."
+  "dataWipedBody": "Maximum failed password attempts exceeded.\n\nAll your accounts and settings have been permanently deleted for security. Tap OK to start over.",
+  "normalDark": "Dark",
+  "pureDark": "Pure Dark",
+  "accentColor": "Accent Color"
 }

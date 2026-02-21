@@ -460,4 +460,13 @@ class AppLocalizationsAz extends AppLocalizations {
   @override
   String get dataWipedBody =>
       'Maksimum uğursuz cəhd sayı aşıldı.\n\nTəhlükəsizlik üçün bütün hesablarınız və parametrləriniz birdəfəlik silindi. Yenidən başlamaq üçün Tamam\'a toxunun.';
+
+  @override
+  String get normalDark => 'Tünd';
+
+  @override
+  String get pureDark => 'Saf Tünd';
+
+  @override
+  String get accentColor => 'Vurğu Rəngi';
 }

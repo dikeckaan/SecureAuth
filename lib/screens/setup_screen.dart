@@ -65,8 +65,8 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 
   void _cycleTheme() {
-    // 0 (system) → 1 (light) → 2 (dark) → 0
-    final next = (_themePreference + 1) % 3;
+    // 0 (system) → 1 (light) → 2 (dark) → 3 (pureDark) → 0
+    final next = (_themePreference + 1) % 4;
     _setThemePreference(next);
   }
 
@@ -76,6 +76,8 @@ class _SetupScreenState extends State<SetupScreen> {
         return Icons.light_mode;
       case 2:
         return Icons.dark_mode;
+      case 3:
+        return Icons.nightlight_round;
       default:
         return Icons.brightness_auto;
     }

@@ -448,4 +448,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataWipedBody => '超过最大密码尝试次数。\n\n为了安全，所有账户和设置已被永久删除。点击确定重新开始。';
+
+  @override
+  String get normalDark => '深色';
+
+  @override
+  String get pureDark => '纯黑';
+
+  @override
+  String get accentColor => '主题色';
 }

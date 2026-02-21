@@ -136,10 +136,10 @@ class _AccountCardState extends State<AccountCard> {
     }
   }
 
-  Color get _timerColor {
+  Color _timerColor(ThemeData theme) {
     if (_remaining <= 5) return AppColors.error;
     if (_remaining <= 10) return AppColors.warning;
-    return AppColors.primary;
+    return theme.colorScheme.primary;
   }
 
   Color get _serviceColor => AppColors.getServiceColor(widget.account.issuer);
@@ -201,7 +201,7 @@ class _AccountCardState extends State<AccountCard> {
                         minHeight: 3,
                         backgroundColor: Colors.transparent,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          _timerColor.withAlpha(140),
+                          _timerColor(theme).withAlpha(140),
                         ),
                       ),
                   ],
@@ -328,10 +328,11 @@ class _AccountCardState extends State<AccountCard> {
   }
 
   Widget _buildTypeBadge() {
+    final theme = Theme.of(context);
     Color color;
     String label;
     if (widget.account.isHotp) {
-      color = AppColors.secondary;
+      color = theme.colorScheme.secondary;
       label = 'HOTP';
     } else if (widget.account.isSteam) {
       color = AppColors.accent;
@@ -409,6 +410,7 @@ class _AccountCardState extends State<AccountCard> {
   // ── TOTP/Steam circular timer ─────────────────────────────────────────────
 
   Widget _buildTimerWidget(ThemeData theme) {
+    final timerCol = _timerColor(theme);
     return SizedBox(
       width: 44,
       height: 44,
@@ -422,7 +424,7 @@ class _AccountCardState extends State<AccountCard> {
               value: _progress,
               strokeWidth: 3,
               strokeCap: StrokeCap.round,
-              color: _timerColor,
+              color: timerCol,
               backgroundColor: theme.colorScheme.outline.withAlpha(51),
             ),
           ),
@@ -431,7 +433,7 @@ class _AccountCardState extends State<AccountCard> {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: _timerColor,
+              color: timerCol,
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
@@ -470,9 +472,9 @@ class _AccountCardState extends State<AccountCard> {
             constraints: const BoxConstraints(minWidth: 40),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
             decoration: BoxDecoration(
-              color: AppColors.secondary.withAlpha(20),
+              color: theme.colorScheme.secondary.withAlpha(20),
               borderRadius: BorderRadius.circular(AppConstants.radiusSM),
-              border: Border.all(color: AppColors.secondary.withAlpha(70)),
+              border: Border.all(color: theme.colorScheme.secondary.withAlpha(70)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -480,17 +482,17 @@ class _AccountCardState extends State<AccountCard> {
                 Text(
                   '$counter',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: AppColors.secondary,
+                  style: TextStyle(
+                    color: theme.colorScheme.secondary,
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
-                    fontFeatures: [FontFeature.tabularFigures()],
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
                 Text(
                   '#',
                   style: TextStyle(
-                    color: AppColors.secondary.withAlpha(150),
+                    color: theme.colorScheme.secondary.withAlpha(150),
                     fontSize: 9,
                     height: 1.1,
                   ),
@@ -531,6 +533,7 @@ class _CounterNavBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return GestureDetector(
       onTap: enabled ? onTap : null,
       child: AnimatedContainer(
@@ -538,7 +541,13 @@ class _CounterNavBtn extends StatelessWidget {
         width: 30,
         height: 30,
         decoration: BoxDecoration(
-          gradient: enabled ? AppColors.primaryGradient : null,
+          gradient: enabled
+              ? LinearGradient(
+                  colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : null,
           color: enabled ? null : Colors.grey.withAlpha(60),
           borderRadius: BorderRadius.circular(AppConstants.radiusSM),
         ),

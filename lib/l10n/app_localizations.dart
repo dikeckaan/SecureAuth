@@ -939,6 +939,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Maximum failed password attempts exceeded.\n\nAll your accounts and settings have been permanently deleted for security. Tap OK to start over.'**
   String get dataWipedBody;
+
+  /// No description provided for @normalDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get normalDark;
+
+  /// No description provided for @pureDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Pure Dark'**
+  String get pureDark;
+
+  /// No description provided for @accentColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Accent Color'**
+  String get accentColor;
 }
 
 class _AppLocalizationsDelegate

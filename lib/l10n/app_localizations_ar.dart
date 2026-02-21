@@ -456,4 +456,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get dataWipedBody =>
       'تم تجاوز الحد الأقصى لمحاولات كلمة المرور.\n\nتم حذف جميع حساباتك وإعداداتك نهائيًا لأسباب أمنية. اضغط موافق للبدء من جديد.';
+
+  @override
+  String get normalDark => 'داكن';
+
+  @override
+  String get pureDark => 'أسود نقي';
+
+  @override
+  String get accentColor => 'لون التمييز';
 }

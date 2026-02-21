@@ -153,7 +153,6 @@ class _AddAccountScreenState extends State<AddAccountScreen>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -170,9 +169,7 @@ class _AddAccountScreenState extends State<AddAccountScreen>
               // ── Token type selector ────────────────────────────────────
               Container(
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.surfaceDark
-                      : AppColors.surfaceLight,
+                  color: theme.colorScheme.surface,
                   borderRadius: BorderRadius.circular(AppConstants.radiusMD),
                   border: Border.all(
                       color: theme.colorScheme.outline.withAlpha(60)),
@@ -180,7 +177,11 @@ class _AddAccountScreenState extends State<AddAccountScreen>
                 child: TabBar(
                   controller: _tabController,
                   indicator: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
+                    gradient: LinearGradient(
+                      colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                     borderRadius:
                         BorderRadius.circular(AppConstants.radiusMD - 1),
                   ),
@@ -223,7 +224,7 @@ class _AddAccountScreenState extends State<AddAccountScreen>
                   theme,
                   Icons.info_outline,
                   'HOTP: Her kullanımda sayaç artar, süre yok.',
-                  AppColors.secondary,
+                  theme.colorScheme.secondary,
                 ),
               ],
 
@@ -360,7 +361,11 @@ class _AddAccountScreenState extends State<AddAccountScreen>
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
+                gradient: LinearGradient(
+                  colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 borderRadius: BorderRadius.circular(AppConstants.radiusMD),
               ),
               child:
@@ -541,17 +546,23 @@ class _AddAccountScreenState extends State<AddAccountScreen>
   }
 
   Widget _buildSaveButton(AppLocalizations l10n) {
+    final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
-        gradient:
-            _isLoading ? null : AppColors.primaryGradient,
+        gradient: _isLoading
+            ? null
+            : LinearGradient(
+                colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
         color: _isLoading ? Colors.grey.shade400 : null,
         borderRadius: BorderRadius.circular(AppConstants.radiusMD),
         boxShadow: _isLoading
             ? null
             : [
                 BoxShadow(
-                  color: AppColors.primary.withAlpha(70),
+                  color: theme.colorScheme.primary.withAlpha(70),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 )
