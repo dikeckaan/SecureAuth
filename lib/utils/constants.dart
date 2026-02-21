@@ -77,7 +77,7 @@ class AppColors {
   );
 
   static const LinearGradient authGradient = LinearGradient(
-    colors: [Color(0xFF1E1B4B), Color(0xFF312E81), Color(0xFF4C1D95)],
+    colors: [Color(0xFF000000), Color(0xFF050510), Color(0xFF0A0A1A)],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );

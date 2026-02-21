@@ -64,6 +64,23 @@ class _SetupScreenState extends State<SetupScreen> {
     widget.onThemeChanged();
   }
 
+  void _cycleTheme() {
+    // 0 (system) → 1 (light) → 2 (dark) → 0
+    final next = (_themePreference + 1) % 3;
+    _setThemePreference(next);
+  }
+
+  IconData _themeIcon() {
+    switch (_themePreference) {
+      case 1:
+        return Icons.light_mode;
+      case 2:
+        return Icons.dark_mode;
+      default:
+        return Icons.brightness_auto;
+    }
+  }
+
   double _getPasswordStrength(String password) {
     if (password.isEmpty) return 0;
     double strength = 0;
@@ -168,13 +185,26 @@ class _SetupScreenState extends State<SetupScreen> {
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.authGradient),
         child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppConstants.paddingLG),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Logo
+          child: Stack(
+            children: [
+              // Theme toggle — top right
+              Positioned(
+                top: AppConstants.paddingSM,
+                right: AppConstants.paddingSM,
+                child: IconButton(
+                  onPressed: _cycleTheme,
+                  icon: Icon(_themeIcon(), color: Colors.white.withAlpha(179)),
+                  tooltip: l10n.themeMode,
+                ),
+              ),
+              // Main content
+              Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppConstants.paddingLG),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Logo
                   ClipRRect(
                     borderRadius:
                         BorderRadius.circular(AppConstants.radiusXL),
@@ -220,48 +250,6 @@ class _SetupScreenState extends State<SetupScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Theme selector
-                        SizedBox(
-                          width: double.infinity,
-                          child: SegmentedButton<int>(
-                            segments: [
-                              ButtonSegment<int>(
-                                value: 1,
-                                label: Text(l10n.lightTheme),
-                                icon: const Icon(Icons.light_mode, size: 16),
-                              ),
-                              ButtonSegment<int>(
-                                value: 0,
-                                label: Text(l10n.systemTheme),
-                                icon: const Icon(Icons.smartphone, size: 16),
-                              ),
-                              ButtonSegment<int>(
-                                value: 2,
-                                label: Text(l10n.darkTheme),
-                                icon: const Icon(Icons.dark_mode, size: 16),
-                              ),
-                            ],
-                            selected: {_themePreference},
-                            onSelectionChanged: (Set<int> selected) {
-                              _setThemePreference(selected.first);
-                            },
-                            style: ButtonStyle(
-                              backgroundColor:
-                                  WidgetStateProperty.resolveWith((states) {
-                                if (states.contains(WidgetState.selected)) {
-                                  return Colors.white.withAlpha(51);
-                                }
-                                return Colors.transparent;
-                              }),
-                              foregroundColor:
-                                  WidgetStateProperty.all(Colors.white),
-                              side: WidgetStateProperty.all(
-                                BorderSide(color: Colors.white.withAlpha(51)),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: AppConstants.paddingLG),
                         // Password field
                         TextField(
                           controller: _passwordController,
@@ -440,6 +428,8 @@ class _SetupScreenState extends State<SetupScreen> {
                 ],
               ),
             ),
+          ),
+            ],
           ),
         ),
       ),
