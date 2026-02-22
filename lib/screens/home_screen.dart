@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:secure_auth/l10n/app_localizations.dart';
@@ -7,6 +9,7 @@ import '../services/auth_service.dart';
 import '../services/storage_service.dart';
 import '../services/totp_service.dart';
 import '../services/qr_service.dart';
+import '../services/watch_service.dart';
 import '../utils/constants.dart';
 import '../widgets/account_card.dart';
 import 'add_account_screen.dart';
@@ -34,11 +37,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final TOTPService _totpService = TOTPService();
   final QRService _qrService = QRService();
+  final WatchService _watchService = WatchService();
   final _searchController = TextEditingController();
 
   List<AccountModel> _accounts = [];
   String _searchQuery = '';
   bool _isSearching = false;
+  Timer? _watchSyncTimer;
 
   @override
   void initState() {
@@ -46,10 +51,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _loadAccounts();
     widget.authService.recordActivity();
+    _startWatchSync();
   }
 
   @override
   void dispose() {
+    _watchSyncTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _searchController.dispose();
     super.dispose();
@@ -59,13 +66,28 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       widget.authService.recordActivity();
+      _syncWatch();
+    } else if (state == AppLifecycleState.paused) {
+      _watchService.sendLocked();
     }
+  }
+
+  void _startWatchSync() {
+    _watchSyncTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      _syncWatch();
+    });
+    _syncWatch();
+  }
+
+  void _syncWatch() {
+    _watchService.sendAccounts(_accounts, _totpService);
   }
 
   void _loadAccounts() {
     setState(() {
       _accounts = widget.storageService.getAllAccounts();
     });
+    _syncWatch();
   }
 
   List<AccountModel> get _filtered {
