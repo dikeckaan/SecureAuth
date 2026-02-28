@@ -143,5 +143,10 @@
   "customColor": "Personalizado",
   "apply": "Aplicar",
   "primary": "Primária",
-  "secondary": "Secundária"
+  "secondary": "Secundária",
+  "autoClearClipboard": "Limpar área de transferência automaticamente",
+  "clipboardNotCleared": "A área de transferência não é limpa automaticamente",
+  "codeCopiedSimple": "Código copiado",
+  "scanFromImage": "Escanear de Imagem",
+  "pickImageToScan": "Selecione uma imagem com código QR"
 }

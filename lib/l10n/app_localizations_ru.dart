@@ -481,4 +481,19 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get secondary => 'Вторичный';
+
+  @override
+  String get autoClearClipboard => 'Автоочистка буфера обмена';
+
+  @override
+  String get clipboardNotCleared => 'Буфер обмена не очищается автоматически';
+
+  @override
+  String get codeCopiedSimple => 'Код скопирован';
+
+  @override
+  String get scanFromImage => 'Сканировать с изображения';
+
+  @override
+  String get pickImageToScan => 'Выберите изображение с QR-кодом';
 }

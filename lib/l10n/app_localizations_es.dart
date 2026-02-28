@@ -485,4 +485,20 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get secondary => 'Secundario';
+
+  @override
+  String get autoClearClipboard => 'Auto-limpiar portapapeles';
+
+  @override
+  String get clipboardNotCleared =>
+      'El portapapeles no se limpia automáticamente';
+
+  @override
+  String get codeCopiedSimple => 'Código copiado';
+
+  @override
+  String get scanFromImage => 'Escanear desde imagen';
+
+  @override
+  String get pickImageToScan => 'Selecciona una imagen con código QR';
 }

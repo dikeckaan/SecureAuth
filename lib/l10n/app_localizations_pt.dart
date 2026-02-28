@@ -482,4 +482,21 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get secondary => 'Secundária';
+
+  @override
+  String get autoClearClipboard =>
+      'Limpar área de transferência automaticamente';
+
+  @override
+  String get clipboardNotCleared =>
+      'A área de transferência não é limpa automaticamente';
+
+  @override
+  String get codeCopiedSimple => 'Código copiado';
+
+  @override
+  String get scanFromImage => 'Escanear de Imagem';
+
+  @override
+  String get pickImageToScan => 'Selecione uma imagem com código QR';
 }

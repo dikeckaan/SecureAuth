@@ -143,5 +143,10 @@
   "customColor": "Personnalisé",
   "apply": "Appliquer",
   "primary": "Primaire",
-  "secondary": "Secondaire"
+  "secondary": "Secondaire",
+  "autoClearClipboard": "Vider le presse-papiers automatiquement",
+  "clipboardNotCleared": "Le presse-papiers n'est pas vidé automatiquement",
+  "codeCopiedSimple": "Code copié",
+  "scanFromImage": "Scanner depuis une image",
+  "pickImageToScan": "Sélectionner une image contenant un code QR"
 }

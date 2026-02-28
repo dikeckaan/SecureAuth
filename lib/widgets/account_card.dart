@@ -364,37 +364,62 @@ class _AccountCardState extends State<AccountCard> {
 
   Widget _buildCodeRow(
       ThemeData theme, AppLocalizations l10n, String formattedCode) {
+    // Show next-period code preview when ≤ 5 s remain (TOTP only)
+    final showNext =
+        !widget.account.isHotp && !widget.account.isSteam && _remaining <= 5;
+    final nextFormatted = showNext
+        ? widget.totpService.formatCode(
+            widget.totpService.generateNextCode(widget.account))
+        : null;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                formattedCode,
-                style: TextStyle(
-                  fontSize: widget.account.isSteam ? 22 : 26,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: widget.account.isSteam ? 4 : 3,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                  color: (!widget.account.isHotp && _remaining <= 5)
-                      ? AppColors.error
-                      : theme.colorScheme.onSurface,
+              Row(
+                children: [
+                  Text(
+                    formattedCode,
+                    style: TextStyle(
+                      fontSize: widget.account.isSteam ? 22 : 26,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: widget.account.isSteam ? 4 : 3,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                      color: (!widget.account.isHotp && _remaining <= 5)
+                          ? AppColors.error
+                          : theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(width: AppConstants.paddingSM),
+                  AnimatedSwitcher(
+                    duration: AppConstants.animFast,
+                    child: _copied
+                        ? const Icon(Icons.check_circle,
+                            key: ValueKey('check'),
+                            color: AppColors.success,
+                            size: 18)
+                        : Icon(Icons.copy,
+                            key: const ValueKey('copy'),
+                            color: theme.colorScheme.onSurface.withAlpha(102),
+                            size: 16),
+                  ),
+                ],
+              ),
+              if (nextFormatted != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  '→ $nextFormatted',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: theme.colorScheme.onSurface.withAlpha(128),
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                    letterSpacing: 1,
+                  ),
                 ),
-              ),
-              const SizedBox(width: AppConstants.paddingSM),
-              AnimatedSwitcher(
-                duration: AppConstants.animFast,
-                child: _copied
-                    ? const Icon(Icons.check_circle,
-                        key: ValueKey('check'),
-                        color: AppColors.success,
-                        size: 18)
-                    : Icon(Icons.copy,
-                        key: const ValueKey('copy'),
-                        color: theme.colorScheme.onSurface.withAlpha(102),
-                        size: 16),
-              ),
+              ],
             ],
           ),
         ),

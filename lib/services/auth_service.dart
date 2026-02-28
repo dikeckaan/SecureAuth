@@ -153,6 +153,7 @@ class AuthService {
     await _securityService.copyToClipboardSecure(
       text,
       settings.clipboardClearSeconds,
+      clearEnabled: settings.clearClipboard,
     );
   }
 

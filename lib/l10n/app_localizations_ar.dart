@@ -477,4 +477,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get secondary => 'ثانوي';
+
+  @override
+  String get autoClearClipboard => 'مسح الحافظة تلقائياً';
+
+  @override
+  String get clipboardNotCleared => 'لا يتم مسح الحافظة تلقائياً';
+
+  @override
+  String get codeCopiedSimple => 'تم نسخ الرمز';
+
+  @override
+  String get scanFromImage => 'مسح من صورة';
+
+  @override
+  String get pickImageToScan => 'اختر صورة تحتوي على رمز QR';
 }

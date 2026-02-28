@@ -1,5 +1,7 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:uuid/uuid.dart';
 import 'package:secure_auth/l10n/app_localizations.dart';
 
@@ -85,26 +87,60 @@ class _AddAccountScreenState extends State<AddAccountScreen>
     );
 
     if (result != null && mounted) {
-      _issuerController.text = result.issuer;
-      _nameController.text = result.name;
-      _secretController.text = result.secret;
-      _algorithm = result.algorithm;
-      _digits = result.digits;
-      _period = result.period;
-
-      // Switch tab to match scanned type
-      final idx =
-          _tokenTypes.indexWhere((t) => t.type == result.type);
-      if (idx >= 0) {
-        _tabController.animateTo(idx);
-        _tokenType = result.type;
-      }
-
-      if (result.isHotp) {
-        _counterController.text = result.counter.toString();
-      }
-      setState(() {});
+      _fillFromAccount(result);
     }
+  }
+
+  /// Pick an image file and scan it for a QR code without opening the camera.
+  Future<void> _pickImageAndScan() async {
+    final picked = await FilePicker.platform.pickFiles(type: FileType.image);
+    if (picked == null || picked.files.isEmpty) return;
+
+    final path = picked.files.first.path;
+    if (path == null) return;
+
+    final controller = MobileScannerController();
+    try {
+      final capture = await controller.analyzeImage(path);
+      if (!mounted) return;
+
+      if (capture != null && capture.barcodes.isNotEmpty) {
+        final code = capture.barcodes.first.rawValue;
+        if (code != null) {
+          final account = widget.totpService.parseOtpAuthUri(code);
+          if (account != null) {
+            _fillFromAccount(account);
+            return;
+          }
+        }
+      }
+      if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        _showError(l10n.invalidQRCode);
+      }
+    } finally {
+      await controller.dispose();
+    }
+  }
+
+  void _fillFromAccount(AccountModel result) {
+    _issuerController.text = result.issuer;
+    _nameController.text = result.name;
+    _secretController.text = result.secret;
+    _algorithm = result.algorithm;
+    _digits = result.digits;
+    _period = result.period;
+
+    final idx = _tokenTypes.indexWhere((t) => t.type == result.type);
+    if (idx >= 0) {
+      _tabController.animateTo(idx);
+      _tokenType = result.type;
+    }
+
+    if (result.isHotp) {
+      _counterController.text = result.counter.toString();
+    }
+    setState(() {});
   }
 
   Future<void> _saveAccount() async {
@@ -343,54 +379,87 @@ class _AddAccountScreenState extends State<AddAccountScreen>
   }
 
   Widget _buildQRScanButton(ThemeData theme, AppLocalizations l10n) {
+    return Column(
+      children: [
+        // Camera scan
+        _buildScanOption(
+          theme: theme,
+          icon: Icons.qr_code_scanner,
+          title: l10n.scanQRCode,
+          subtitle: l10n.useCamera,
+          onTap: _scanQR,
+        ),
+        const SizedBox(height: AppConstants.paddingSM),
+        // Image scan
+        _buildScanOption(
+          theme: theme,
+          icon: Icons.image_search_outlined,
+          title: l10n.scanFromImage,
+          subtitle: l10n.pickImageToScan,
+          onTap: _pickImageAndScan,
+          secondary: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildScanOption({
+    required ThemeData theme,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool secondary = false,
+  }) {
+    final color =
+        secondary ? theme.colorScheme.secondary : theme.colorScheme.primary;
     return InkWell(
-      onTap: _scanQR,
+      onTap: onTap,
       borderRadius: BorderRadius.circular(AppConstants.radiusLG),
       child: Container(
-        padding: const EdgeInsets.all(AppConstants.paddingLG),
+        padding: const EdgeInsets.all(AppConstants.paddingMD),
         decoration: BoxDecoration(
-          border: Border.all(
-              color: theme.colorScheme.primary.withAlpha(100), width: 1.5),
+          border: Border.all(color: color.withAlpha(100), width: 1.5),
           borderRadius: BorderRadius.circular(AppConstants.radiusLG),
-          color: theme.colorScheme.primary.withAlpha(10),
+          color: color.withAlpha(10),
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
+                  colors: secondary
+                      ? [theme.colorScheme.secondary, theme.colorScheme.primary]
+                      : [theme.colorScheme.primary, theme.colorScheme.secondary],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(AppConstants.radiusMD),
               ),
-              child:
-                  const Icon(Icons.qr_code_scanner, color: Colors.white, size: 24),
+              child: Icon(icon, color: Colors.white, size: 22),
             ),
             const SizedBox(width: AppConstants.paddingMD),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.scanQRCode,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w600),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  l10n.useCamera,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withAlpha(128),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withAlpha(128),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-            const Spacer(),
             Icon(Icons.chevron_right,
                 color: theme.colorScheme.onSurface.withAlpha(128)),
           ],

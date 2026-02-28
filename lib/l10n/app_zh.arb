@@ -143,5 +143,10 @@
   "customColor": "自定义",
   "apply": "应用",
   "primary": "主色",
-  "secondary": "辅色"
+  "secondary": "辅色",
+  "autoClearClipboard": "自动清除剪贴板",
+  "clipboardNotCleared": "剪贴板不会自动清除",
+  "codeCopiedSimple": "代码已复制",
+  "scanFromImage": "从图片扫描",
+  "pickImageToScan": "选择包含二维码的图片"
 }

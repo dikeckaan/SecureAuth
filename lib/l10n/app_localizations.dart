@@ -981,6 +981,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Secondary'**
   String get secondary;
+
+  /// No description provided for @autoClearClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-clear Clipboard'**
+  String get autoClearClipboard;
+
+  /// No description provided for @clipboardNotCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Clipboard not automatically cleared'**
+  String get clipboardNotCleared;
+
+  /// No description provided for @codeCopiedSimple.
+  ///
+  /// In en, this message translates to:
+  /// **'Code copied'**
+  String get codeCopiedSimple;
+
+  /// No description provided for @scanFromImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan from Image'**
+  String get scanFromImage;
+
+  /// No description provided for @pickImageToScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an image file containing a QR code'**
+  String get pickImageToScan;
 }
 
 class _AppLocalizationsDelegate

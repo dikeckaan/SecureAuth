@@ -481,4 +481,19 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get secondary => 'İkincil Renk';
+
+  @override
+  String get autoClearClipboard => 'Otomatik Pano Temizleme';
+
+  @override
+  String get clipboardNotCleared => 'Pano otomatik temizlenmez';
+
+  @override
+  String get codeCopiedSimple => 'Kod kopyalandı';
+
+  @override
+  String get scanFromImage => 'Görüntüden Tara';
+
+  @override
+  String get pickImageToScan => 'QR kod içeren bir görüntü dosyası seçin';
 }

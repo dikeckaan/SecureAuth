@@ -251,5 +251,10 @@
   "customColor": "Custom",
   "apply": "Apply",
   "primary": "Primary",
-  "secondary": "Secondary"
+  "secondary": "Secondary",
+  "autoClearClipboard": "Auto-clear Clipboard",
+  "clipboardNotCleared": "Clipboard not automatically cleared",
+  "codeCopiedSimple": "Code copied",
+  "scanFromImage": "Scan from Image",
+  "pickImageToScan": "Select an image file containing a QR code"
 }

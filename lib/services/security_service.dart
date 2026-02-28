@@ -5,6 +5,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
+import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -151,18 +152,72 @@ class SecurityService {
 
   // --- Clipboard Security ---
 
-  Future<void> copyToClipboardSecure(String text, int clearAfterSeconds) async {
+  /// Copies [text] to clipboard.  If [clearEnabled] is true, clears it after
+  /// [clearAfterSeconds].  On Windows, also marks the entry as excluded from
+  /// clipboard history so it never appears in Win+V history.
+  Future<void> copyToClipboardSecure(
+    String text,
+    int clearAfterSeconds, {
+    bool clearEnabled = true,
+  }) async {
     await Clipboard.setData(ClipboardData(text: text));
+
+    // Exclude from Windows clipboard history immediately after setting data.
+    if (Platform.isWindows) {
+      _excludeFromWindowsClipboardHistory();
+    }
+
+    if (!clearEnabled) return;
 
     Future.delayed(Duration(seconds: clearAfterSeconds), () {
       if (Platform.isWindows) {
-        // Copying empty string would add a blank entry to Windows clipboard
-        // history. Call Win32 EmptyClipboard() instead to truly clear it.
+        // Use Win32 EmptyClipboard() so we don't add a blank entry to history.
         _clearWindowsClipboard();
       } else {
         Clipboard.setData(const ClipboardData(text: ''));
       }
     });
+  }
+
+  /// Adds the "ExcludeClipboardContentFromMonitorProcessing" format to the
+  /// current clipboard content.  Windows reads this flag and omits the entry
+  /// from clipboard history (Win+V) — the data is still available for paste.
+  ///
+  /// Must be called AFTER [Clipboard.setData] so the text is already in the
+  /// clipboard; this just appends the exclusion marker in the same session.
+  static void _excludeFromWindowsClipboardHistory() {
+    try {
+      final user32 = DynamicLibrary.open('user32.dll');
+
+      final openClipboard = user32.lookupFunction<
+          Int32 Function(IntPtr), int Function(int)>('OpenClipboard');
+      final closeClipboard = user32.lookupFunction<
+          Int32 Function(), int Function()>('CloseClipboard');
+      final registerFormat = user32.lookupFunction<
+          Uint32 Function(Pointer<Utf16>),
+          int Function(Pointer<Utf16>)>('RegisterClipboardFormatW');
+      final setClipboardData = user32.lookupFunction<
+          IntPtr Function(Uint32, IntPtr),
+          int Function(int, int)>('SetClipboardData');
+
+      if (openClipboard(0) == 0) return;
+
+      // Allocate the format name as a native UTF-16 (wide) string.
+      final name =
+          'ExcludeClipboardContentFromMonitorProcessing'.toNativeUtf16();
+      try {
+        final formatId = registerFormat(name);
+        if (formatId != 0) {
+          // NULL data handle — Windows only needs the format to be present.
+          setClipboardData(formatId, 0);
+        }
+      } finally {
+        malloc.free(name);
+        closeClipboard();
+      }
+    } catch (_) {
+      // Non-fatal: clipboard still works; history exclusion just won't apply.
+    }
   }
 
   /// Calls Win32 EmptyClipboard() via FFI so the clipboard is cleared without

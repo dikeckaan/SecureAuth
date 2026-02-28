@@ -143,5 +143,10 @@
   "customColor": "Özel",
   "apply": "Uygula",
   "primary": "Ana Renk",
-  "secondary": "İkincil Renk"
+  "secondary": "İkincil Renk",
+  "autoClearClipboard": "Otomatik Pano Temizleme",
+  "clipboardNotCleared": "Pano otomatik temizlenmez",
+  "codeCopiedSimple": "Kod kopyalandı",
+  "scanFromImage": "Görüntüden Tara",
+  "pickImageToScan": "QR kod içeren bir görüntü dosyası seçin"
 }

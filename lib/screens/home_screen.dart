@@ -35,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final TOTPService _totpService = TOTPService();
   final QRService _qrService = QRService();
   final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
 
   List<AccountModel> _accounts = [];
   String _searchQuery = '';
@@ -52,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -245,13 +247,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (mounted) {
       final l10n = AppLocalizations.of(context)!;
       final settings = widget.storageService.getSettings();
+      final message = settings.clearClipboard
+          ? l10n.codeCopied(settings.clipboardClearSeconds)
+          : l10n.codeCopiedSimple;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [
               const Icon(Icons.check_circle, color: Colors.white, size: 18),
               const SizedBox(width: 8),
-              Text(l10n.codeCopied(settings.clipboardClearSeconds)),
+              Text(message),
             ],
           ),
           duration: const Duration(seconds: 2),
@@ -277,57 +282,86 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     });
   }
 
+  // ── Keyboard shortcut handlers ─────────────────────────────────────────────
+
+  void _focusSearch() {
+    setState(() => _isSearching = true);
+    // Let the widget tree rebuild so the TextField exists, then request focus.
+    Future.microtask(() => _searchFocusNode.requestFocus());
+  }
+
+  void _closeSearch() {
+    if (_isSearching) {
+      setState(() {
+        _isSearching = false;
+        _searchQuery = '';
+        _searchController.clear();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final filtered = _filtered;
 
-    return Scaffold(
-      appBar: AppBar(
-        titleSpacing: AppConstants.paddingMD,
-        title: _isSearching
-            ? TextField(
-                controller: _searchController,
-                autofocus: true,
-                onChanged: (v) => setState(() => _searchQuery = v),
-                style: TextStyle(color: theme.colorScheme.onSurface),
-                decoration: InputDecoration(
-                  hintText: l10n.searchAccounts,
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  filled: false,
-                  hintStyle: TextStyle(
-                    color: theme.colorScheme.onSurface.withAlpha(102),
-                  ),
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.keyF, control: true):
+            _focusSearch,
+        const SingleActivator(LogicalKeyboardKey.escape): _closeSearch,
+      },
+      child: Focus(
+        autofocus: true,
+        child: Scaffold(
+          appBar: AppBar(
+            titleSpacing: AppConstants.paddingMD,
+            title: _isSearching
+                ? TextField(
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    autofocus: true,
+                    onChanged: (v) => setState(() => _searchQuery = v),
+                    style: TextStyle(color: theme.colorScheme.onSurface),
+                    decoration: InputDecoration(
+                      hintText: l10n.searchAccounts,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      filled: false,
+                      hintStyle: TextStyle(
+                        color: theme.colorScheme.onSurface.withAlpha(102),
+                      ),
+                    ),
+                  )
+                : _buildAppBarTitle(theme, l10n),
+            actions: [
+              if (_accounts.isNotEmpty)
+                IconButton(
+                  icon: Icon(_isSearching ? Icons.close : Icons.search),
+                  onPressed: _toggleSearch,
                 ),
-              )
-            : _buildAppBarTitle(theme, l10n),
-        actions: [
-          if (_accounts.isNotEmpty)
-            IconButton(
-              icon: Icon(_isSearching ? Icons.close : Icons.search),
-              onPressed: _toggleSearch,
-            ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: _goToSettings,
+              IconButton(
+                icon: const Icon(Icons.settings_outlined),
+                onPressed: _goToSettings,
+              ),
+              const SizedBox(width: 4),
+            ],
           ),
-          const SizedBox(width: 4),
-        ],
-      ),
-      body: _accounts.isEmpty
-          ? _buildEmptyState(theme, l10n)
-          : filtered.isEmpty
-              ? _buildNoResults(theme, l10n)
-              : _buildAccountList(filtered, l10n),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addAccount,
-        backgroundColor: theme.colorScheme.primary,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        child: const Icon(Icons.add, size: 28),
+          body: _accounts.isEmpty
+              ? _buildEmptyState(theme, l10n)
+              : filtered.isEmpty
+                  ? _buildNoResults(theme, l10n)
+                  : _buildAccountList(filtered, l10n),
+          floatingActionButton: FloatingActionButton(
+            onPressed: _addAccount,
+            backgroundColor: theme.colorScheme.primary,
+            foregroundColor: Colors.white,
+            elevation: 4,
+            child: const Icon(Icons.add, size: 28),
+          ),
+        ),
       ),
     );
   }
@@ -470,28 +504,51 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Widget _buildAccountList(
       List<AccountModel> accounts, AppLocalizations l10n) {
-    return ListView.builder(
+    // While searching, disable reorder so the user can't accidentally shuffle
+    // accounts when only a subset is visible.
+    if (_isSearching || _searchQuery.isNotEmpty) {
+      return ListView.builder(
+        padding: const EdgeInsets.only(
+          top: AppConstants.paddingSM,
+          bottom: 100,
+        ),
+        itemCount: accounts.length,
+        itemBuilder: (context, index) => _buildCard(accounts[index]),
+      );
+    }
+
+    return ReorderableListView.builder(
       padding: const EdgeInsets.only(
         top: AppConstants.paddingSM,
         bottom: 100,
       ),
       itemCount: accounts.length,
-      itemBuilder: (context, index) {
-        final account = accounts[index];
-        return AccountCard(
-          // Key includes counter so Flutter destroys & recreates the card
-          // whenever the HOTP counter changes → initState() reruns → new code
-          key: ValueKey('${account.id}_${account.counter}'),
-          account: account,
-          totpService: _totpService,
-          onEdit: () => _editAccount(account),
-          onDelete: () => _deleteAccount(account),
-          onShowQR: () => _showQRCode(account),
-          onCopy: _copyCode,
-          onSetCounter:
-              account.isHotp ? (c) => _setHOTPCounter(account, c) : null,
+      itemBuilder: (context, index) => _buildCard(accounts[index]),
+      onReorder: (oldIndex, newIndex) {
+        if (newIndex > oldIndex) newIndex--;
+        final newList = List.of(_accounts);
+        final item = newList.removeAt(oldIndex);
+        newList.insert(newIndex, item);
+        widget.storageService.saveAccountOrder(
+          newList.map((a) => a.id).toList(),
         );
+        setState(() => _accounts = newList);
       },
+    );
+  }
+
+  Widget _buildCard(AccountModel account) {
+    return AccountCard(
+      // Key includes counter so Flutter destroys & recreates the card
+      // whenever the HOTP counter changes → initState() reruns → new code
+      key: ValueKey('${account.id}_${account.counter}'),
+      account: account,
+      totpService: _totpService,
+      onEdit: () => _editAccount(account),
+      onDelete: () => _deleteAccount(account),
+      onShowQR: () => _showQRCode(account),
+      onCopy: _copyCode,
+      onSetCounter: account.isHotp ? (c) => _setHOTPCounter(account, c) : null,
     );
   }
 }
