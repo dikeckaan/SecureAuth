@@ -4,7 +4,7 @@ import SwiftUI
 struct SecureAuthWatchApp: App {
     var body: some Scene {
         WindowGroup {
-            NavigationStack {
+            NavigationView {
                 ContentView()
             }
         }
