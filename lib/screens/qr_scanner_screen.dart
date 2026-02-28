@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:secure_auth/l10n/app_localizations.dart';
@@ -64,22 +66,25 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         title: Text(l10n.scanQRCode),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: Icon(
-              _torchOn ? Icons.flash_on : Icons.flash_off,
-              color: _torchOn ? AppColors.warning : Colors.white,
-            ),
-            onPressed: () {
-              _controller.toggleTorch();
-              setState(() => _torchOn = !_torchOn);
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.cameraswitch, color: Colors.white),
-            onPressed: () => _controller.switchCamera(),
-          ),
-        ],
+        // Torch and camera-switch are mobile-only; desktop webcams have neither.
+        actions: Platform.isAndroid || Platform.isIOS
+            ? [
+                IconButton(
+                  icon: Icon(
+                    _torchOn ? Icons.flash_on : Icons.flash_off,
+                    color: _torchOn ? AppColors.warning : Colors.white,
+                  ),
+                  onPressed: () {
+                    _controller.toggleTorch();
+                    setState(() => _torchOn = !_torchOn);
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.cameraswitch, color: Colors.white),
+                  onPressed: () => _controller.switchCamera(),
+                ),
+              ]
+            : null,
       ),
       body: Stack(
         children: [

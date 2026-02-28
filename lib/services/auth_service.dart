@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:local_auth/local_auth.dart';
 
@@ -17,6 +18,11 @@ class AuthService {
 
   Future<bool> isBiometricAvailable() async {
     try {
+      // Windows Hello is a device credential, not biometric per local_auth;
+      // isDeviceSupported() is the correct check on Windows.
+      if (Platform.isWindows) {
+        return await _localAuth.isDeviceSupported();
+      }
       final canCheck = await _localAuth.canCheckBiometrics;
       final isSupported = await _localAuth.isDeviceSupported();
       return canCheck && isSupported;
@@ -37,9 +43,11 @@ class AuthService {
     try {
       return await _localAuth.authenticate(
         localizedReason: 'Uygulamaya erismek icin kimliginizi dogrulayin',
-        options: const AuthenticationOptions(
+        options: AuthenticationOptions(
           stickyAuth: true,
-          biometricOnly: true,
+          // biometricOnly:true blocks Windows Hello (PIN/face treated as
+          // device credential on Windows, not biometric).
+          biometricOnly: Platform.isAndroid || Platform.isIOS,
         ),
       );
     } catch (_) {

@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:ffi';
+import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -153,8 +155,36 @@ class SecurityService {
     await Clipboard.setData(ClipboardData(text: text));
 
     Future.delayed(Duration(seconds: clearAfterSeconds), () {
-      Clipboard.setData(const ClipboardData(text: ''));
+      if (Platform.isWindows) {
+        // Copying empty string would add a blank entry to Windows clipboard
+        // history. Call Win32 EmptyClipboard() instead to truly clear it.
+        _clearWindowsClipboard();
+      } else {
+        Clipboard.setData(const ClipboardData(text: ''));
+      }
     });
+  }
+
+  /// Calls Win32 EmptyClipboard() via FFI so the clipboard is cleared without
+  /// adding a new (empty) entry to Windows clipboard history.
+  static void _clearWindowsClipboard() {
+    try {
+      final user32 = DynamicLibrary.open('user32.dll');
+      final openClipboard = user32.lookupFunction<
+          Int32 Function(IntPtr), int Function(int)>('OpenClipboard');
+      final emptyClipboard = user32.lookupFunction<
+          Int32 Function(), int Function()>('EmptyClipboard');
+      final closeClipboard = user32.lookupFunction<
+          Int32 Function(), int Function()>('CloseClipboard');
+
+      if (openClipboard(0) != 0) {
+        emptyClipboard();
+        closeClipboard();
+      }
+    } catch (_) {
+      // Fallback: at least overwrite with empty string if FFI fails.
+      Clipboard.setData(const ClipboardData(text: ''));
+    }
   }
 
   // --- Activity Tracking ---

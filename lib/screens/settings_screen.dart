@@ -680,24 +680,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // Close loading dialog.
       if (mounted) Navigator.of(context).pop();
 
-      // Write to Documents dir and share.
-      try {
-        final dir = await getApplicationDocumentsDirectory();
-        final file = File('${dir.path}/$fileName');
-        await file.writeAsBytes(bytes, flush: true);
-        await Share.shareXFiles(
-          [XFile(file.path, mimeType: 'application/octet-stream', name: fileName)],
-          sharePositionOrigin: originRect,
+      // Desktop: let the user choose the save location via native dialog.
+      // Mobile: use the system share sheet.
+      if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+        final savePath = await FilePicker.platform.saveFile(
+          fileName: fileName,
+          type: FileType.any,
         );
-      } catch (_) {
-        // Fallback: share the raw bytes as a temp file.
-        final tmp = await getTemporaryDirectory();
-        final file = File('${tmp.path}/$fileName');
-        await file.writeAsBytes(bytes, flush: true);
-        await Share.shareXFiles(
-          [XFile(file.path, name: fileName)],
-          sharePositionOrigin: originRect,
-        );
+        if (savePath == null) return; // user cancelled
+        await File(savePath).writeAsBytes(bytes, flush: true);
+      } else {
+        try {
+          final dir = await getApplicationDocumentsDirectory();
+          final file = File('${dir.path}/$fileName');
+          await file.writeAsBytes(bytes, flush: true);
+          await Share.shareXFiles(
+            [XFile(file.path, mimeType: 'application/octet-stream', name: fileName)],
+            sharePositionOrigin: originRect,
+          );
+        } catch (_) {
+          // Fallback: share the raw bytes as a temp file.
+          final tmp = await getTemporaryDirectory();
+          final file = File('${tmp.path}/$fileName');
+          await file.writeAsBytes(bytes, flush: true);
+          await Share.shareXFiles(
+            [XFile(file.path, name: fileName)],
+            sharePositionOrigin: originRect,
+          );
+        }
       }
 
       if (mounted) _showSuccess(l10n.accountsExported);
@@ -717,17 +727,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final fileName =
           'secureauth_backup_${DateTime.now().millisecondsSinceEpoch}.json';
 
-      try {
-        final dir = await getApplicationDocumentsDirectory();
-        final file = File('${dir.path}/$fileName');
-        await file.writeAsString(jsonString, flush: true);
-        await Share.shareXFiles(
-          [XFile(file.path, mimeType: 'application/json', name: fileName)],
-          sharePositionOrigin: originRect,
+      if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+        final savePath = await FilePicker.platform.saveFile(
+          fileName: fileName,
+          type: FileType.any,
         );
-      } catch (_) {
-        await Share.share(jsonString,
-            subject: fileName, sharePositionOrigin: originRect);
+        if (savePath == null) return; // user cancelled
+        await File(savePath).writeAsString(jsonString, flush: true);
+      } else {
+        try {
+          final dir = await getApplicationDocumentsDirectory();
+          final file = File('${dir.path}/$fileName');
+          await file.writeAsString(jsonString, flush: true);
+          await Share.shareXFiles(
+            [XFile(file.path, mimeType: 'application/json', name: fileName)],
+            sharePositionOrigin: originRect,
+          );
+        } catch (_) {
+          await Share.share(jsonString,
+              subject: fileName, sharePositionOrigin: originRect);
+        }
       }
 
       if (mounted) _showSuccess(l10n.accountsExported);
