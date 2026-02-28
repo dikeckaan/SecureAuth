@@ -18,4 +18,16 @@ rm -rf /tmp/secure-auth-build
 git clone "$(dirname "$0")" /tmp/secure-auth-build --quiet
 cd /tmp/secure-auth-build
 flutter pub get --quiet 2>/dev/null
-flutter run --device-id 00008120-000E19AC3603C01E $MODE
+# Auto-detect the first connected physical iOS device (version-independent)
+DEVICE_ID=$(flutter devices 2>/dev/null \
+  | grep " ios " | grep -iv "simulator" \
+  | awk -F'•' '{gsub(/ /,"",$2); print $2}' \
+  | head -1)
+
+if [ -n "$DEVICE_ID" ]; then
+  echo "Cihaz: $DEVICE_ID"
+  flutter run --device-id "$DEVICE_ID" $MODE
+else
+  echo "Fiziksel iOS cihaz bulunamadi, Flutter'in secmesine birakildi..."
+  flutter run -d ios $MODE
+fi
