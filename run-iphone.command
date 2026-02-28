@@ -3,9 +3,6 @@ echo "=============================="
 echo "  SecureAuth - iPhone Runner  "
 echo "=============================="
 echo ""
-echo "Hedef: Kaan Dikec's iPhone (iOS 26.1)"
-echo "Device: 00008120-000E19AC3603C01E"
-echo ""
 echo "1) Debug"
 echo "2) Release"
 echo ""
@@ -43,7 +40,16 @@ echo ">> Bagimliliklar yukleniyor..."
 cd "$DEST"
 flutter pub get --quiet 2>/dev/null
 
-echo ">> iPhone'a yukleniyor..."
-flutter run \
-  --device-id 00008120-000E19AC3603C01E \
-  $MODE
+# Auto-detect the first connected physical iOS device (version-independent)
+DEVICE_ID=$(flutter devices 2>/dev/null \
+  | grep " ios " | grep -iv "simulator" \
+  | awk -F'•' '{gsub(/ /,"",$2); print $2}' \
+  | head -1)
+
+if [ -n "$DEVICE_ID" ]; then
+  echo ">> Cihaz: $DEVICE_ID"
+  flutter run --device-id "$DEVICE_ID" $MODE
+else
+  echo ">> Fiziksel iOS cihaz bulunamadi, Flutter'in secmesine birakildi..."
+  flutter run -d ios $MODE
+fi
