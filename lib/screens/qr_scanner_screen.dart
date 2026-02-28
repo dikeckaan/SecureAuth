@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:secure_auth/l10n/app_localizations.dart';
@@ -56,9 +57,30 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     );
   }
 
+  /// Lets the user pick an image file and scans it for a QR code.
+  Future<void> _pickImageAndScan() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.image);
+    if (result == null || result.files.isEmpty) return;
+
+    final path = result.files.first.path;
+    if (path == null) return;
+
+    final capture = await _controller.analyzeImage(path);
+    if (!mounted) return;
+
+    if (capture != null && capture.barcodes.isNotEmpty) {
+      _onDetect(capture);
+    } else {
+      final l10n = AppLocalizations.of(context)!;
+      _showError(l10n.invalidQRCode);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isDesktop =
+        Platform.isWindows || Platform.isMacOS || Platform.isLinux;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -66,25 +88,31 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         title: Text(l10n.scanQRCode),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        // Torch and camera-switch are mobile-only; desktop webcams have neither.
-        actions: Platform.isAndroid || Platform.isIOS
-            ? [
-                IconButton(
-                  icon: Icon(
-                    _torchOn ? Icons.flash_on : Icons.flash_off,
-                    color: _torchOn ? AppColors.warning : Colors.white,
-                  ),
-                  onPressed: () {
-                    _controller.toggleTorch();
-                    setState(() => _torchOn = !_torchOn);
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.cameraswitch, color: Colors.white),
-                  onPressed: () => _controller.switchCamera(),
-                ),
-              ]
-            : null,
+        actions: [
+          // Image-scan button — shown on all platforms
+          IconButton(
+            icon: const Icon(Icons.image_search_outlined, color: Colors.white),
+            tooltip: l10n.scanFromImage,
+            onPressed: _pickImageAndScan,
+          ),
+          // Torch and camera-switch are mobile-only; desktop webcams have neither.
+          if (Platform.isAndroid || Platform.isIOS) ...[
+            IconButton(
+              icon: Icon(
+                _torchOn ? Icons.flash_on : Icons.flash_off,
+                color: _torchOn ? AppColors.warning : Colors.white,
+              ),
+              onPressed: () {
+                _controller.toggleTorch();
+                setState(() => _torchOn = !_torchOn);
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.cameraswitch, color: Colors.white),
+              onPressed: () => _controller.switchCamera(),
+            ),
+          ],
+        ],
       ),
       body: Stack(
         children: [
@@ -118,6 +146,41 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
               ),
             ),
           ),
+          // Desktop: prominent "pick image" hint below the scan frame
+          if (isDesktop)
+            Positioned(
+              bottom: 120,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppConstants.paddingLG,
+                    vertical: AppConstants.paddingMD,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius:
+                        BorderRadius.circular(AppConstants.radiusFull),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.info_outline,
+                          color: Colors.white70, size: 16),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Camera unavailable? Use the image button above.',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           // Bottom instruction
           Positioned(
             bottom: 60,

@@ -472,4 +472,19 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get secondary => '보조 색상';
+
+  @override
+  String get autoClearClipboard => '클립보드 자동 지우기';
+
+  @override
+  String get clipboardNotCleared => '클립보드가 자동으로 지워지지 않음';
+
+  @override
+  String get codeCopiedSimple => '코드 복사됨';
+
+  @override
+  String get scanFromImage => '이미지에서 스캔';
+
+  @override
+  String get pickImageToScan => 'QR 코드가 포함된 이미지 선택';
 }

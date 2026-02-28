@@ -143,5 +143,10 @@
   "customColor": "Xüsusi",
   "apply": "Tətbiq et",
   "primary": "Əsas Rəng",
-  "secondary": "İkinci Rəng"
+  "secondary": "İkinci Rəng",
+  "autoClearClipboard": "Mübadilə Buferini Avtomatik Təmizlə",
+  "clipboardNotCleared": "Mübadilə buferi avtomatik təmizlənmir",
+  "codeCopiedSimple": "Kod kopyalandı",
+  "scanFromImage": "Şəkildən Skan Et",
+  "pickImageToScan": "QR kod olan şəkil seçin"
 }

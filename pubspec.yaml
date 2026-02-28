@@ -66,6 +66,9 @@ dependencies:
   intl: ^0.20.1
   uuid: ^4.5.1
 
+  # Dart FFI helpers (calloc, Utf16 string allocation for Windows clipboard)
+  ffi: ^2.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

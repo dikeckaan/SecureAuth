@@ -36,6 +36,23 @@ class TOTPService {
     );
   }
 
+  /// Returns the TOTP code for the **next** period.
+  /// Only meaningful for TOTP accounts; not called for HOTP or Steam.
+  String generateNextCode(AccountModel account) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final periodMs = account.period * 1000;
+    // Start of the next period
+    final nextPeriodStart = ((now ~/ periodMs) + 1) * periodMs;
+    return OTP.generateTOTPCodeString(
+      account.secret,
+      nextPeriodStart,
+      length: account.digits,
+      interval: account.period,
+      algorithm: _getAlgorithm(account.algorithm),
+      isGoogle: true,
+    );
+  }
+
   String generateHOTP(AccountModel account) {
     return OTP.generateHOTPCodeString(
       account.secret,

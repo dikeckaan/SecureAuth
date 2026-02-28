@@ -469,4 +469,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get secondary => '辅色';
+
+  @override
+  String get autoClearClipboard => '自动清除剪贴板';
+
+  @override
+  String get clipboardNotCleared => '剪贴板不会自动清除';
+
+  @override
+  String get codeCopiedSimple => '代码已复制';
+
+  @override
+  String get scanFromImage => '从图片扫描';
+
+  @override
+  String get pickImageToScan => '选择包含二维码的图片';
 }

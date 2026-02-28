@@ -486,4 +486,20 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get secondary => 'Secondaire';
+
+  @override
+  String get autoClearClipboard => 'Vider le presse-papiers automatiquement';
+
+  @override
+  String get clipboardNotCleared =>
+      'Le presse-papiers n\'est pas vidé automatiquement';
+
+  @override
+  String get codeCopiedSimple => 'Code copié';
+
+  @override
+  String get scanFromImage => 'Scanner depuis une image';
+
+  @override
+  String get pickImageToScan => 'Sélectionner une image contenant un code QR';
 }

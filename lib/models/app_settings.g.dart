@@ -31,13 +31,15 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       accentColorIndex: fields[11] as int? ?? 0,
       customPrimaryColor: fields[12] as String?,
       customSecondaryColor: fields[13] as String?,
+      clearClipboard: fields[14] as bool? ?? true,
+      accountOrder: (fields[15] as List?)?.cast<String>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettings obj) {
     writer
-      ..writeByte(14)
+      ..writeByte(16)
       ..writeByte(0)
       ..write(obj.useBiometric)
       ..writeByte(1)
@@ -65,7 +67,11 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       ..writeByte(12)
       ..write(obj.customPrimaryColor)
       ..writeByte(13)
-      ..write(obj.customSecondaryColor);
+      ..write(obj.customSecondaryColor)
+      ..writeByte(14)
+      ..write(obj.clearClipboard)
+      ..writeByte(15)
+      ..write(obj.accountOrder);
   }
 
   @override

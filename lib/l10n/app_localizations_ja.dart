@@ -471,4 +471,19 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get secondary => 'セカンダリ';
+
+  @override
+  String get autoClearClipboard => 'クリップボード自動クリア';
+
+  @override
+  String get clipboardNotCleared => 'クリップボードは自動的にクリアされません';
+
+  @override
+  String get codeCopiedSimple => 'コードをコピーしました';
+
+  @override
+  String get scanFromImage => '画像からスキャン';
+
+  @override
+  String get pickImageToScan => 'QRコードを含む画像を選択';
 }

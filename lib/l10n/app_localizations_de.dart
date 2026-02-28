@@ -485,4 +485,20 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get secondary => 'Sekundärfarbe';
+
+  @override
+  String get autoClearClipboard => 'Zwischenablage automatisch leeren';
+
+  @override
+  String get clipboardNotCleared =>
+      'Zwischenablage wird nicht automatisch geleert';
+
+  @override
+  String get codeCopiedSimple => 'Code kopiert';
+
+  @override
+  String get scanFromImage => 'Von Bild scannen';
+
+  @override
+  String get pickImageToScan => 'Bilddatei mit QR-Code auswählen';
 }

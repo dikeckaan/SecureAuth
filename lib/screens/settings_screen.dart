@@ -43,6 +43,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late int _maxFailedAttempts;
   late bool _wipeOnMaxAttempts;
   late String? _languageCode;
+  late bool _clearClipboard;
   bool _biometricAvailable = false;
 
   static const _supportedLanguages = [
@@ -80,6 +81,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _maxFailedAttempts = settings.maxFailedAttempts;
     _wipeOnMaxAttempts = settings.wipeOnMaxAttempts;
     _languageCode = settings.languageCode;
+    _clearClipboard = settings.clearClipboard;
   }
 
   Future<void> _checkBiometric() async {
@@ -430,10 +432,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _toggleBiometric(bool value) async {
-    final l10n = AppLocalizations.of(context)!;
     if (value && !widget.authService.hasPassword()) {
-      _showError(l10n.needPasswordFirst);
-      return;
+      // Prompt the user to create a password before enabling biometric auth.
+      await _changePassword();
+      // If they cancelled (still no password), abort the toggle.
+      if (!widget.authService.hasPassword()) return;
     }
     await widget.authService.enableBiometric(value);
     setState(() => _useBiometric = value);
@@ -1317,15 +1320,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onTap: _showAutoLockPicker,
             ),
             _buildInternalDivider(),
-            ListTile(
-              leading: _buildLeadingIcon(
+            SwitchListTile(
+              secondary: _buildLeadingIcon(
                   Icons.content_paste_off_outlined, theme.colorScheme.primary),
-              title: Text(l10n.clipboardClear),
-              subtitle:
-                  Text(l10n.clipboardClearAfterSeconds(_clipboardClearSeconds)),
-              trailing: const Icon(Icons.chevron_right, size: 18),
-              onTap: _showClipboardClearPicker,
+              title: Text(l10n.autoClearClipboard),
+              subtitle: Text(_clearClipboard
+                  ? l10n.clipboardClearAfterSeconds(_clipboardClearSeconds)
+                  : l10n.clipboardNotCleared),
+              value: _clearClipboard,
+              onChanged: (v) async {
+                await _updateSetting((s) => s.clearClipboard = v);
+                setState(() => _clearClipboard = v);
+              },
             ),
+            if (_clearClipboard) ...[
+              _buildInternalDivider(),
+              ListTile(
+                leading: _buildLeadingIcon(
+                    Icons.content_paste_off_outlined,
+                    theme.colorScheme.primary),
+                title: Text(l10n.clipboardClear),
+                subtitle:
+                    Text(l10n.clipboardClearAfterSeconds(_clipboardClearSeconds)),
+                trailing: const Icon(Icons.chevron_right, size: 18),
+                onTap: _showClipboardClearPicker,
+              ),
+            ],
             _buildInternalDivider(),
             ListTile(
               leading: _buildLeadingIcon(

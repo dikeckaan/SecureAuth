@@ -143,5 +143,10 @@
   "customColor": "Свой",
   "apply": "Применить",
   "primary": "Основной",
-  "secondary": "Вторичный"
+  "secondary": "Вторичный",
+  "autoClearClipboard": "Автоочистка буфера обмена",
+  "clipboardNotCleared": "Буфер обмена не очищается автоматически",
+  "codeCopiedSimple": "Код скопирован",
+  "scanFromImage": "Сканировать с изображения",
+  "pickImageToScan": "Выберите изображение с QR-кодом"
 }

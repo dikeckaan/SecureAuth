@@ -477,4 +477,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get secondary => 'Secondary';
+
+  @override
+  String get autoClearClipboard => 'Auto-clear Clipboard';
+
+  @override
+  String get clipboardNotCleared => 'Clipboard not automatically cleared';
+
+  @override
+  String get codeCopiedSimple => 'Code copied';
+
+  @override
+  String get scanFromImage => 'Scan from Image';
+
+  @override
+  String get pickImageToScan => 'Select an image file containing a QR code';
 }

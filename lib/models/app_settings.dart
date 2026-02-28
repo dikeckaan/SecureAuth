@@ -50,6 +50,14 @@ class AppSettings extends HiveObject {
   @HiveField(13)
   String? customSecondaryColor;
 
+  /// Whether to auto-clear clipboard after copying a code (default: true)
+  @HiveField(14)
+  bool clearClipboard;
+
+  /// Ordered list of account IDs (null = alphabetical)
+  @HiveField(15)
+  List<String>? accountOrder;
+
   AppSettings({
     this.useBiometric = false,
     this.requireAuthOnLaunch = true,
@@ -65,5 +73,7 @@ class AppSettings extends HiveObject {
     this.accentColorIndex = 0,
     this.customPrimaryColor,
     this.customSecondaryColor,
+    this.clearClipboard = true,
+    this.accountOrder,
   });
 }

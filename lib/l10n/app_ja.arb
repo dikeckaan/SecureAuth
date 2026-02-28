@@ -143,5 +143,10 @@
   "customColor": "カスタム",
   "apply": "適用",
   "primary": "プライマリ",
-  "secondary": "セカンダリ"
+  "secondary": "セカンダリ",
+  "autoClearClipboard": "クリップボード自動クリア",
+  "clipboardNotCleared": "クリップボードは自動的にクリアされません",
+  "codeCopiedSimple": "コードをコピーしました",
+  "scanFromImage": "画像からスキャン",
+  "pickImageToScan": "QRコードを含む画像を選択"
 }

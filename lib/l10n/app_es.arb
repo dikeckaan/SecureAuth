@@ -143,5 +143,10 @@
   "customColor": "Personalizado",
   "apply": "Aplicar",
   "primary": "Primario",
-  "secondary": "Secundario"
+  "secondary": "Secundario",
+  "autoClearClipboard": "Auto-limpiar portapapeles",
+  "clipboardNotCleared": "El portapapeles no se limpia automáticamente",
+  "codeCopiedSimple": "Código copiado",
+  "scanFromImage": "Escanear desde imagen",
+  "pickImageToScan": "Selecciona una imagen con código QR"
 }

@@ -481,4 +481,19 @@ class AppLocalizationsAz extends AppLocalizations {
 
   @override
   String get secondary => 'İkinci Rəng';
+
+  @override
+  String get autoClearClipboard => 'Mübadilə Buferini Avtomatik Təmizlə';
+
+  @override
+  String get clipboardNotCleared => 'Mübadilə buferi avtomatik təmizlənmir';
+
+  @override
+  String get codeCopiedSimple => 'Kod kopyalandı';
+
+  @override
+  String get scanFromImage => 'Şəkildən Skan Et';
+
+  @override
+  String get pickImageToScan => 'QR kod olan şəkil seçin';
 }

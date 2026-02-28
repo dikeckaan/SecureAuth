@@ -143,5 +143,10 @@
   "customColor": "사용자 지정",
   "apply": "적용",
   "primary": "기본 색상",
-  "secondary": "보조 색상"
+  "secondary": "보조 색상",
+  "autoClearClipboard": "클립보드 자동 지우기",
+  "clipboardNotCleared": "클립보드가 자동으로 지워지지 않음",
+  "codeCopiedSimple": "코드 복사됨",
+  "scanFromImage": "이미지에서 스캔",
+  "pickImageToScan": "QR 코드가 포함된 이미지 선택"
 }

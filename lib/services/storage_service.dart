@@ -82,8 +82,26 @@ class StorageService {
   }
 
   List<AccountModel> getAllAccounts() {
-    return accountsBox.values.toList()
-      ..sort((a, b) => a.issuer.toLowerCase().compareTo(b.issuer.toLowerCase()));
+    final accounts = accountsBox.values.toList();
+    final order = getSettings().accountOrder;
+    if (order == null || order.isEmpty) {
+      return accounts
+        ..sort((a, b) => a.issuer.toLowerCase().compareTo(b.issuer.toLowerCase()));
+    }
+    final orderMap = {for (var i = 0; i < order.length; i++) order[i]: i};
+    accounts.sort((a, b) {
+      final ia = orderMap[a.id] ?? order.length;
+      final ib = orderMap[b.id] ?? order.length;
+      return ia.compareTo(ib);
+    });
+    return accounts;
+  }
+
+  /// Persists a custom drag-to-reorder sequence for the home list.
+  Future<void> saveAccountOrder(List<String> ids) async {
+    final settings = getSettings();
+    settings.accountOrder = ids;
+    await updateSettings(settings);
   }
 
   // --- Settings ---
