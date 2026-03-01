@@ -440,6 +440,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // If they cancelled (still no password), abort the toggle.
       if (!widget.authService.hasPassword()) return;
     }
+    // Biometrik açılırken App Lock da zorunlu
+    if (value && !_requireAuthOnLaunch) {
+      await _updateSetting((s) => s.requireAuthOnLaunch = true);
+      setState(() => _requireAuthOnLaunch = true);
+    }
     await widget.authService.enableBiometric(value);
     setState(() => _useBiometric = value);
   }
@@ -449,6 +454,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (value && !widget.authService.hasPassword()) {
       _showError(l10n.needPasswordFirst);
       return;
+    }
+    if (!value) {
+      // App Lock kapanınca Biometrik de kapat
+      await widget.authService.enableBiometric(false);
+      setState(() => _useBiometric = false);
     }
     await _updateSetting((s) => s.requireAuthOnLaunch = value);
     setState(() => _requireAuthOnLaunch = value);
