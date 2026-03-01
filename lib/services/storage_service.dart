@@ -10,6 +10,7 @@ class StorageService {
   static const String _accountsBox = 'accounts';
   static const String _settingsBox = 'settings';
   static const String _encryptionKeyName = 'encryption_key';
+  static const String _settingsEncryptionKeyName = 'settings_encryption_key';
 
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   Box<AccountModel>? _accountsBoxInstance;
@@ -25,7 +26,7 @@ class StorageService {
       Hive.registerAdapter(AppSettingsAdapter());
     }
 
-    final encryptionKey = await _getEncryptionKey();
+    final encryptionKey = await _getOrCreateKey(_encryptionKeyName);
     final encryptionKeyBytes = base64Url.decode(encryptionKey);
 
     _accountsBoxInstance = await Hive.openBox<AccountModel>(
@@ -33,24 +34,37 @@ class StorageService {
       encryptionCipher: HiveAesCipher(encryptionKeyBytes),
     );
 
-    _settingsBoxInstance = await Hive.openBox<AppSettings>(_settingsBox);
+    final settingsKey = await _getOrCreateKey(_settingsEncryptionKeyName);
+    final settingsKeyBytes = base64Url.decode(settingsKey);
+
+    try {
+      _settingsBoxInstance = await Hive.openBox<AppSettings>(
+        _settingsBox,
+        encryptionCipher: HiveAesCipher(settingsKeyBytes),
+      );
+    } catch (_) {
+      // Box existed unencrypted (first run after upgrade) — delete and recreate.
+      // Password hash/salt will be re-created at next login (transparent migration).
+      await Hive.deleteBoxFromDisk(_settingsBox);
+      _settingsBoxInstance = await Hive.openBox<AppSettings>(
+        _settingsBox,
+        encryptionCipher: HiveAesCipher(settingsKeyBytes),
+      );
+    }
 
     if (_settingsBoxInstance!.isEmpty) {
       await _settingsBoxInstance!.put('settings', AppSettings());
     }
   }
 
-  Future<String> _getEncryptionKey() async {
-    var encryptionKey = await _secureStorage.read(key: _encryptionKeyName);
-    if (encryptionKey == null) {
-      final key = Hive.generateSecureKey();
-      encryptionKey = base64Url.encode(key);
-      await _secureStorage.write(
-        key: _encryptionKeyName,
-        value: encryptionKey,
-      );
+  Future<String> _getOrCreateKey(String keyName) async {
+    var key = await _secureStorage.read(key: keyName);
+    if (key == null) {
+      final newKey = Hive.generateSecureKey();
+      key = base64Url.encode(newKey);
+      await _secureStorage.write(key: keyName, value: key);
     }
-    return encryptionKey;
+    return key;
   }
 
   Box<AccountModel> get accountsBox {
