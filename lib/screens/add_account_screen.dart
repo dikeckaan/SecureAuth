@@ -45,16 +45,18 @@ class _AddAccountScreenState extends State<AddAccountScreen>
   bool _secretVisible = false;
 
   late TabController _tabController;
-
-  static const _tokenTypes = [
-    _TokenTypeOption('totp', 'TOTP', Icons.access_time_outlined),
-    _TokenTypeOption('hotp', 'HOTP', Icons.tag_outlined),
-    _TokenTypeOption('steam', 'Steam', Icons.videogame_asset_outlined),
-  ];
+  late List<_TokenTypeOption> _tokenTypes;
 
   @override
   void initState() {
     super.initState();
+    final steamEnabled = widget.storageService.getSettings().steamGuardEnabled;
+    _tokenTypes = [
+      const _TokenTypeOption('totp', 'TOTP', Icons.access_time_outlined),
+      const _TokenTypeOption('hotp', 'HOTP', Icons.tag_outlined),
+      if (steamEnabled)
+        const _TokenTypeOption('steam', 'Steam', Icons.videogame_asset_outlined),
+    ];
     _tabController = TabController(length: _tokenTypes.length, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) return;

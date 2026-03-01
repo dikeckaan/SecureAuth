@@ -44,6 +44,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late bool _wipeOnMaxAttempts;
   late String? _languageCode;
   late bool _clearClipboard;
+  late bool _steamGuardEnabled;
   bool _biometricAvailable = false;
 
   static const _supportedLanguages = [
@@ -82,6 +83,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _wipeOnMaxAttempts = settings.wipeOnMaxAttempts;
     _languageCode = settings.languageCode;
     _clearClipboard = settings.clearClipboard;
+    _steamGuardEnabled = settings.steamGuardEnabled;
   }
 
   Future<void> _checkBiometric() async {
@@ -450,6 +452,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     await _updateSetting((s) => s.requireAuthOnLaunch = value);
     setState(() => _requireAuthOnLaunch = value);
+  }
+
+  Future<void> _toggleSteamGuard(bool value) async {
+    await _updateSetting((s) => s.steamGuardEnabled = value);
+    setState(() => _steamGuardEnabled = value);
   }
 
   Future<void> _toggleWipeOnMax(bool value) async {
@@ -1399,6 +1406,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: Text(l10n.loadFromFile),
               trailing: const Icon(Icons.chevron_right, size: 18),
               onTap: _importAccounts,
+            ),
+          ]),
+
+          // ── Experimental ──────────────────────────────────────────
+          _buildSectionLabel(
+              theme, 'Deneysel', Icons.science_outlined),
+          _buildCard([
+            SwitchListTile(
+              title: const Text('Steam Guard'),
+              subtitle: const Text(
+                'Hesap eklerken Steam Guard sekmesini göster. '
+                'Steam Guard QR kodları standart otpauth:// formatını kullanmaz.',
+              ),
+              value: _steamGuardEnabled,
+              onChanged: _toggleSteamGuard,
+              secondary: const Icon(Icons.videogame_asset_outlined),
             ),
           ]),
 

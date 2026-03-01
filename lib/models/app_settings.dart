@@ -58,6 +58,10 @@ class AppSettings extends HiveObject {
   @HiveField(15)
   List<String>? accountOrder;
 
+  /// Whether Steam Guard token type is visible in Add Account (experimental)
+  @HiveField(16)
+  bool steamGuardEnabled;
+
   AppSettings({
     this.useBiometric = false,
     this.requireAuthOnLaunch = true,
@@ -75,5 +79,6 @@ class AppSettings extends HiveObject {
     this.customSecondaryColor,
     this.clearClipboard = true,
     this.accountOrder,
+    this.steamGuardEnabled = false,
   });
 }

@@ -17,29 +17,30 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return AppSettings(
-      useBiometric: fields[0] as bool? ?? false,
-      requireAuthOnLaunch: fields[1] as bool? ?? true,
+      useBiometric: fields[0] as bool,
+      requireAuthOnLaunch: fields[1] as bool,
       passwordHash: fields[2] as String?,
-      isDarkMode: fields[3] as bool? ?? false,
-      autoLockSeconds: fields[4] as int? ?? 60,
-      clipboardClearSeconds: fields[5] as int? ?? 30,
-      maxFailedAttempts: fields[6] as int? ?? 10,
-      wipeOnMaxAttempts: fields[7] as bool? ?? false,
+      isDarkMode: fields[3] as bool,
+      autoLockSeconds: fields[4] as int,
+      clipboardClearSeconds: fields[5] as int,
+      maxFailedAttempts: fields[6] as int,
+      wipeOnMaxAttempts: fields[7] as bool,
       passwordSalt: fields[8] as String?,
       languageCode: fields[9] as String?,
-      themePreference: fields[10] as int? ?? 0,
-      accentColorIndex: fields[11] as int? ?? 0,
+      themePreference: fields[10] as int,
+      accentColorIndex: fields[11] as int,
       customPrimaryColor: fields[12] as String?,
       customSecondaryColor: fields[13] as String?,
-      clearClipboard: fields[14] as bool? ?? true,
+      clearClipboard: fields[14] as bool,
       accountOrder: (fields[15] as List?)?.cast<String>(),
+      steamGuardEnabled: fields[16] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettings obj) {
     writer
-      ..writeByte(16)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.useBiometric)
       ..writeByte(1)
@@ -71,7 +72,9 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       ..writeByte(14)
       ..write(obj.clearClipboard)
       ..writeByte(15)
-      ..write(obj.accountOrder);
+      ..write(obj.accountOrder)
+      ..writeByte(16)
+      ..write(obj.steamGuardEnabled);
   }
 
   @override
