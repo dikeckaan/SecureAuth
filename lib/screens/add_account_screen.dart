@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_zxing/flutter_zxing.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:uuid/uuid.dart';
 import 'package:secure_auth/l10n/app_localizations.dart';
 
@@ -100,17 +103,38 @@ class _AddAccountScreenState extends State<AddAccountScreen>
     if (path == null) return;
 
     try {
-      final code = await zx.readBarcodeImagePathString(path, DecodeParams());
+      String? rawValue;
+
+      if (Platform.isIOS || Platform.isAndroid) {
+        // Mobile: mobile_scanner has native ML Kit analyzeImage built in
+        final ctrl = MobileScannerController();
+        try {
+          final capture = await ctrl.analyzeImage(path);
+          rawValue = capture?.barcodes.isNotEmpty == true
+              ? capture!.barcodes.first.rawValue
+              : null;
+        } finally {
+          await ctrl.dispose();
+        }
+      } else {
+        // Desktop: ZXing C++ FFI
+        final code = await zx.readBarcodeImagePathString(
+          path,
+          DecodeParams(tryHarder: true, tryRotate: true, tryInverted: true, maxSize: 0),
+        );
+        rawValue = code.isValid ? code.text : null;
+      }
+
       if (!mounted) return;
 
-      if (code.isValid && code.text != null) {
-        final account = widget.totpService.parseOtpAuthUri(code.text!);
+      if (rawValue != null) {
+        final account = widget.totpService.parseOtpAuthUri(rawValue);
         if (account != null) {
           _fillFromAccount(account);
           return;
         }
       }
-      if (mounted) _showError(AppLocalizations.of(context)!.invalidQRCode);
+      _showError(AppLocalizations.of(context)!.invalidQRCode);
     } catch (_) {
       if (mounted) _showError(AppLocalizations.of(context)!.invalidQRCode);
     }

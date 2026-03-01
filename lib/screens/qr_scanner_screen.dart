@@ -67,11 +67,30 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     if (path == null) return;
 
     try {
-      final code = await zx.readBarcodeImagePathString(path, DecodeParams());
+      String? rawValue;
+
+      if (Platform.isIOS || Platform.isAndroid) {
+        final ctrl = MobileScannerController();
+        try {
+          final capture = await ctrl.analyzeImage(path);
+          rawValue = capture?.barcodes.isNotEmpty == true
+              ? capture!.barcodes.first.rawValue
+              : null;
+        } finally {
+          await ctrl.dispose();
+        }
+      } else {
+        final code = await zx.readBarcodeImagePathString(
+          path,
+          DecodeParams(tryHarder: true, tryRotate: true, tryInverted: true, maxSize: 0),
+        );
+        rawValue = code.isValid ? code.text : null;
+      }
+
       if (!mounted) return;
 
-      if (code.isValid && code.text != null) {
-        final account = widget.totpService.parseOtpAuthUri(code.text!);
+      if (rawValue != null) {
+        final account = widget.totpService.parseOtpAuthUri(rawValue);
         if (account != null) {
           Navigator.pop(context, account);
           return;
