@@ -499,4 +499,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get pickImageToScan => 'Selecione uma imagem com código QR';
+
+  @override
+  String get screenProtection => 'Proteção de tela';
+
+  @override
+  String get screenProtectionDesc => 'Impede capturas de tela e oculta a prévia do app';
 }

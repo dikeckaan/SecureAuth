@@ -487,4 +487,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get pickImageToScan => 'QR 코드가 포함된 이미지 선택';
+
+  @override
+  String get screenProtection => '화면 보호';
+
+  @override
+  String get screenProtectionDesc => '스크린샷 및 앱 미리보기를 방지합니다';
 }

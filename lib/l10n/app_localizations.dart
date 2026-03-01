@@ -1011,6 +1011,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select an image file containing a QR code'**
   String get pickImageToScan;
+
+  /// No description provided for @screenProtection.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen Protection'**
+  String get screenProtection;
+
+  /// No description provided for @screenProtectionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Prevent screenshots and hide app in recents'**
+  String get screenProtectionDesc;
 }
 
 class _AppLocalizationsDelegate

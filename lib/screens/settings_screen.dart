@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:secure_auth/l10n/app_localizations.dart';
 
 import '../services/auth_service.dart';
+import '../services/screen_protection_service.dart';
 import '../services/backup_encryption_service.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
@@ -45,6 +46,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late String? _languageCode;
   late bool _clearClipboard;
   late bool _steamGuardEnabled;
+  bool _screenProtection = true;
   bool _biometricAvailable = false;
 
   static const _supportedLanguages = [
@@ -84,6 +86,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _languageCode = settings.languageCode;
     _clearClipboard = settings.clearClipboard;
     _steamGuardEnabled = settings.steamGuardEnabled;
+    _screenProtection = settings.screenProtection;
   }
 
   Future<void> _checkBiometric() async {
@@ -467,6 +470,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _toggleSteamGuard(bool value) async {
     await _updateSetting((s) => s.steamGuardEnabled = value);
     setState(() => _steamGuardEnabled = value);
+  }
+
+  Future<void> _setScreenProtection(bool value) async {
+    await _updateSetting((s) => s.screenProtection = value);
+    setState(() => _screenProtection = value);
+    await ScreenProtectionService.setSecure(value);
   }
 
   Future<void> _toggleWipeOnMax(bool value) async {
@@ -1059,6 +1068,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onChanged: _toggleBiometric,
               ),
             ],
+            _buildInternalDivider(),
+            SwitchListTile(
+              value: _screenProtection,
+              onChanged: _setScreenProtection,
+              title: Text(l10n.screenProtection),
+              subtitle: Text(l10n.screenProtectionDesc),
+              secondary: const Icon(Icons.screenshot_monitor_outlined),
+            ),
             _buildInternalDivider(),
             ListTile(
               leading: _buildLeadingIcon(

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:secure_auth/l10n/app_localizations.dart';
 
+import 'services/screen_protection_service.dart';
 import 'services/storage_service.dart';
 import 'services/auth_service.dart';
 import 'screens/setup_screen.dart';
@@ -24,6 +25,9 @@ void main() async {
 
   final storageService = StorageService();
   await storageService.init();
+
+  final settings = storageService.getSettings();
+  await ScreenProtectionService.setSecure(settings.screenProtection);
 
   final authService = AuthService(storageService);
 

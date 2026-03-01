@@ -484,4 +484,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get pickImageToScan => '选择包含二维码的图片';
+
+  @override
+  String get screenProtection => '屏幕保护';
+
+  @override
+  String get screenProtectionDesc => '防止截图并隐藏应用预览';
 }
