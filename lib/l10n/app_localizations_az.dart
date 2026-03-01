@@ -496,10 +496,9 @@ class AppLocalizationsAz extends AppLocalizations {
 
   @override
   String get pickImageToScan => 'QR kod olan şəkil seçin';
+  @override
+  String get screenProtection => 'Ekran Qoruması';
 
   @override
-  String get screenProtection => 'Ekran Qorunması';
-
-  @override
-  String get screenProtectionDesc => 'Ekran görüntüsünün alınmasının qarşısını alır';
+  String get screenProtectionDesc => 'Ekran görüntüsünü əngəlləyir və tətbiq önizləməsini gizlədir';
 }

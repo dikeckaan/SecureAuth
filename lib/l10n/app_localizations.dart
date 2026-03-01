@@ -1021,7 +1021,7 @@ abstract class AppLocalizations {
   /// No description provided for @screenProtectionDesc.
   ///
   /// In en, this message translates to:
-  /// **'Prevent screenshots and hide app in recents'**
+  /// **'Prevents screenshots and hides app preview'**
   String get screenProtectionDesc;
 }
 

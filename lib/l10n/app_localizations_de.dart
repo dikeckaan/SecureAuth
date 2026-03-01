@@ -501,10 +501,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get pickImageToScan => 'Bilddatei mit QR-Code auswählen';
-
   @override
   String get screenProtection => 'Bildschirmschutz';
 
   @override
-  String get screenProtectionDesc => 'Verhindert Screenshots und App-Vorschau in Recents';
+  String get screenProtectionDesc => 'Verhindert Screenshots und verbirgt die App-Vorschau';
 }

@@ -501,7 +501,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get pickImageToScan => 'Selecciona una imagen con código QR';
-
   @override
   String get screenProtection => 'Protección de pantalla';
 
