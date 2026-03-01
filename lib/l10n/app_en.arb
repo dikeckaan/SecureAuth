@@ -256,5 +256,7 @@
   "clipboardNotCleared": "Clipboard not automatically cleared",
   "codeCopiedSimple": "Code copied",
   "scanFromImage": "Scan from Image",
-  "pickImageToScan": "Select an image file containing a QR code"
+  "pickImageToScan": "Select an image file containing a QR code",
+  "screenProtection": "Screen Protection",
+  "screenProtectionDesc": "Prevents screenshots and hides app preview"
 }

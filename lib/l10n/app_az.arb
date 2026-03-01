@@ -148,5 +148,7 @@
   "clipboardNotCleared": "Mübadilə buferi avtomatik təmizlənmir",
   "codeCopiedSimple": "Kod kopyalandı",
   "scanFromImage": "Şəkildən Skan Et",
-  "pickImageToScan": "QR kod olan şəkil seçin"
+  "pickImageToScan": "QR kod olan şəkil seçin",
+  "screenProtection": "Ekran Qoruması",
+  "screenProtectionDesc": "Ekran görüntüsünü əngəlləyir və tətbiq önizləməsini gizlədir"
 }

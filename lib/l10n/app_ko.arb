@@ -148,5 +148,7 @@
   "clipboardNotCleared": "클립보드가 자동으로 지워지지 않음",
   "codeCopiedSimple": "코드 복사됨",
   "scanFromImage": "이미지에서 스캔",
-  "pickImageToScan": "QR 코드가 포함된 이미지 선택"
+  "pickImageToScan": "QR 코드가 포함된 이미지 선택",
+  "screenProtection": "화면 보호",
+  "screenProtectionDesc": "스크린샷을 방지하고 앱 미리보기를 숨깁니다"
 }

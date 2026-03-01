@@ -492,6 +492,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pickImageToScan => 'اختر صورة تحتوي على رمز QR';
+
   @override
   String get screenProtection => 'حماية الشاشة';
 

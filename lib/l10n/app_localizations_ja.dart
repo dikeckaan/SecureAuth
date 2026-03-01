@@ -486,6 +486,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get pickImageToScan => 'QRコードを含む画像を選択';
+
   @override
   String get screenProtection => '画面保護';
 

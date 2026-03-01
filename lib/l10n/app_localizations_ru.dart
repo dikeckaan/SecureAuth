@@ -496,9 +496,11 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get pickImageToScan => 'Выберите изображение с QR-кодом';
+
   @override
   String get screenProtection => 'Защита экрана';
 
   @override
-  String get screenProtectionDesc => 'Предотвращает снимки экрана и скрывает предварительный просмотр приложения';
+  String get screenProtectionDesc =>
+      'Предотвращает снимки экрана и скрывает предварительный просмотр приложения';
 }

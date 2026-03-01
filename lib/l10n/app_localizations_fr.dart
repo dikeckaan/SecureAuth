@@ -502,9 +502,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get pickImageToScan => 'Sélectionner une image contenant un code QR';
-  @override
-  String get screenProtection => "Protection d'écran";
 
   @override
-  String get screenProtectionDesc => "Empêche les captures d'écran et masque l'aperçu de l'app";
+  String get screenProtection => 'Protection d\'écran';
+
+  @override
+  String get screenProtectionDesc =>
+      'Empêche les captures d\'écran et masque l\'aperçu de l\'app';
 }

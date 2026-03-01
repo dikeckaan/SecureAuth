@@ -148,5 +148,7 @@
   "clipboardNotCleared": "لا يتم مسح الحافظة تلقائياً",
   "codeCopiedSimple": "تم نسخ الرمز",
   "scanFromImage": "مسح من صورة",
-  "pickImageToScan": "اختر صورة تحتوي على رمز QR"
+  "pickImageToScan": "اختر صورة تحتوي على رمز QR",
+  "screenProtection": "حماية الشاشة",
+  "screenProtectionDesc": "يمنع لقطات الشاشة ويخفي معاينة التطبيق"
 }

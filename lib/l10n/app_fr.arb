@@ -148,5 +148,7 @@
   "clipboardNotCleared": "Le presse-papiers n'est pas vidé automatiquement",
   "codeCopiedSimple": "Code copié",
   "scanFromImage": "Scanner depuis une image",
-  "pickImageToScan": "Sélectionner une image contenant un code QR"
+  "pickImageToScan": "Sélectionner une image contenant un code QR",
+  "screenProtection": "Protection d'écran",
+  "screenProtectionDesc": "Empêche les captures d'écran et masque l'aperçu de l'app"
 }

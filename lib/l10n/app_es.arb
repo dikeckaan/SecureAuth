@@ -148,5 +148,7 @@
   "clipboardNotCleared": "El portapapeles no se limpia automáticamente",
   "codeCopiedSimple": "Código copiado",
   "scanFromImage": "Escanear desde imagen",
-  "pickImageToScan": "Selecciona una imagen con código QR"
+  "pickImageToScan": "Selecciona una imagen con código QR",
+  "screenProtection": "Protección de pantalla",
+  "screenProtectionDesc": "Evita capturas de pantalla y oculta la vista previa de la app"
 }

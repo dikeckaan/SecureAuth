@@ -148,5 +148,7 @@
   "clipboardNotCleared": "剪贴板不会自动清除",
   "codeCopiedSimple": "代码已复制",
   "scanFromImage": "从图片扫描",
-  "pickImageToScan": "选择包含二维码的图片"
+  "pickImageToScan": "选择包含二维码的图片",
+  "screenProtection": "屏幕保护",
+  "screenProtectionDesc": "防止截屏并隐藏应用预览"
 }

@@ -148,5 +148,7 @@
   "clipboardNotCleared": "Pano otomatik temizlenmez",
   "codeCopiedSimple": "Kod kopyalandı",
   "scanFromImage": "Görüntüden Tara",
-  "pickImageToScan": "QR kod içeren bir görüntü dosyası seçin"
+  "pickImageToScan": "QR kod içeren bir görüntü dosyası seçin",
+  "screenProtection": "Ekran Koruma",
+  "screenProtectionDesc": "Ekran görüntüsü alınmasını engeller ve uygulama önizlemesini gizler"
 }

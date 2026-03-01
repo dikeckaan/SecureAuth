@@ -148,5 +148,7 @@
   "clipboardNotCleared": "A área de transferência não é limpa automaticamente",
   "codeCopiedSimple": "Código copiado",
   "scanFromImage": "Escanear de Imagem",
-  "pickImageToScan": "Selecione uma imagem com código QR"
+  "pickImageToScan": "Selecione uma imagem com código QR",
+  "screenProtection": "Proteção de tela",
+  "screenProtectionDesc": "Impede capturas de tela e oculta a visualização do aplicativo"
 }

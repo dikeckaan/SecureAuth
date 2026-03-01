@@ -148,5 +148,7 @@
   "clipboardNotCleared": "Zwischenablage wird nicht automatisch geleert",
   "codeCopiedSimple": "Code kopiert",
   "scanFromImage": "Von Bild scannen",
-  "pickImageToScan": "Bilddatei mit QR-Code auswählen"
+  "pickImageToScan": "Bilddatei mit QR-Code auswählen",
+  "screenProtection": "Bildschirmschutz",
+  "screenProtectionDesc": "Verhindert Screenshots und verbirgt die App-Vorschau"
 }

@@ -148,5 +148,7 @@
   "clipboardNotCleared": "Буфер обмена не очищается автоматически",
   "codeCopiedSimple": "Код скопирован",
   "scanFromImage": "Сканировать с изображения",
-  "pickImageToScan": "Выберите изображение с QR-кодом"
+  "pickImageToScan": "Выберите изображение с QR-кодом",
+  "screenProtection": "Защита экрана",
+  "screenProtectionDesc": "Предотвращает снимки экрана и скрывает предварительный просмотр приложения"
 }
