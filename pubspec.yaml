@@ -44,6 +44,7 @@ dependencies:
   # Biyometrik ve Güvenlik
   local_auth: ^2.3.0
   crypto: ^3.0.6
+  hashlib: ^1.20.0
 
   # TOTP Token Üretimi
   otp: ^3.1.4
