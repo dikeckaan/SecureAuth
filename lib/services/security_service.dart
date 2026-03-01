@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math';
-import 'dart:typed_data';
+import 'dart:typed_data'; // ignore: unnecessary_import
 
-import 'package:crypto/crypto.dart';
+import 'package:hashlib/hashlib.dart';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -21,7 +22,7 @@ class SecurityService {
   SecurityService({FlutterSecureStorage? secureStorage})
       : _secureStorage = secureStorage ?? const FlutterSecureStorage();
 
-  // --- PBKDF2-HMAC-SHA512 ---
+  // --- Argon2id Key Derivation ---
 
   Uint8List generateSalt() {
     final random = Random.secure();
@@ -30,54 +31,34 @@ class SecurityService {
     );
   }
 
-  String hashPassword(String password, Uint8List salt) {
-    final derived = _pbkdf2(
-      password: password,
-      salt: salt,
-      iterations: AppConstants.pbkdf2Iterations,
-      keyLength: AppConstants.derivedKeyLength,
+  Future<String> hashPassword(String password, Uint8List salt) async {
+    final derived = await Isolate.run(
+      () => _argon2id(password: password, salt: salt),
     );
     return base64Url.encode(derived);
   }
 
-  bool verifyPassword(String password, String storedHash, Uint8List salt) {
-    final computedHash = hashPassword(password, salt);
+  Future<bool> verifyPassword(
+      String password, String storedHash, Uint8List salt) async {
+    final computedHash = await hashPassword(password, salt);
     return _constantTimeEquals(computedHash, storedHash);
   }
 
-  Uint8List _pbkdf2({
+  /// Derives a 256-bit key using Argon2id.
+  /// Safe to run inside a Dart Isolate (pure Dart via hashlib).
+  static Uint8List _argon2id({
     required String password,
     required Uint8List salt,
-    required int iterations,
-    required int keyLength,
   }) {
-    final passwordBytes = utf8.encode(password);
-    const hashLength = 64; // SHA-512 output = 64 bytes
-    final numBlocks = (keyLength + hashLength - 1) ~/ hashLength;
-    final dk = <int>[];
-
-    for (var blockNum = 1; blockNum <= numBlocks; blockNum++) {
-      final blockBytes = ByteData(4)..setUint32(0, blockNum, Endian.big);
-      final saltBlock = Uint8List.fromList([
-        ...salt,
-        ...blockBytes.buffer.asUint8List(),
-      ]);
-
-      final hmac = Hmac(sha512, passwordBytes);
-      var u = hmac.convert(saltBlock).bytes;
-      final t = List<int>.from(u);
-
-      for (var i = 1; i < iterations; i++) {
-        u = Hmac(sha512, passwordBytes).convert(u).bytes;
-        for (var j = 0; j < t.length; j++) {
-          t[j] ^= u[j];
-        }
-      }
-
-      dk.addAll(t);
-    }
-
-    return Uint8List.fromList(dk.sublist(0, keyLength));
+    final hash = Argon2(
+      type: Argon2Type.argon2id,
+      memorySizeKB: 32768,
+      iterations: 3,
+      parallelism: 1,
+      hashLength: 32,
+      salt: salt,
+    ).convert(utf8.encode(password));
+    return Uint8List.fromList(hash.bytes);
   }
 
   /// Constant-time string comparison to prevent timing attacks
