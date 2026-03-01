@@ -62,6 +62,16 @@ class AppSettings extends HiveObject {
   @HiveField(16)
   bool steamGuardEnabled;
 
+  /// KDF algorithm used for passwordHash.
+  /// null or 'pbkdf2' = legacy PBKDF2-SHA512.
+  /// 'argon2id' = Argon2id (m=32768, t=3, p=1).
+  @HiveField(17)
+  String? hashVersion;
+
+  /// Whether to block screenshots and app-switcher preview (Android FLAG_SECURE).
+  @HiveField(18)
+  bool screenProtection;
+
   AppSettings({
     this.useBiometric = false,
     this.requireAuthOnLaunch = true,
@@ -80,5 +90,7 @@ class AppSettings extends HiveObject {
     this.clearClipboard = true,
     this.accountOrder,
     this.steamGuardEnabled = false,
+    this.hashVersion,
+    this.screenProtection = true,
   });
 }

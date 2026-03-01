@@ -34,13 +34,15 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       clearClipboard: fields[14] as bool,
       accountOrder: (fields[15] as List?)?.cast<String>(),
       steamGuardEnabled: fields[16] as bool,
+      hashVersion: fields[17] as String?,
+      screenProtection: fields[18] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettings obj) {
     writer
-      ..writeByte(17)
+      ..writeByte(19)
       ..writeByte(0)
       ..write(obj.useBiometric)
       ..writeByte(1)
@@ -74,7 +76,11 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       ..writeByte(15)
       ..write(obj.accountOrder)
       ..writeByte(16)
-      ..write(obj.steamGuardEnabled);
+      ..write(obj.steamGuardEnabled)
+      ..writeByte(17)
+      ..write(obj.hashVersion)
+      ..writeByte(18)
+      ..write(obj.screenProtection);
   }
 
   @override
