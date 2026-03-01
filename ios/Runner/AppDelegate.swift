@@ -22,11 +22,12 @@ import UIKit
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
 
+    guard let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "ScreenProtectionPlugin") else { return }
     let channel = FlutterMethodChannel(
       name: "com.kaandikec.secureauth/window",
-      binaryMessenger: engineBridge.binaryMessenger
+      binaryMessenger: registrar.messenger()
     )
-    channel.setMethodCallHandler { [weak self] call, result in
+    channel.setMethodCallHandler { [weak self] (call: FlutterMethodCall, result: @escaping FlutterResult) in
       guard let self else { return }
       if call.method == "setSecure" {
         let secure = (call.arguments as? [String: Any])?["secure"] as? Bool ?? true
