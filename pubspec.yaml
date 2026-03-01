@@ -52,6 +52,7 @@ dependencies:
   # QR Kod Özellikleri
   qr_flutter: ^4.1.0
   mobile_scanner: ^5.2.3
+  flutter_zxing: ^2.2.1
 
   # Dosya İşlemleri
   path_provider: ^2.1.4

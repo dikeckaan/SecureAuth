@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_zxing/flutter_zxing.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:secure_auth/l10n/app_localizations.dart';
 
@@ -65,14 +66,20 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     final path = result.files.first.path;
     if (path == null) return;
 
-    final capture = await _controller.analyzeImage(path);
-    if (!mounted) return;
+    try {
+      final code = await zx.readBarcodeImagePathString(path, DecodeParams());
+      if (!mounted) return;
 
-    if (capture != null && capture.barcodes.isNotEmpty) {
-      _onDetect(capture);
-    } else {
-      final l10n = AppLocalizations.of(context)!;
-      _showError(l10n.invalidQRCode);
+      if (code.isValid && code.text != null) {
+        final account = widget.totpService.parseOtpAuthUri(code.text!);
+        if (account != null) {
+          Navigator.pop(context, account);
+          return;
+        }
+      }
+      _showError(AppLocalizations.of(context)!.invalidQRCode);
+    } catch (_) {
+      if (mounted) _showError(AppLocalizations.of(context)!.invalidQRCode);
     }
   }
 

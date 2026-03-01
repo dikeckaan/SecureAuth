@@ -1,7 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:flutter_zxing/flutter_zxing.dart';
 import 'package:uuid/uuid.dart';
 import 'package:secure_auth/l10n/app_localizations.dart';
 
@@ -99,27 +99,20 @@ class _AddAccountScreenState extends State<AddAccountScreen>
     final path = picked.files.first.path;
     if (path == null) return;
 
-    final controller = MobileScannerController();
     try {
-      final capture = await controller.analyzeImage(path);
+      final code = await zx.readBarcodeImagePathString(path, DecodeParams());
       if (!mounted) return;
 
-      if (capture != null && capture.barcodes.isNotEmpty) {
-        final code = capture.barcodes.first.rawValue;
-        if (code != null) {
-          final account = widget.totpService.parseOtpAuthUri(code);
-          if (account != null) {
-            _fillFromAccount(account);
-            return;
-          }
+      if (code.isValid && code.text != null) {
+        final account = widget.totpService.parseOtpAuthUri(code.text!);
+        if (account != null) {
+          _fillFromAccount(account);
+          return;
         }
       }
-      if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
-        _showError(l10n.invalidQRCode);
-      }
-    } finally {
-      await controller.dispose();
+      if (mounted) _showError(AppLocalizations.of(context)!.invalidQRCode);
+    } catch (_) {
+      if (mounted) _showError(AppLocalizations.of(context)!.invalidQRCode);
     }
   }
 
