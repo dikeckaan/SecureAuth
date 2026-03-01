@@ -148,12 +148,13 @@ class AuthService {
 
   // --- Clipboard ---
 
-  Future<void> secureCopy(String text) async {
+  Future<void> secureCopy(String text, {int? period}) async {
     final settings = _storageService.getSettings();
     await _securityService.copyToClipboardSecure(
       text,
       settings.clipboardClearSeconds,
       clearEnabled: settings.clearClipboard,
+      period: period,
     );
   }
 

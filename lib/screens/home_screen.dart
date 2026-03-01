@@ -241,9 +241,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _loadAccounts();
   }
 
-  Future<void> _copyCode(String code) async {
+  Future<void> _copyCode(String code, AccountModel account) async {
     HapticFeedback.lightImpact();
-    await widget.authService.secureCopy(code);
+    final periodOrNull = account.isHotp ? null : account.period;
+    await widget.authService.secureCopy(code, period: periodOrNull);
     if (mounted) {
       final l10n = AppLocalizations.of(context)!;
       final settings = widget.storageService.getSettings();
@@ -547,7 +548,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       onEdit: () => _editAccount(account),
       onDelete: () => _deleteAccount(account),
       onShowQR: () => _showQRCode(account),
-      onCopy: _copyCode,
+      onCopy: (code) => _copyCode(code, account),
       onSetCounter: account.isHotp ? (c) => _setHOTPCounter(account, c) : null,
     );
   }

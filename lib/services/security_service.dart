@@ -159,6 +159,7 @@ class SecurityService {
     String text,
     int clearAfterSeconds, {
     bool clearEnabled = true,
+    int? period,
   }) async {
     await Clipboard.setData(ClipboardData(text: text));
 
@@ -169,7 +170,16 @@ class SecurityService {
 
     if (!clearEnabled) return;
 
-    Future.delayed(Duration(seconds: clearAfterSeconds), () {
+    final int delaySeconds;
+    if (period != null && period > 0) {
+      final nowSeconds = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final remaining = period - (nowSeconds % period);
+      delaySeconds = remaining > 0 ? remaining : period;
+    } else {
+      delaySeconds = clearAfterSeconds;
+    }
+
+    Future.delayed(Duration(seconds: delaySeconds), () {
       if (Platform.isWindows) {
         // Use Win32 EmptyClipboard() so we don't add a blank entry to history.
         _clearWindowsClipboard();
