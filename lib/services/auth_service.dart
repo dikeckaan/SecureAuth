@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:local_auth/local_auth.dart';
 
+import '../utils/constants.dart';
 import 'security_service.dart';
 import 'storage_service.dart';
 
@@ -42,7 +43,7 @@ class AuthService {
   Future<bool> authenticateWithBiometric() async {
     try {
       return await _localAuth.authenticate(
-        localizedReason: 'Uygulamaya erismek icin kimliginizi dogrulayin',
+        localizedReason: 'Verify your identity to access the app',
         options: AuthenticationOptions(
           stickyAuth: true,
           // biometricOnly:true blocks Windows Hello (PIN/face treated as
@@ -55,7 +56,7 @@ class AuthService {
     }
   }
 
-  // --- Password (PBKDF2-HMAC-SHA512) ---
+  // --- Password (Argon2id) ---
 
   Future<void> setPassword(String password) async {
     final salt = _securityService.generateSalt();
@@ -65,7 +66,7 @@ class AuthService {
     final settings = _storageService.getSettings();
     settings.passwordHash = hash;
     settings.passwordSalt = saltBase64;
-    settings.hashVersion = 'argon2id';
+    settings.hashVersion = AppConstants.hashVersionArgon2id;
     await _storageService.updateSettings(settings);
   }
 
@@ -79,7 +80,8 @@ class AuthService {
 
     final salt = base64Url.decode(settings.passwordSalt!);
     final isLegacy =
-        settings.hashVersion == null || settings.hashVersion == 'pbkdf2';
+        settings.hashVersion == null ||
+        settings.hashVersion == AppConstants.hashVersionPbkdf2;
 
     bool isValid;
     if (isLegacy) {

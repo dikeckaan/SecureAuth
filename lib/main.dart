@@ -27,7 +27,11 @@ void main() async {
   await storageService.init();
 
   final settings = storageService.getSettings();
-  await ScreenProtectionService.setSecure(settings.screenProtection);
+  try {
+    await ScreenProtectionService.setSecure(settings.screenProtection);
+  } catch (_) {
+    // Non-fatal: screen protection is a best-effort feature
+  }
 
   final authService = AuthService(storageService);
 
@@ -56,7 +60,6 @@ class _SecureAuthAppState extends State<SecureAuthApp>
   late ThemeMode _themeMode;
   late ThemeData _lightTheme;
   late ThemeData _darkTheme;
-  bool _pureDark = false;
   int _accentColorIndex = 0;
   Locale? _locale;
   Timer? _inactivityTimer;
@@ -87,10 +90,10 @@ class _SecureAuthAppState extends State<SecureAuthApp>
       settings.customSecondaryColor,
     );
     _themeMode = _themeModeFromPreference(settings.themePreference);
-    _pureDark = settings.themePreference == 3;
+    final pureDark = settings.themePreference == 3;
     _lightTheme = AppTheme.buildLightTheme(accent);
     // System mode → normal dark; explicit pureDark only for preference 3
-    _darkTheme = AppTheme.buildDarkTheme(accent, pureDark: _pureDark);
+    _darkTheme = AppTheme.buildDarkTheme(accent, pureDark: pureDark);
   }
 
   ThemeMode _themeModeFromPreference(int preference) {
@@ -123,7 +126,6 @@ class _SecureAuthAppState extends State<SecureAuthApp>
     final pureDark = settings.themePreference == 3;
     setState(() {
       _themeMode = _themeModeFromPreference(settings.themePreference);
-      _pureDark = pureDark;
       _lightTheme = AppTheme.buildLightTheme(accent);
       _darkTheme = AppTheme.buildDarkTheme(accent, pureDark: pureDark);
     });
@@ -157,7 +159,7 @@ class _SecureAuthAppState extends State<SecureAuthApp>
     final settings = widget.storageService.getSettings();
     if (settings.autoLockSeconds > 0 && settings.requireAuthOnLaunch) {
       _inactivityTimer = Timer.periodic(
-        const Duration(seconds: 15),
+        const Duration(seconds: AppConstants.inactivityCheckIntervalSeconds),
         (_) => _checkAutoLock(),
       );
     }
@@ -172,8 +174,6 @@ class _SecureAuthAppState extends State<SecureAuthApp>
     final timedOut = await widget.authService.hasTimedOut();
     if (timedOut && mounted && !_isLocked) {
       setState(() => _isLocked = true);
-      // Force rebuild to show auth screen
-      setState(() {});
     }
   }
 
@@ -211,7 +211,13 @@ class _SecureAuthAppState extends State<SecureAuthApp>
 
     // If locked by inactivity timer, show auth
     if (_isLocked && hasPassword) {
-      _isLocked = false;
+      // Schedule flag reset for after the current frame to avoid
+      // mutating state during build. The flag is consumed once to
+      // show the auth screen, then cleared so the next build proceeds
+      // normally after successful authentication.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _isLocked = false;
+      });
       return AuthScreen(
         storageService: widget.storageService,
         authService: widget.authService,

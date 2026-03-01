@@ -1,5 +1,7 @@
 import 'package:hive/hive.dart';
 
+import '../utils/constants.dart';
+
 part 'app_settings.g.dart';
 
 @HiveType(typeId: 1)
@@ -13,6 +15,8 @@ class AppSettings extends HiveObject {
   @HiveField(2)
   String? passwordHash;
 
+  /// @deprecated — replaced by [themePreference] (HiveField 10).
+  /// Kept for Hive binary compatibility.
   @HiveField(3)
   bool isDarkMode;
 
@@ -77,9 +81,9 @@ class AppSettings extends HiveObject {
     this.requireAuthOnLaunch = true,
     this.passwordHash,
     this.isDarkMode = false,
-    this.autoLockSeconds = 60,
-    this.clipboardClearSeconds = 30,
-    this.maxFailedAttempts = 10,
+    this.autoLockSeconds = AppConstants.defaultAutoLockSeconds,
+    this.clipboardClearSeconds = AppConstants.defaultClipboardClearSeconds,
+    this.maxFailedAttempts = AppConstants.defaultMaxFailedAttempts,
     this.wipeOnMaxAttempts = false,
     this.passwordSalt,
     this.languageCode,

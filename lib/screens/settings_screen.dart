@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:secure_auth/l10n/app_localizations.dart';
 
+import '../models/app_settings.dart';
 import '../services/auth_service.dart';
 import '../services/screen_protection_service.dart';
 import '../services/backup_encryption_service.dart';
@@ -46,7 +47,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late String? _languageCode;
   late bool _clearClipboard;
   late bool _steamGuardEnabled;
-  bool _screenProtection = true;
+  late bool _screenProtection;
   bool _biometricAvailable = false;
 
   static const _supportedLanguages = [
@@ -94,7 +95,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (mounted) setState(() => _biometricAvailable = available);
   }
 
-  Future<void> _updateSetting(void Function(dynamic settings) updater) async {
+  Future<void> _updateSetting(void Function(AppSettings settings) updater) async {
     final settings = widget.storageService.getSettings();
     updater(settings);
     await widget.storageService.updateSettings(settings);
@@ -801,7 +802,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  /// Shows a non-dismissible loading dialog during PBKDF2 / AES operations.
+  /// Shows a non-dismissible loading dialog during Argon2id / AES operations.
   void _showLoadingDialog(String message) {
     showDialog<void>(
       context: context,
@@ -1185,13 +1186,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // ── Experimental ──────────────────────────────────────────
           _buildSectionLabel(
-              theme, 'Deneysel', Icons.science_outlined),
+              theme, 'Experimental', Icons.science_outlined),
           _buildCard([
             SwitchListTile(
               title: const Text('Steam Guard'),
               subtitle: const Text(
-                'Hesap eklerken Steam Guard sekmesini göster. '
-                'Steam Guard QR kodları standart otpauth:// formatını kullanmaz.',
+                'Show Steam Guard tab when adding accounts. '
+                'Steam Guard QR codes do not use the standard otpauth:// format.',
               ),
               value: _steamGuardEnabled,
               onChanged: _toggleSteamGuard,

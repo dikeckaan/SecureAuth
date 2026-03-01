@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:isolate';
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:encrypt/encrypt.dart' as enc;
 import 'package:hashlib/hashlib.dart';
+
+import '../utils/constants.dart';
+import 'security_service.dart';
 
 /// Authenticated encryption / decryption for SecureAuth backup files.
 ///
@@ -53,8 +55,8 @@ class BackupEncryptionService {
   /// Runs Argon2id in a background [Isolate] so the UI stays responsive.
   static Future<Uint8List> encryptBackup(
       String jsonData, String password) async {
-    final salt = _secureRandom(_saltLenV2);
-    final nonce = _secureRandom(_nonceLenV2);
+    final salt = SecurityService.secureRandom(_saltLenV2);
+    final nonce = SecurityService.secureRandom(_nonceLenV2);
     final keyBytes = await Isolate.run(
       () => _argon2idKey(password: password, salt: salt),
     );
@@ -175,9 +177,9 @@ class BackupEncryptionService {
   }) {
     final hash = Argon2(
       type: Argon2Type.argon2id,
-      memorySizeKB: 32768,
-      iterations: 3,
-      parallelism: 1,
+      memorySizeKB: AppConstants.argon2MemoryKB,
+      iterations: AppConstants.argon2Iterations,
+      parallelism: AppConstants.argon2Parallelism,
       hashLength: _keyLen,
       salt: salt,
     ).convert(utf8.encode(password));
@@ -199,10 +201,6 @@ class BackupEncryptionService {
     return Uint8List.fromList(derived.bytes);
   }
 
-  static Uint8List _secureRandom(int len) {
-    final rng = Random.secure();
-    return Uint8List.fromList(List.generate(len, (_) => rng.nextInt(256)));
-  }
 
   static int _rd32(Uint8List d, int o) =>
       (d[o] << 24) | (d[o + 1] << 16) | (d[o + 2] << 8) | d[o + 3];

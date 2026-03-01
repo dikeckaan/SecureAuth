@@ -152,7 +152,7 @@ class StorageService {
     final data = json.decode(jsonString) as Map<String, dynamic>;
 
     if (!data.containsKey('accounts')) {
-      throw const FormatException('Gecersiz yedek dosyasi: "accounts" alani bulunamadi');
+      throw const FormatException('Invalid backup file: "accounts" field not found');
     }
 
     final accountsList = data['accounts'] as List;

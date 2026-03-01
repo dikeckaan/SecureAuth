@@ -174,7 +174,7 @@ class TOTPService {
 
       return AccountModel(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
-        name: name.isEmpty ? name : name,
+        name: name.isEmpty ? issuer : name,
         issuer: issuer.isEmpty ? 'Unknown' : issuer,
         secret: secret.toUpperCase().replaceAll(' ', ''),
         digits: digits,

@@ -13,7 +13,7 @@ class QRService {
     );
 
     if (qrValidationResult.status != QrValidationStatus.valid) {
-      throw StateError('QR kod olusturulamadi');
+      throw StateError('Failed to generate QR code');
     }
 
     final qrCode = qrValidationResult.qrCode!;
@@ -42,7 +42,7 @@ class QRService {
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
 
     if (byteData == null) {
-      throw StateError('QR kod resmi olusturulamadi');
+      throw StateError('Failed to render QR code image');
     }
 
     return byteData.buffer.asUint8List();

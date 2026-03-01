@@ -24,10 +24,13 @@ class SecurityService {
 
   // --- Argon2id Key Derivation ---
 
-  Uint8List generateSalt() {
+  Uint8List generateSalt() => secureRandom(AppConstants.saltLength);
+
+  /// Generates [length] cryptographically-secure random bytes.
+  static Uint8List secureRandom(int length) {
     final random = Random.secure();
     return Uint8List.fromList(
-      List.generate(AppConstants.saltLength, (_) => random.nextInt(256)),
+      List.generate(length, (_) => random.nextInt(256)),
     );
   }
 
@@ -41,7 +44,7 @@ class SecurityService {
   Future<bool> verifyPassword(
       String password, String storedHash, Uint8List salt) async {
     final computedHash = await hashPassword(password, salt);
-    return _constantTimeEquals(computedHash, storedHash);
+    return constantTimeEquals(computedHash, storedHash);
   }
 
   /// Derives a 256-bit key using Argon2id.
@@ -52,17 +55,17 @@ class SecurityService {
   }) {
     final hash = Argon2(
       type: Argon2Type.argon2id,
-      memorySizeKB: 32768,
-      iterations: 3,
-      parallelism: 1,
-      hashLength: 32,
+      memorySizeKB: AppConstants.argon2MemoryKB,
+      iterations: AppConstants.argon2Iterations,
+      parallelism: AppConstants.argon2Parallelism,
+      hashLength: AppConstants.argon2HashLength,
       salt: salt,
     ).convert(utf8.encode(password));
     return Uint8List.fromList(hash.bytes);
   }
 
   /// Constant-time string comparison to prevent timing attacks
-  bool _constantTimeEquals(String a, String b) {
+  static bool constantTimeEquals(String a, String b) {
     if (a.length != b.length) return false;
     var result = 0;
     for (var i = 0; i < a.length; i++) {
@@ -267,12 +270,7 @@ class SecurityService {
       () => _pbkdf2Legacy(password: password, salt: salt),
     );
     final computed = base64Url.encode(derived);
-    if (computed.length != storedHash.length) return false;
-    var result = 0;
-    for (var i = 0; i < computed.length; i++) {
-      result |= computed.codeUnitAt(i) ^ storedHash.codeUnitAt(i);
-    }
-    return result == 0;
+    return constantTimeEquals(computed, storedHash);
   }
 
   /// Pure-Dart PBKDF2-HMAC-SHA512 — original algorithm, 100k iterations, 64-byte output.
@@ -282,13 +280,11 @@ class SecurityService {
     required Uint8List salt,
   }) {
     final passwordBytes = utf8.encode(password);
-    const iterations = 100000;
-    const keyLength = 64;
     final digest = PBKDF2(
       HMAC(sha512),
-      iterations,
+      AppConstants.pbkdf2Iterations,
       salt: salt,
-      keyLength: keyLength,
+      keyLength: AppConstants.derivedKeyLength,
     ).convert(passwordBytes);
     return Uint8List.fromList(digest.bytes);
   }

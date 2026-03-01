@@ -23,9 +23,22 @@ class AppConstants {
   static const Duration animNormal = Duration(milliseconds: 300);
   static const Duration animSlow = Duration(milliseconds: 500);
 
+  // Argon2id parameters (current)
+  static const int argon2MemoryKB = 32768;
+  static const int argon2Iterations = 3;
+  static const int argon2Parallelism = 1;
+  static const int argon2HashLength = 32;
+
+  // PBKDF2 parameters (legacy migration only)
   static const int pbkdf2Iterations = 100000;
   static const int saltLength = 32;
   static const int derivedKeyLength = 64;
+
+  static const int inactivityCheckIntervalSeconds = 15;
+
+  // Hash version identifiers
+  static const String hashVersionArgon2id = 'argon2id';
+  static const String hashVersionPbkdf2 = 'pbkdf2';
 
   static const int defaultAutoLockSeconds = 60;
   static const int defaultClipboardClearSeconds = 30;
