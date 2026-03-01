@@ -1,6 +1,4 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// Manually updated to add HiveField(8) type and HiveField(9) counter
-// while preserving backward compatibility with existing 8-field records.
 
 part of 'account_model.dart';
 
@@ -27,9 +25,8 @@ class AccountModelAdapter extends TypeAdapter<AccountModel> {
       period: fields[5] as int,
       algorithm: fields[6] as String,
       createdAt: fields[7] as DateTime,
-      // Fields 8 and 9 are optional for backward compatibility
-      type: fields[8] as String? ?? 'totp',
-      counter: fields[9] as int? ?? 0,
+      type: fields[8] as String,
+      counter: fields[9] as int,
     );
   }
 
