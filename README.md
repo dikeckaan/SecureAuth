@@ -26,6 +26,7 @@
    - [Brute-Force Protection](#brute-force-protection)
    - [Backup Encryption](#backup-encryption)
    - [Clipboard Security](#clipboard-security)
+   - [Screen Protection](#screen-protection)
    - [Auto-Lock & Inactivity](#auto-lock--inactivity)
 4. [Token Types](#token-types)
    - [TOTP](#totp-time-based-one-time-password)
@@ -52,7 +53,7 @@
 
 SecureAuth is a **privacy-first, fully offline** two-factor authentication (2FA) app. Every secret, every account, every setting lives exclusively on your device — nothing is ever transmitted over the network. There are no accounts, no sync servers, no analytics SDKs, and no ads.
 
-Built with Flutter for cross-platform reach, SecureAuth uses **AES-256-encrypted Hive** for local storage, **PBKDF2-HMAC-SHA512** for password hashing, and **AES-256-GCM** for backup encryption — the same cryptographic primitives used by password managers and secure messengers.
+Built with Flutter for cross-platform reach, SecureAuth uses **AES-256-encrypted Hive** for local storage, **Argon2id** for password hashing (the winner of the Password Hashing Competition, resistant to both GPU and side-channel attacks), and **AES-256-GCM** for backup encryption — the same cryptographic primitives used by password managers and secure messengers.
 
 ---
 
@@ -66,11 +67,12 @@ Built with Flutter for cross-platform reach, SecureAuth uses **AES-256-encrypted
 | **Digits** | Configurable 4–8 (Steam Guard locked to 5) |
 | **Period** | Configurable 15–60 s (Steam Guard locked to 30 s) |
 | **HOTP Navigation** | ← / → counter buttons + tap-to-pick counter dialog |
-| **Authentication** | Password (PBKDF2) + optional biometric (Face ID / Touch ID / fingerprint) |
+| **Authentication** | Password (Argon2id) + optional biometric (Face ID / Touch ID / fingerprint) |
 | **Auto-Lock** | Inactivity timer with configurable timeout |
 | **Brute-Force** | Exponential-backoff lockout; optional full data-wipe on max attempts |
 | **Clipboard** | Auto-clears after configurable delay (default 30 s) |
-| **Backup** | AES-256-GCM encrypted `.saenc` **and** plain JSON export/import |
+| **Screen Protection** | FLAG_SECURE blocks screenshots and hides app in task switcher (Android, toggleable) |
+| **Backup** | AES-256-GCM + Argon2id encrypted `.saenc` **and** plain JSON export/import |
 | **QR** | Scan `otpauth://` QR codes; display QR for any stored account |
 | **Search** | Live filter by issuer or account name |
 | **Themes** | Light and Dark, follow-system or manual |
@@ -85,34 +87,42 @@ Built with Flutter for cross-platform reach, SecureAuth uses **AES-256-encrypted
 
 ### Password Hashing
 
-User passwords are **never stored**. Instead, SecureAuth derives a hash using **PBKDF2-HMAC-SHA512**:
+User passwords are **never stored**. Instead, SecureAuth derives a hash using **Argon2id** — the algorithm recommended by OWASP, NIST, and the Password Hashing Competition for its memory-hardness, which makes GPU and ASIC-based brute-force attacks orders of magnitude more expensive than PBKDF2:
 
 | Parameter | Value |
 |---|---|
-| Algorithm | PBKDF2-HMAC-SHA512 |
-| Iterations | **100,000** |
+| Algorithm | Argon2id (RFC 9106) |
+| Memory | **32 768 KB** (32 MB) per hash |
+| Iterations (time cost) | **3** |
+| Parallelism | **1** |
+| Output length | **32 bytes** |
 | Salt | **32 bytes**, cryptographically random, unique per password |
-| Output length | **64 bytes** |
-| Comparison | **Constant-time** (XOR fold) — prevents timing side-channels |
-| Storage | Hash + salt stored as Base64 inside the encrypted Hive `settings` box |
+| Comparison | **Constant-time** — prevents timing side-channels |
+| Storage | Hash + salt + version tag stored in the encrypted Hive `settings` box |
+
+Computation runs in a background **Dart `Isolate`** so the UI thread is never blocked.
+
+**Transparent migration:** Users who created their password before v2.0 continue to log in with their existing PBKDF2-HMAC-SHA512 hash. On first successful login, the hash is automatically re-derived using Argon2id and the old PBKDF2 record is replaced — no user action required.
 
 The salt is generated fresh every time a password is set or changed, so rainbow tables are useless and identical passwords produce different hashes.
 
 ### Database Encryption
 
-All account secrets are stored in a **Hive box encrypted with AES-256**:
+All data is stored across two **Hive boxes, both encrypted with AES-256**:
 
 ```
 FlutterSecureStorage
-    └── 'encryption_key'  ←  base64-encoded 256-bit key
+    ├── 'encryption_key'      ←  256-bit key for the accounts box
+    └── 'settings_enc_key'    ←  256-bit key for the settings box
             │
             ▼
-    Hive.openBox('accounts', encryptionCipher: HiveAesCipher(key))
+    Hive.openBox('accounts',  encryptionCipher: HiveAesCipher(accountsKey))
+    Hive.openBox('settings',  encryptionCipher: HiveAesCipher(settingsKey))
 ```
 
-- The 256-bit encryption key is generated **once** on first launch using `Hive.generateSecureKey()` and immediately written to the platform's hardware-backed secure store (iOS Keychain / Android Keystore / macOS Keychain).
-- It is never exposed in logs, files, or crash reports.
-- The `settings` box (which stores general preferences) is unencrypted, because it contains no secrets — the password hash/salt are protected by the OS Keychain through `flutter_secure_storage`.
+- Each 256-bit key is generated **once** on first launch using `Hive.generateSecureKey()` and immediately written to the platform's hardware-backed secure store (iOS Keychain / Android Keystore / macOS Keychain).
+- Keys are never exposed in logs, files, or crash reports.
+- The `settings` box encryption protects the Argon2id hash, salt, and all user preferences from offline file access.
 
 ### Brute-Force Protection
 
@@ -136,13 +146,15 @@ Additionally, users can enable **Wipe on Max Attempts**: if the configurable lim
 
 The `.saenc` format uses a **two-layer cryptographic design**:
 
-**Layer 1 — Key Derivation (PBKDF2-HMAC-SHA256)**
+**Layer 1 — Key Derivation (Argon2id)**
 
 | Parameter | Value |
 |---|---|
-| Algorithm | PBKDF2-HMAC-SHA256 |
-| Iterations | **200,000** (2× the auth password cost) |
-| Salt | **16 bytes**, cryptographically random, unique per export |
+| Algorithm | Argon2id (RFC 9106) |
+| Memory | **32 768 KB** |
+| Iterations | **3** |
+| Parallelism | **1** |
+| Salt | **32 bytes**, cryptographically random, unique per export |
 | Output | **32-byte AES-256 key** |
 
 Computation runs in a dedicated **Dart `Isolate`** so the UI thread is never blocked during the expensive KDF phase.
@@ -152,21 +164,34 @@ Computation runs in a dedicated **Dart `Isolate`** so the UI thread is never blo
 | Parameter | Value |
 |---|---|
 | Cipher | AES-256-GCM |
-| Key | 32-byte key derived by PBKDF2 above |
-| Nonce | **16 bytes**, cryptographically random, unique per export |
+| Key | 32-byte key derived by Argon2id above |
+| Nonce | **12 bytes**, cryptographically random, unique per export |
 | Authentication tag | **16 bytes** (GCM) |
 
 GCM provides **confidentiality and authenticity** in a single pass. A wrong password doesn't produce garbled output — it fails with an authentication error before a single byte of plaintext is returned. This is indistinguishable from a corrupted file to an attacker.
 
+**Backward compatibility:** V1 backups (created before v2.0, using PBKDF2-HMAC-SHA256 key derivation) can still be decrypted and imported. The format version byte at offset 5 is used to select the correct decryption path.
+
 ### Clipboard Security
 
-When a OTP code is copied:
+When an OTP code is copied:
 
 1. The code is placed in the system clipboard via `Clipboard.setData`.
 2. A `Future.delayed` is scheduled for the configured interval (default 30 s, user-configurable from 10 s to 2 min).
-3. After the delay, `Clipboard.setData(ClipboardData(text: ''))` clears the clipboard.
+3. After the delay — or when the current TOTP period expires (whichever comes first) — `Clipboard.setData(ClipboardData(text: ''))` clears the clipboard.
 
 The user sees a snackbar: *"Code copied (30s auto-clear)"* as a reminder.
+
+### Screen Protection
+
+On Android, SecureAuth sets the `FLAG_SECURE` window flag by default. This:
+
+- Prevents the system from taking screenshots of the app.
+- Hides the app content in the Recent Apps / task switcher (shows a blank/blurred preview instead).
+
+The flag is applied in `MainActivity.onCreate` before Flutter renders anything, so it is always in effect at launch. Users can opt out via **Settings → Screen Protection** toggle; the change takes effect immediately via a `MethodChannel` call.
+
+This setting has no effect on iOS, macOS, Windows, or Linux (where the OS provides equivalent or superior protections by default).
 
 ### Auto-Lock & Inactivity
 
@@ -260,7 +285,7 @@ Tap "Export Accounts"
               └── Warning: "Store this password safely"
                     └─► [Export]
                           ├── Loading dialog shown ("Encrypting backup...")
-                          ├── PBKDF2-HMAC-SHA256 runs in background Isolate
+                          ├── Argon2id key derivation runs in background Isolate
                           ├── AES-256-GCM encrypts JSON payload
                           └── .saenc file shared via native share sheet
 ```
@@ -317,7 +342,10 @@ Pick file (FileType.any — works for both .json and .saenc)
     │
     ├── First 5 bytes == "SAENC"?
     │     ├── YES → Encrypted backup
-    │     │           └─► Password dialog → Decrypt in Isolate → JSON parse
+    │     │           ├── Read version byte
+    │     │           ├── V2 (0x02) → Argon2id key derivation → AES-256-GCM decrypt
+    │     │           └── V1 (0x01) → PBKDF2-SHA256 key derivation → AES-256-GCM decrypt
+    │     │                All run in background Isolate → JSON parse
     │     └── NO  → Plain JSON
     │                 └─► UTF-8 decode → JSON parse
     │
@@ -331,34 +359,55 @@ Pick file (FileType.any — works for both .json and .saenc)
 
 ### File Format Specification
 
-```
-SecureAuth Encrypted Backup (.saenc) — Binary, All Fields Big-Endian
-─────────────────────────────────────────────────────────────────────
+**V2 (current, Argon2id):**
 
-Offset   Length   Field              Description
-──────   ──────   ─────              ───────────
-  0        5      Magic              ASCII "SAENC"  (53 41 45 4E 43)
-  5        1      Version            0x01
-  6        4      KDF Iterations     uint32 (currently 200000 = 00 03 0D 40)
- 10       16      Salt               Cryptographically random bytes
- 26       16      AES-GCM Nonce      Cryptographically random bytes
- 42        n      Ciphertext         AES-256-GCM ciphertext
- 42+n     16      GCM Auth Tag       Authentication tag (appended by GCM)
+```
+SecureAuth Encrypted Backup (.saenc) V2 — Binary, All Fields Big-Endian
+────────────────────────────────────────────────────────────────────────
+
+Offset   Length   Field         Description
+──────   ──────   ─────         ───────────
+  0        5      Magic         ASCII "SAENC"  (53 41 45 4E 43)
+  5        1      Version       0x02
+  6       32      Salt          Cryptographically random bytes (Argon2id salt)
+ 38       12      Nonce         Cryptographically random bytes (AES-GCM nonce)
+ 50        n      Ciphertext    AES-256-GCM ciphertext
+ 50+n     16      GCM Auth Tag  Authentication tag (appended by GCM)
+
+Minimum valid file size: 50 (header) + 16 (tag) = 66 bytes
+KDF: Argon2id  m=32768 KB, t=3, p=1
+```
+
+**V1 (legacy, PBKDF2 — readable for backward compatibility):**
+
+```
+SecureAuth Encrypted Backup (.saenc) V1 — Binary, All Fields Big-Endian
+────────────────────────────────────────────────────────────────────────
+
+Offset   Length   Field             Description
+──────   ──────   ─────             ───────────
+  0        5      Magic             ASCII "SAENC"  (53 41 45 4E 43)
+  5        1      Version           0x01
+  6        4      KDF Iterations    uint32 (200000 = 00 03 0D 40)
+ 10       16      Salt              Cryptographically random bytes
+ 26       16      AES-GCM Nonce     Cryptographically random bytes
+ 42        n      Ciphertext        AES-256-GCM ciphertext
+ 42+n     16      GCM Auth Tag      Authentication tag (appended by GCM)
 
 Minimum valid file size: 42 (header) + 16 (tag) = 58 bytes
+KDF: PBKDF2-HMAC-SHA256  iterations=200000
 ```
 
-**Integrity guarantees:**
-- The iteration count is bounds-checked (1,000 – 5,000,000) to prevent crafted-header DoS attacks
+**Integrity guarantees (both versions):**
 - Any modification to the ciphertext or header causes a GCM tag mismatch before any data is returned
-- The format is versioned (`0x01`) to support future algorithm upgrades without breaking existing files
+- The format is versioned to support future algorithm upgrades without breaking existing files
 
 ---
 
 ## Screens & UX
 
 ### SetupScreen
-First-launch screen for configuring security. Requires setting a password (minimum 6 characters) with a visual strength indicator. Optional biometric enrollment. Password and confirm fields must match before setup completes.
+First-launch screen for configuring security. Requires setting a password (minimum 8 characters) with a visual strength indicator. Optional biometric enrollment. Password and confirm fields must match before setup completes.
 
 ### AuthScreen
 The authentication gate rendered before `HomeScreen` when `requireAuthOnLaunch` is enabled. Supports:
@@ -401,7 +450,7 @@ Card-based settings grouped into sections:
 |---|---|
 | **Language** | 12-language picker (bottom sheet) |
 | **Appearance** | Dark mode toggle |
-| **Security** | App lock toggle, Biometric toggle, Change/Set password |
+| **Security** | App lock toggle, Biometric toggle, Screen Protection toggle, Change/Set password |
 | **Advanced Security** | Auto-lock timeout, Clipboard clear duration, Max failed attempts, Wipe on max attempts |
 | **Backup** | Export Accounts (encrypted or plain), Import Accounts |
 | **Danger Zone** | Delete All Data — wipes everything and navigates to SetupScreen |
@@ -416,9 +465,9 @@ Displays a scannable `otpauth://` QR code for any stored account. Useful for mig
 | Platform | Status | Notes |
 |---|---|---|
 | iOS | ✅ Supported | iOS 15.0+ |
-| Android | ✅ Supported | Full support |
+| Android | ✅ Supported | Full support; FLAG_SECURE screen protection |
 | macOS | ✅ Supported | Desktop layout |
-| Windows | ✅ Supported | Desktop layout |
+| Windows | ✅ Supported | Desktop layout; Windows Hello biometric |
 | Linux | ✅ Supported | Desktop layout |
 
 SecureAuth requests **zero internet permissions** on all platforms. Biometric availability is platform-specific; the UI gracefully hides biometric options when the hardware is unavailable or has not been configured.
@@ -464,7 +513,7 @@ Implemented with Flutter's `gen-l10n` toolchain. ARB source files live in `lib/l
 | `hive` | ^2.2.3 | Encrypted local NoSQL database |
 | `hive_flutter` | ^1.1.0 | Hive Flutter integration |
 | `flutter_secure_storage` | ^9.2.2 | Platform-native secure key storage |
-| `crypto` | ^3.0.6 | HMAC-SHA1/256/512, PBKDF2 primitives |
+| `hashlib` | ^1.20.0 | Argon2id, PBKDF2, HMAC — pure Dart, all platforms |
 | `encrypt` | ^5.0.3 | AES-256-GCM for backup files |
 | `local_auth` | ^2.3.0 | Biometric authentication |
 
@@ -481,6 +530,7 @@ Implemented with Flutter's `gen-l10n` toolchain. ARB source files live in `lib/l
 |---|---|---|
 | `qr_flutter` | ^4.1.0 | QR code widget (display) |
 | `mobile_scanner` | ^5.2.3 | Camera-based QR scanning |
+| `flutter_zxing` | — | Desktop QR scanning from image files |
 
 ### File & Share
 
@@ -523,11 +573,12 @@ lib/
 │
 ├── services/
 │   ├── auth_service.dart              # Auth facade: password + biometric + activity
-│   ├── security_service.dart          # PBKDF2, brute-force, clipboard, lockout
-│   ├── storage_service.dart           # Hive CRUD + export/import
+│   ├── security_service.dart          # Argon2id, brute-force, clipboard, lockout
+│   ├── storage_service.dart           # Hive CRUD + export/import (both boxes AES-256)
 │   ├── totp_service.dart              # TOTP / HOTP / Steam token generation
 │   ├── qr_service.dart                # QR code generation (PNG + widget)
-│   └── backup_encryption_service.dart # AES-256-GCM backup encrypt/decrypt
+│   ├── backup_encryption_service.dart # AES-256-GCM backup encrypt/decrypt (V1+V2)
+│   └── screen_protection_service.dart # Android FLAG_SECURE via MethodChannel
 │
 ├── screens/
 │   ├── setup_screen.dart              # First-launch password setup
@@ -594,14 +645,17 @@ Serialization: `toJson()` / `AccountModel.fromJson()` — used for backup files.
 class AppSettings extends HiveObject {
   bool useBiometric;           // Biometric enabled (default: false)
   bool requireAuthOnLaunch;    // Show auth screen on open (default: true)
-  String? passwordHash;        // PBKDF2-SHA512 hash, null if no password set
+  String? passwordHash;        // Argon2id hash, null if no password set
   bool isDarkMode;             // Dark theme (default: false)
   int autoLockSeconds;         // Inactivity timeout seconds (default: 60)
   int clipboardClearSeconds;   // Clipboard clear delay (default: 30)
   int maxFailedAttempts;       // Lockout threshold (default: 10)
   bool wipeOnMaxAttempts;      // Data wipe on lockout (default: false)
-  String? passwordSalt;        // Base64-encoded salt for passwordHash
+  String? passwordSalt;        // Base64-encoded Argon2id salt
   String? languageCode;        // Locale override, null = system default
+  bool clearClipboard;         // Auto-clear clipboard enabled (default: true)
+  String? hashVersion;         // 'argon2id' | 'pbkdf2' | null (null = legacy)
+  bool screenProtection;       // Android FLAG_SECURE (default: true)
 }
 ```
 
@@ -611,25 +665,33 @@ class AppSettings extends HiveObject {
 
 | Parameter | Value | Location |
 |---|---|---|
-| **Password KDF** | PBKDF2-HMAC-SHA512 | `SecurityService` |
-| **Password iterations** | 100,000 | `AppConstants.pbkdf2Iterations` |
+| **Password KDF** | Argon2id (RFC 9106) | `SecurityService` |
+| **Password memory** | 32 768 KB | `SecurityService._argon2id()` |
+| **Password iterations** | 3 | `SecurityService._argon2id()` |
+| **Password parallelism** | 1 | `SecurityService._argon2id()` |
 | **Password salt** | 32 bytes, random | `AppConstants.saltLength` |
-| **Password output** | 64 bytes | `AppConstants.derivedKeyLength` |
-| **Comparison** | Constant-time XOR fold | `SecurityService._constantTimeEquals` |
-| **DB cipher** | AES-256 (Hive) | `StorageService.init()` |
-| **DB key storage** | FlutterSecureStorage | `StorageService._getEncryptionKey()` |
-| **Backup KDF** | PBKDF2-HMAC-SHA256 | `BackupEncryptionService` |
-| **Backup iterations** | 200,000 | `BackupEncryptionService._iterations` |
-| **Backup salt** | 16 bytes, random | Per export |
+| **Password output** | 32 bytes | `SecurityService._argon2id()` |
+| **Password thread** | Background Isolate | `Isolate.run()` |
+| **Comparison** | Constant-time | hashlib built-in |
+| **Legacy KDF** | PBKDF2-HMAC-SHA512, 100 000 iter | `SecurityService.verifyLegacyPbkdf2()` |
+| **Accounts box cipher** | AES-256 (Hive) | `StorageService.init()` |
+| **Settings box cipher** | AES-256 (Hive) | `StorageService.init()` |
+| **DB key storage** | FlutterSecureStorage | `StorageService._getOrCreateKey()` |
+| **Backup KDF (V2)** | Argon2id  m=32768, t=3, p=1 | `BackupEncryptionService` |
+| **Backup KDF (V1)** | PBKDF2-HMAC-SHA256, 200 000 iter | `BackupEncryptionService._pbkdf2V1()` |
+| **Backup salt (V2)** | 32 bytes, random | Per export |
+| **Backup salt (V1)** | 16 bytes, random | Per export |
 | **Backup cipher** | AES-256-GCM | `BackupEncryptionService` |
-| **Backup nonce** | 16 bytes, random | Per export |
+| **Backup nonce (V2)** | 12 bytes, random | Per export |
+| **Backup nonce (V1)** | 16 bytes, random | Per export |
 | **Backup auth tag** | 16 bytes (GCM) | Appended to ciphertext |
 | **Backup KDF thread** | Background Isolate | `Isolate.run()` |
-| **Min password length** | 6 characters | `AppConstants.minPasswordLength` |
+| **Min password length** | 8 characters | `AppConstants.minPasswordLength` |
 | **Brute-force formula** | `30 × 2^(n−3)` s for n ≥ 3 | `SecurityService.recordFailedAttempt()` |
 | **Default auto-lock** | 60 seconds | `AppConstants.defaultAutoLockSeconds` |
 | **Default clipboard clear** | 30 seconds | `AppConstants.defaultClipboardClearSeconds` |
 | **Default max attempts** | 10 | `AppConstants.defaultMaxFailedAttempts` |
+| **Screen protection** | FLAG_SECURE (Android), toggleable | `ScreenProtectionService` |
 | **TOTP default period** | 30 seconds | RFC 6238 |
 | **Steam Guard period** | 30 seconds (enforced) | `TOTPService.generateSteam()` |
 | **Steam Guard digits** | 5 (enforced) | Steam spec |
@@ -689,6 +751,6 @@ Contributions are welcome. A few notes:
 
 **SecureAuth** — Because your 2FA secrets deserve the same protection as your bank password.
 
-*Built with Flutter · Secured with AES-256 · Trusted by zero cloud servers*
+*Built with Flutter · Secured with Argon2id + AES-256-GCM · Trusted by zero cloud servers*
 
 </div>
