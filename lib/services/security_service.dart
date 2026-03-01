@@ -258,4 +258,38 @@ class SecurityService {
     await _secureStorage.delete(key: _lockoutUntilKey);
     await _secureStorage.delete(key: _lastActivityKey);
   }
+
+  /// Legacy PBKDF2-SHA512 verifier — used ONLY during one-time migration.
+  /// After successful login, the hash is replaced with Argon2id automatically.
+  static Future<bool> verifyLegacyPbkdf2(
+      String password, String storedHash, Uint8List salt) async {
+    final derived = await Isolate.run(
+      () => _pbkdf2Legacy(password: password, salt: salt),
+    );
+    final computed = base64Url.encode(derived);
+    if (computed.length != storedHash.length) return false;
+    var result = 0;
+    for (var i = 0; i < computed.length; i++) {
+      result |= computed.codeUnitAt(i) ^ storedHash.codeUnitAt(i);
+    }
+    return result == 0;
+  }
+
+  /// Pure-Dart PBKDF2-HMAC-SHA512 — original algorithm, 100k iterations, 64-byte output.
+  /// Used only for migration from legacy hashes.
+  static Uint8List _pbkdf2Legacy({
+    required String password,
+    required Uint8List salt,
+  }) {
+    final passwordBytes = utf8.encode(password);
+    const iterations = 100000;
+    const keyLength = 64;
+    final digest = PBKDF2(
+      HMAC(sha512),
+      iterations,
+      salt: salt,
+      keyLength: keyLength,
+    ).convert(passwordBytes);
+    return Uint8List.fromList(digest.bytes);
+  }
 }

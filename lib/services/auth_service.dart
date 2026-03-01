@@ -59,12 +59,13 @@ class AuthService {
 
   Future<void> setPassword(String password) async {
     final salt = _securityService.generateSalt();
-    final hash = _securityService.hashPassword(password, salt);
+    final hash = await _securityService.hashPassword(password, salt);
     final saltBase64 = base64Url.encode(salt);
 
     final settings = _storageService.getSettings();
     settings.passwordHash = hash;
     settings.passwordSalt = saltBase64;
+    settings.hashVersion = 'argon2id';
     await _storageService.updateSettings(settings);
   }
 
@@ -74,25 +75,31 @@ class AuthService {
       return false;
     }
 
-    // Check lockout first
-    if (await _securityService.isLockedOut()) {
-      return false;
-    }
+    if (await _securityService.isLockedOut()) return false;
 
     final salt = base64Url.decode(settings.passwordSalt!);
-    final isValid = _securityService.verifyPassword(
-      password,
-      settings.passwordHash!,
-      salt,
-    );
+    final isLegacy =
+        settings.hashVersion == null || settings.hashVersion == 'pbkdf2';
+
+    bool isValid;
+    if (isLegacy) {
+      isValid = await SecurityService.verifyLegacyPbkdf2(
+          password, settings.passwordHash!, salt);
+    } else {
+      isValid = await _securityService.verifyPassword(
+          password, settings.passwordHash!, salt);
+    }
 
     if (isValid) {
       await _securityService.resetFailedAttempts();
       await _securityService.recordActivity();
+      // Transparent migration: re-hash with Argon2id on first login after upgrade
+      if (isLegacy) {
+        await setPassword(password);
+      }
     } else {
       await _securityService.recordFailedAttempt();
 
-      // Check if max attempts reached and wipe is enabled
       final failedAttempts = await _securityService.getFailedAttempts();
       if (settings.wipeOnMaxAttempts &&
           failedAttempts >= settings.maxFailedAttempts) {
