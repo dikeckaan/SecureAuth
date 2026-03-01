@@ -30,7 +30,7 @@ class AppConstants {
   static const int defaultAutoLockSeconds = 60;
   static const int defaultClipboardClearSeconds = 30;
   static const int defaultMaxFailedAttempts = 10;
-  static const int minPasswordLength = 6;
+  static const int minPasswordLength = 8;
 }
 
 class AppColors {
