@@ -519,86 +519,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _changePassword() async {
     final l10n = AppLocalizations.of(context)!;
-    final oldPasswordController = TextEditingController();
-    final newPasswordController = TextEditingController();
-    final confirmPasswordController = TextEditingController();
     final hasExisting = widget.authService.hasPassword();
 
     final result = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(hasExisting ? l10n.changePassword : l10n.setPassword),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (hasExisting)
-                TextField(
-                  controller: oldPasswordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: l10n.currentPassword,
-                    prefixIcon: const Icon(Icons.lock_outline),
-                  ),
-                ),
-              if (hasExisting) const SizedBox(height: 16),
-              TextField(
-                controller: newPasswordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: l10n.newPassword,
-                  prefixIcon: const Icon(Icons.lock_outline),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: confirmPasswordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: l10n.confirmNewPassword,
-                  prefixIcon: const Icon(Icons.lock_outline),
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () async {
-              if (hasExisting) {
-                final isValid = await widget.authService
-                    .verifyPassword(oldPasswordController.text);
-                if (!isValid) {
-                  if (context.mounted) _showError(l10n.currentPasswordWrong);
-                  return;
-                }
-              }
-              if (newPasswordController.text.length <
-                  AppConstants.minPasswordLength) {
-                _showError(
-                    l10n.passwordMinLength(AppConstants.minPasswordLength));
-                return;
-              }
-              if (newPasswordController.text != confirmPasswordController.text) {
-                _showError(l10n.passwordsDoNotMatch);
-                return;
-              }
-              await widget.authService.setPassword(newPasswordController.text);
-              if (context.mounted) Navigator.pop(context, true);
-            },
-            child: Text(l10n.save),
-          ),
-        ],
+      builder: (context) => _ChangePasswordDialog(
+        authService: widget.authService,
+        hasExisting: hasExisting,
       ),
     );
-
-    oldPasswordController.dispose();
-    newPasswordController.dispose();
-    confirmPasswordController.dispose();
 
     if (result == true && mounted) {
       _showSuccess(l10n.passwordChangedSuccess);
@@ -683,7 +612,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _exportEncrypted(Rect originRect) async {
     final l10n = AppLocalizations.of(context)!;
 
-    final password = await _showSetPasswordDialog(l10n);
+    final password = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const _SetBackupPasswordDialog(),
+    );
     if (password == null || !mounted) return;
 
     // Show loading while running PBKDF2 (200 000 iterations in isolate).
@@ -807,7 +740,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       if (BackupEncryptionService.isEncryptedBackup(bytes)) {
         // ── Encrypted backup ───────────────────────────────────────────────
-        final password = await _showDecryptPasswordDialog(l10n);
+        if (!mounted) return;
+        final password = await showDialog<String>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => const _DecryptBackupDialog(),
+        );
         if (password == null || !mounted) return;
 
         _showLoadingDialog(l10n.decryptingBackup);
@@ -835,197 +773,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (e) {
       if (mounted) _showError(l10n.importError);
     }
-  }
-
-  // ─── Password dialogs ─────────────────────────────────────────────────────
-
-  /// Shows a password + confirm dialog with a strength indicator.
-  /// Returns the entered password, or null if cancelled.
-  Future<String?> _showSetPasswordDialog(AppLocalizations l10n) async {
-    final pwCtrl = TextEditingController();
-    final confirmCtrl = TextEditingController();
-    bool pwVisible = false;
-    bool confirmVisible = false;
-    String? error;
-
-    final result = await showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setS) => AlertDialog(
-          title: Text(l10n.setBackupPassword),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Password field
-                TextField(
-                  controller: pwCtrl,
-                  obscureText: !pwVisible,
-                  onChanged: (_) => setS(() {}),
-                  decoration: InputDecoration(
-                    labelText: l10n.backupPassword,
-                    prefixIcon: const Icon(Icons.lock_outlined),
-                    suffixIcon: IconButton(
-                      icon: Icon(pwVisible
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined),
-                      onPressed: () => setS(() => pwVisible = !pwVisible),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // Confirm password field
-                TextField(
-                  controller: confirmCtrl,
-                  obscureText: !confirmVisible,
-                  onChanged: (_) => setS(() {}),
-                  decoration: InputDecoration(
-                    labelText: l10n.confirmBackupPassword,
-                    prefixIcon: const Icon(Icons.lock_outlined),
-                    suffixIcon: IconButton(
-                      icon: Icon(confirmVisible
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined),
-                      onPressed: () =>
-                          setS(() => confirmVisible = !confirmVisible),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // Strength indicator
-                _PasswordStrengthBar(password: pwCtrl.text),
-                const SizedBox(height: 12),
-                // Warning note
-                Container(
-                  padding: const EdgeInsets.all(AppConstants.paddingSM),
-                  decoration: BoxDecoration(
-                    color: AppColors.warning.withAlpha(20),
-                    borderRadius:
-                        BorderRadius.circular(AppConstants.radiusSM),
-                    border: Border.all(color: AppColors.warning.withAlpha(60)),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.warning_amber_rounded,
-                          color: AppColors.warning, size: 16),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          l10n.backupPasswordWarning,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.warning,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (error != null) ...[
-                  const SizedBox(height: 8),
-                  Text(error!,
-                      style: const TextStyle(
-                          color: AppColors.error, fontSize: 12)),
-                ],
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(l10n.cancel),
-            ),
-            FilledButton(
-              onPressed: () {
-                final pw = pwCtrl.text;
-                final confirm = confirmCtrl.text;
-                if (pw.length < AppConstants.minPasswordLength) {
-                  setS(() => error = l10n
-                      .passwordMinLength(AppConstants.minPasswordLength));
-                  return;
-                }
-                if (pw != confirm) {
-                  setS(() => error = l10n.passwordsDoNotMatch);
-                  return;
-                }
-                Navigator.pop(ctx, pw);
-              },
-              child: Text(l10n.exportAccounts),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    pwCtrl.dispose();
-    confirmCtrl.dispose();
-    return result;
-  }
-
-  /// Shows a single-field password dialog for decryption.
-  Future<String?> _showDecryptPasswordDialog(AppLocalizations l10n) async {
-    final ctrl = TextEditingController();
-    bool visible = false;
-
-    final result = await showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setS) => AlertDialog(
-          title: Text(l10n.decryptBackup),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(l10n.enterBackupPassword,
-                  style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(ctx)
-                            .colorScheme
-                            .onSurface
-                            .withAlpha(153),
-                      )),
-              const SizedBox(height: 12),
-              TextField(
-                controller: ctrl,
-                obscureText: !visible,
-                autofocus: true,
-                decoration: InputDecoration(
-                  labelText: l10n.backupPassword,
-                  prefixIcon: const Icon(Icons.lock_outlined),
-                  suffixIcon: IconButton(
-                    icon: Icon(visible
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined),
-                    onPressed: () => setS(() => visible = !visible),
-                  ),
-                ),
-                onSubmitted: (v) {
-                  if (v.isNotEmpty) Navigator.pop(ctx, v);
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(l10n.cancel),
-            ),
-            FilledButton(
-              onPressed: () {
-                if (ctrl.text.isNotEmpty) Navigator.pop(ctx, ctrl.text);
-              },
-              child: Text(l10n.decryptBackup),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    ctrl.dispose();
-    return result;
   }
 
   // ─── Utility helpers ──────────────────────────────────────────────────────
@@ -1831,4 +1578,338 @@ class _LanguageOption {
   final String flag;
 
   const _LanguageOption(this.code, this.name, this.flag);
+}
+
+// ── Change password dialog ──────────────────────────────────────────────────
+
+class _ChangePasswordDialog extends StatefulWidget {
+  final AuthService authService;
+  final bool hasExisting;
+
+  const _ChangePasswordDialog({
+    required this.authService,
+    required this.hasExisting,
+  });
+
+  @override
+  State<_ChangePasswordDialog> createState() => _ChangePasswordDialogState();
+}
+
+class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
+  late final TextEditingController _oldPasswordController;
+  late final TextEditingController _newPasswordController;
+  late final TextEditingController _confirmPasswordController;
+
+  @override
+  void initState() {
+    super.initState();
+    _oldPasswordController = TextEditingController();
+    _newPasswordController = TextEditingController();
+    _confirmPasswordController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _oldPasswordController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: AppColors.error),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return AlertDialog(
+      title: Text(widget.hasExisting ? l10n.changePassword : l10n.setPassword),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (widget.hasExisting)
+              TextField(
+                controller: _oldPasswordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: l10n.currentPassword,
+                  prefixIcon: const Icon(Icons.lock_outline),
+                ),
+              ),
+            if (widget.hasExisting) const SizedBox(height: 16),
+            TextField(
+              controller: _newPasswordController,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: l10n.newPassword,
+                prefixIcon: const Icon(Icons.lock_outline),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _confirmPasswordController,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: l10n.confirmNewPassword,
+                prefixIcon: const Icon(Icons.lock_outline),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: () async {
+            final navigator = Navigator.of(context);
+            if (widget.hasExisting) {
+              final isValid = await widget.authService
+                  .verifyPassword(_oldPasswordController.text);
+              if (!mounted) return;
+              if (!isValid) {
+                _showError(l10n.currentPasswordWrong);
+                return;
+              }
+            }
+            if (_newPasswordController.text.length <
+                AppConstants.minPasswordLength) {
+              _showError(
+                  l10n.passwordMinLength(AppConstants.minPasswordLength));
+              return;
+            }
+            if (_newPasswordController.text != _confirmPasswordController.text) {
+              _showError(l10n.passwordsDoNotMatch);
+              return;
+            }
+            await widget.authService.setPassword(_newPasswordController.text);
+            if (mounted) navigator.pop(true);
+          },
+          child: Text(l10n.save),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Set backup password dialog ──────────────────────────────────────────────
+
+class _SetBackupPasswordDialog extends StatefulWidget {
+  const _SetBackupPasswordDialog();
+
+  @override
+  State<_SetBackupPasswordDialog> createState() =>
+      _SetBackupPasswordDialogState();
+}
+
+class _SetBackupPasswordDialogState extends State<_SetBackupPasswordDialog> {
+  late final TextEditingController _pwCtrl;
+  late final TextEditingController _confirmCtrl;
+  bool _pwVisible = false;
+  bool _confirmVisible = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _pwCtrl = TextEditingController();
+    _confirmCtrl = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _pwCtrl.dispose();
+    _confirmCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return AlertDialog(
+      title: Text(l10n.setBackupPassword),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: _pwCtrl,
+              obscureText: !_pwVisible,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                labelText: l10n.backupPassword,
+                prefixIcon: const Icon(Icons.lock_outlined),
+                suffixIcon: IconButton(
+                  icon: Icon(_pwVisible
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined),
+                  onPressed: () => setState(() => _pwVisible = !_pwVisible),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _confirmCtrl,
+              obscureText: !_confirmVisible,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                labelText: l10n.confirmBackupPassword,
+                prefixIcon: const Icon(Icons.lock_outlined),
+                suffixIcon: IconButton(
+                  icon: Icon(_confirmVisible
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined),
+                  onPressed: () =>
+                      setState(() => _confirmVisible = !_confirmVisible),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            _PasswordStrengthBar(password: _pwCtrl.text),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(AppConstants.paddingSM),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withAlpha(20),
+                borderRadius: BorderRadius.circular(AppConstants.radiusSM),
+                border: Border.all(color: AppColors.warning.withAlpha(60)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.warning_amber_rounded,
+                      color: AppColors.warning, size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.backupPasswordWarning,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.warning,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _error!,
+                style: const TextStyle(color: AppColors.error, fontSize: 12),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: () {
+            final pw = _pwCtrl.text;
+            final confirm = _confirmCtrl.text;
+            if (pw.length < AppConstants.minPasswordLength) {
+              setState(() => _error = AppLocalizations.of(context)!
+                  .passwordMinLength(AppConstants.minPasswordLength));
+              return;
+            }
+            if (pw != confirm) {
+              setState(
+                  () => _error = AppLocalizations.of(context)!.passwordsDoNotMatch);
+              return;
+            }
+            Navigator.pop(context, pw);
+          },
+          child: Text(l10n.exportAccounts),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Decrypt backup dialog ───────────────────────────────────────────────────
+
+class _DecryptBackupDialog extends StatefulWidget {
+  const _DecryptBackupDialog();
+
+  @override
+  State<_DecryptBackupDialog> createState() => _DecryptBackupDialogState();
+}
+
+class _DecryptBackupDialogState extends State<_DecryptBackupDialog> {
+  late final TextEditingController _ctrl;
+  bool _visible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return AlertDialog(
+      title: Text(l10n.decryptBackup),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.enterBackupPassword,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withAlpha(153),
+                ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _ctrl,
+            obscureText: !_visible,
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: l10n.backupPassword,
+              prefixIcon: const Icon(Icons.lock_outlined),
+              suffixIcon: IconButton(
+                icon: Icon(_visible
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined),
+                onPressed: () => setState(() => _visible = !_visible),
+              ),
+            ),
+            onSubmitted: (v) {
+              if (v.isNotEmpty) Navigator.pop(context, v);
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: () {
+            if (_ctrl.text.isNotEmpty) Navigator.pop(context, _ctrl.text);
+          },
+          child: Text(l10n.decryptBackup),
+        ),
+      ],
+    );
+  }
 }
