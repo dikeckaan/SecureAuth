@@ -5,9 +5,11 @@ import 'package:flutter/services.dart';
 class ScreenProtectionService {
   static const _channel = MethodChannel('com.kaandikec.secureauth/window');
 
-  /// Sets or clears Android FLAG_SECURE. No-op on non-Android platforms.
+  /// On Android: sets/clears FLAG_SECURE (blocks screenshots, hides in recents).
+  /// On iOS: enables/disables blur overlay on app-switch and screenshot detection.
+  /// No-op on desktop platforms.
   static Future<void> setSecure(bool secure) async {
-    if (!Platform.isAndroid) return;
+    if (!Platform.isAndroid && !Platform.isIOS) return;
     await _channel.invokeMethod<void>('setSecure', {'secure': secure});
   }
 }
