@@ -6,6 +6,7 @@ import 'package:encrypt/encrypt.dart' as enc;
 import 'package:hashlib/hashlib.dart';
 
 import '../utils/constants.dart';
+import 'logger_service.dart';
 import 'security_service.dart';
 
 /// Authenticated encryption / decryption for SecureAuth backup files.
@@ -30,6 +31,8 @@ import 'security_service.dart';
 /// The GCM tag authenticates the ciphertext; any byte flip (wrong password,
 /// bit-rot, tampering) produces a tag-mismatch exception before returning data.
 class BackupEncryptionService {
+  static final _log = LoggerService.instance;
+
   // ── Constants ─────────────────────────────────────────────────────────────
   static const List<int> _magic = [0x53, 0x41, 0x45, 0x4E, 0x43]; // "SAENC"
   static const int _versionV1 = 0x01;
@@ -69,6 +72,10 @@ class BackupEncryptionService {
       ..add(salt)
       ..add(nonce)
       ..add(encrypted.bytes);
+    _log.security('backup', 'Backup encrypted (V2/Argon2id)', {
+      'payloadSize': jsonData.length,
+      'outputSize': out.length,
+    });
     return out.toBytes();
   }
 
@@ -93,10 +100,13 @@ class BackupEncryptionService {
     }
     final version = data[_magic.length];
     if (version == _versionV2) {
+      _log.security('backup', 'Decrypting V2 backup', {'size': data.length});
       return _decryptV2(data, password);
     } else if (version == _versionV1) {
+      _log.security('backup', 'Decrypting legacy V1 backup', {'size': data.length});
       return _decryptV1(data, password);
     } else {
+      _log.error('backup', 'Unknown backup format version', {'version': version});
       throw FormatException('Unknown backup format version: $version');
     }
   }

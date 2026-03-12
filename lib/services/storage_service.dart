@@ -5,8 +5,10 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../models/account_model.dart';
 import '../models/app_settings.dart';
+import 'logger_service.dart';
 
 class StorageService {
+  static final _log = LoggerService.instance;
   static const String _accountsBox = 'accounts';
   static const String _settingsBox = 'settings';
   static const String _encryptionKeyName = 'encryption_key';
@@ -42,9 +44,12 @@ class StorageService {
         _settingsBox,
         encryptionCipher: HiveAesCipher(settingsKeyBytes),
       );
-    } catch (_) {
+    } catch (e) {
       // Box existed unencrypted (first run after upgrade) — delete and recreate.
       // Password hash/salt will be re-created at next login (transparent migration).
+      _log.warning('storage', 'Settings box migration: recreating encrypted box', {
+        'reason': e.toString(),
+      });
       await Hive.deleteBoxFromDisk(_settingsBox);
       _settingsBoxInstance = await Hive.openBox<AppSettings>(
         _settingsBox,
@@ -55,6 +60,9 @@ class StorageService {
     if (_settingsBoxInstance!.isEmpty) {
       await _settingsBoxInstance!.put('settings', AppSettings());
     }
+    _log.info('storage', 'Storage initialized', {
+      'accounts': _accountsBoxInstance!.length,
+    });
   }
 
   Future<String> _getOrCreateKey(String keyName) async {
@@ -85,6 +93,10 @@ class StorageService {
 
   Future<void> addAccount(AccountModel account) async {
     await accountsBox.put(account.id, account);
+    _log.info('storage', 'Account added', {
+      'issuer': account.issuer,
+      'type': account.type,
+    });
   }
 
   Future<void> updateAccount(AccountModel account) async {
@@ -93,6 +105,7 @@ class StorageService {
 
   Future<void> deleteAccount(String id) async {
     await accountsBox.delete(id);
+    _log.info('storage', 'Account deleted', {'id': id});
   }
 
   List<AccountModel> getAllAccounts() {
@@ -170,15 +183,22 @@ class StorageService {
       }
     }
 
+    _log.security('backup', 'Accounts imported', {
+      'total': accountsList.length,
+      'imported': imported,
+      'skippedDuplicates': accountsList.length - imported,
+    });
     return imported;
   }
 
   // --- Data Management ---
 
   Future<void> clearAllData() async {
+    final count = accountsBox.length;
     await accountsBox.clear();
     await _settingsBoxInstance!.clear();
     await _settingsBoxInstance!.put('settings', AppSettings());
+    _log.security('storage', 'All data cleared', {'accountsWiped': count});
   }
 
   int get accountCount => accountsBox.length;

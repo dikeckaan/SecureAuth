@@ -11,11 +11,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../utils/constants.dart';
+import 'logger_service.dart';
 
 class SecurityService {
   static const String _failedAttemptsKey = 'failed_attempts';
   static const String _lockoutUntilKey = 'lockout_until';
   static const String _lastActivityKey = 'last_activity';
+  static final _log = LoggerService.instance;
 
   final FlutterSecureStorage _secureStorage;
 
@@ -89,6 +91,8 @@ class SecurityService {
       value: newCount.toString(),
     );
 
+    _log.security('auth', 'Failed login attempt', {'attempt': newCount});
+
     // Exponential backoff lockout: 30s, 1m, 2m, 4m, 8m...
     if (newCount >= 3) {
       final lockoutSeconds = 30 * pow(2, newCount - 3).toInt();
@@ -99,12 +103,17 @@ class SecurityService {
         key: _lockoutUntilKey,
         value: lockoutUntil.toString(),
       );
+      _log.security('auth', 'Account locked out', {
+        'lockoutSeconds': lockoutSeconds,
+        'totalAttempts': newCount,
+      });
     }
   }
 
   Future<void> resetFailedAttempts() async {
     await _secureStorage.delete(key: _failedAttemptsKey);
     await _secureStorage.delete(key: _lockoutUntilKey);
+    _log.security('auth', 'Failed attempts reset (successful login)');
   }
 
   Future<bool> isLockedOut() async {
@@ -260,6 +269,7 @@ class SecurityService {
     await _secureStorage.delete(key: _failedAttemptsKey);
     await _secureStorage.delete(key: _lockoutUntilKey);
     await _secureStorage.delete(key: _lastActivityKey);
+    _log.security('auth', 'Security state cleared (data wipe or manual reset)');
   }
 
   /// Legacy PBKDF2-SHA512 verifier — used ONLY during one-time migration.

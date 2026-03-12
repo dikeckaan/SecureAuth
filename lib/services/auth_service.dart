@@ -4,10 +4,12 @@ import 'dart:io';
 import 'package:local_auth/local_auth.dart';
 
 import '../utils/constants.dart';
+import 'logger_service.dart';
 import 'security_service.dart';
 import 'storage_service.dart';
 
 class AuthService {
+  static final _log = LoggerService.instance;
   final LocalAuthentication _localAuth = LocalAuthentication();
   final StorageService _storageService;
   final SecurityService _securityService;
@@ -68,6 +70,7 @@ class AuthService {
     settings.passwordSalt = saltBase64;
     settings.hashVersion = AppConstants.hashVersionArgon2id;
     await _storageService.updateSettings(settings);
+    _log.security('auth', 'Password set/updated (Argon2id)');
   }
 
   Future<bool> verifyPassword(String password) async {
@@ -95,8 +98,12 @@ class AuthService {
     if (isValid) {
       await _securityService.resetFailedAttempts();
       await _securityService.recordActivity();
+      _log.security('auth', 'Password verification successful', {
+        'migrated': isLegacy,
+      });
       // Transparent migration: re-hash with Argon2id on first login after upgrade
       if (isLegacy) {
+        _log.security('auth', 'Migrating password hash from PBKDF2 to Argon2id');
         await setPassword(password);
       }
     } else {
@@ -105,6 +112,9 @@ class AuthService {
       final failedAttempts = await _securityService.getFailedAttempts();
       if (settings.wipeOnMaxAttempts &&
           failedAttempts >= settings.maxFailedAttempts) {
+        _log.security('auth', 'Max failed attempts reached — wiping all data', {
+          'maxAttempts': settings.maxFailedAttempts,
+        });
         await _storageService.clearAllData();
         await _securityService.clearSecurityState();
       }
@@ -119,6 +129,7 @@ class AuthService {
     settings.passwordSalt = null;
     settings.useBiometric = false;
     await _storageService.updateSettings(settings);
+    _log.security('auth', 'Password removed');
   }
 
   bool hasPassword() {
@@ -130,6 +141,7 @@ class AuthService {
     final settings = _storageService.getSettings();
     settings.useBiometric = enable;
     await _storageService.updateSettings(settings);
+    _log.security('auth', 'Biometric ${enable ? "enabled" : "disabled"}');
   }
 
   bool isBiometricEnabled() {
