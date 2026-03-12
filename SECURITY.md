@@ -58,6 +58,23 @@ Exponential backoff lockout starting at the 3rd failed attempt:
 
 Optional data wipe after configurable maximum attempts (3-20, default: 10).
 
+### Clock Tamper Detection
+
+SecureAuth monitors the system clock for rollback attacks:
+
+| Property | Value |
+|----------|-------|
+| Storage | `FlutterSecureStorage` (first_launch, last_known, boot_count, tamper_flag) |
+| Tolerance | 60 seconds (accounts for NTP sync, DST) |
+| Check points | App launch, app resume, every 15 seconds while running |
+| Lockdown trigger | Current time > 60s before first_launch or last_known timestamp |
+| Unlock method | Master password only (biometric explicitly disabled) |
+| Persistence | Tamper flag survives app restarts |
+
+### Security Audit Logging
+
+All security-relevant events are logged to an in-memory ring buffer (500 entries). Events include: failed login attempts, lockout triggers, password changes, biometric toggles, backup operations, data wipes, and tamper detection alerts. Logs can be exported as text or JSON. Logging can be disabled by the user.
+
 ### Secure Defaults
 
 - Screen protection (FLAG_SECURE on Android) enabled by default
@@ -65,6 +82,8 @@ Optional data wipe after configurable maximum attempts (3-20, default: 10).
 - Auto-lock after 60 seconds of inactivity
 - Authentication required on launch
 - Windows clipboard history exclusion via Win32 API
+- Security audit logging enabled by default
+- Clock tamper detection enabled by default
 
 ## Threat Model
 
@@ -75,6 +94,7 @@ Optional data wipe after configurable maximum attempts (3-20, default: 10).
 - Clipboard sniffing
 - Screen capture / shoulder surfing
 - Backup file theft
+- Clock manipulation / time rollback attacks
 
 ### Out of Scope
 

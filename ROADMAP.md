@@ -8,13 +8,16 @@ This document outlines planned features and improvements. Items are organized by
 
 **Focus:** Testing, stability, and developer experience.
 
-- [ ] Achieve 80%+ unit test coverage for all services
-- [ ] Integration tests for full auth flow (setup → login → lockout → reset)
-- [ ] Backup round-trip integration test (export → encrypt → decrypt → import)
-- [ ] Adopt Result type across service layer for explicit error handling
-- [ ] Wire ServiceLocator into main.dart and all screens
-- [ ] Add `dart format` and `flutter analyze` as pre-commit hooks
-- [ ] Fix TextEditingController disposal race in backup dialogs
+- [x] Achieve 80%+ unit test coverage for all services
+- [x] Integration tests for full auth flow (setup → login → lockout → reset)
+- [x] Backup round-trip integration test (export → encrypt → decrypt → import)
+- [x] Adopt Result type across service layer for explicit error handling
+- [x] Wire ServiceLocator into main.dart and all screens
+- [x] Add `dart format` and `flutter analyze` as pre-commit hooks
+- [x] Fix TextEditingController disposal race in backup dialogs
+- [x] Security audit logging with in-app viewer and export
+- [x] Clock tamper detection with full app lockdown
+- [ ] Android release build signing configuration
 
 ## v2.2 — Migration & Import
 
@@ -75,3 +78,18 @@ This document outlines planned features and improvements. Items are organized by
 - [x] CI/CD pipeline (analyze, test, multi-platform build)
 - [x] Result type for error handling
 - [x] Service locator for dependency injection
+
+## Completed (v2.1)
+
+- [x] Result<T> integrated into AuthService, BackupEncryptionService, StorageService
+- [x] ServiceLocator wired into main.dart (replaces manual service construction)
+- [x] Pre-commit hooks for format + analyze (scripts/setup-hooks.sh)
+- [x] TextEditingController disposal race conditions fixed across all screens
+- [x] 25+ auth flow integration tests (SecurityService + FakeSecureStorage)
+- [x] 21+ backup round-trip integration tests (encrypt/decrypt/tamper/unicode)
+- [x] 12 unit tests for TamperDetectionService
+- [x] Security audit logging with LoggerService (ring buffer, export, filtering)
+- [x] LogViewerScreen with 7 filter categories
+- [x] Clock tamper detection (TamperDetectionService) with 60s tolerance
+- [x] TamperLockdownScreen (password-only unlock, biometric blocked)
+- [x] AppSettings extended to 21 Hive fields (auditLoggingEnabled, tamperDetectionEnabled)

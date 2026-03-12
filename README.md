@@ -28,6 +28,8 @@
    - [Clipboard Security](#clipboard-security)
    - [Screen Protection](#screen-protection)
    - [Auto-Lock & Inactivity](#auto-lock--inactivity)
+   - [Clock Tamper Detection](#clock-tamper-detection)
+   - [Security Audit Logging](#security-audit-logging)
 4. [Token Types](#token-types)
    - [TOTP](#totp-time-based-one-time-password)
    - [HOTP](#hotp-counter-based-one-time-password)
@@ -75,7 +77,13 @@ Built with Flutter for cross-platform reach, SecureAuth uses **AES-256-encrypted
 | **Backup** | AES-256-GCM + Argon2id encrypted `.saenc` **and** plain JSON export/import |
 | **QR** | Scan `otpauth://` QR codes; display QR for any stored account |
 | **Search** | Live filter by issuer or account name |
-| **Themes** | Light and Dark, follow-system or manual |
+| **Audit Logging** | Structured security event log with in-memory ring buffer (500 entries), filterable viewer, export to text/JSON |
+| **Clock Tamper Detection** | Detects system clock rollback; locks the app entirely until master password is entered |
+| **Error Handling** | `Result<T>` sealed union for type-safe error propagation; `AppError` with categorized error types |
+| **Dependency Injection** | `ServiceLocator` singleton with init-time wiring and test overrides |
+| **CI/CD** | GitHub Actions: analyze, test, multi-platform build (Android, iOS, Windows, macOS, Linux) |
+| **Pre-commit Hooks** | `dart format` + `dart analyze` enforced before every commit |
+| **Themes** | Light, Dark, Pure Dark (AMOLED), follow-system or manual, custom accent colors |
 | **Languages** | 12 languages, runtime switch, no restart needed |
 | **Platforms** | iOS, Android, macOS, Windows, Linux |
 | **Internet Access** | None — ever |
@@ -204,6 +212,45 @@ elapsed > autoLockSeconds  →  setState(_isLocked = true)  →  AuthScreen
 Activity is recorded on every `HomeScreen` resume from background and on app lifecycle `paused` / `inactive` events.
 
 The timeout is user-configurable (30 s / 1 min / 2 min / 5 min / 10 min / disabled).
+
+### Clock Tamper Detection
+
+SecureAuth detects system clock manipulation — a potential attack vector where someone rolls back the device clock to replay expired TOTP codes or confuse time-based security logs.
+
+**How it works:**
+
+1. **First launch:** Records `first_launch_timestamp` and `last_known_timestamp` in `FlutterSecureStorage`.
+2. **Every app start and resume:** Compares current time against both timestamps.
+3. **Every 15 seconds while running:** Updates `last_known_timestamp` via the inactivity timer.
+4. **Detection logic:** If current time is more than **60 seconds** before either stored timestamp, tampering is flagged.
+
+The 60-second tolerance accounts for NTP sync drift and DST transitions.
+
+**When tampering is detected:**
+
+- The app enters **full lockdown** — not even the login screen is shown.
+- A dedicated `TamperLockdownScreen` displays a warning explaining what happened.
+- **Only master password authentication can clear the flag.** Biometric unlock is explicitly disabled during lockdown.
+- The tamper flag persists in `FlutterSecureStorage` and survives app restarts.
+
+Users can disable tamper detection from Settings → Audit & Logs → Clock Tamper Detection.
+
+### Security Audit Logging
+
+SecureAuth maintains a structured security event log for transparency and forensics:
+
+| Property | Value |
+|---|---|
+| **Storage** | In-memory ring buffer (500 entries max) |
+| **Log levels** | debug, info, warning, error, security |
+| **Categories** | auth, backup, storage, tamper, app |
+| **Per entry** | Timestamp, level, category, message, metadata map |
+| **Persistence** | Session-only (cleared on app restart for privacy) |
+| **Toggle** | Enable/disable from Settings → Audit & Logs |
+| **Export** | Text or JSON via native share sheet |
+| **Viewer** | Full-featured log viewer with 7 filter chips (All, Security, Errors, Auth, Backup, Storage, Tamper) |
+
+Events logged include: failed login attempts, lockout triggers, password changes, biometric toggles, backup encrypt/decrypt, account import/export, data wipes, tamper detection alerts, and service initialization.
 
 ---
 
@@ -452,8 +499,25 @@ Card-based settings grouped into sections:
 | **Appearance** | Dark mode toggle |
 | **Security** | App lock toggle, Biometric toggle, Screen Protection toggle, Change/Set password |
 | **Advanced Security** | Auto-lock timeout, Clipboard clear duration, Max failed attempts, Wipe on max attempts |
+| **Audit & Logs** | Security logging toggle, Clock tamper detection toggle, View Security Logs (opens LogViewerScreen) |
 | **Backup** | Export Accounts (encrypted or plain), Import Accounts |
+| **Experimental** | Steam Guard toggle |
 | **Danger Zone** | Delete All Data — wipes everything and navigates to SetupScreen |
+
+### LogViewerScreen
+Security audit log viewer accessible from Settings → Audit & Logs → View Security Logs. Features:
+- **Filter chips**: All, Security, Errors, Auth, Backup, Storage, Tamper — tap to filter
+- **Log cards**: Color-coded left edge by severity (green=info, amber=warning, red=error, purple=security)
+- **Metadata display**: Expandable JSON metadata per entry
+- **Export**: Share as text file via native share sheet
+- **Clear**: Confirmation dialog before erasing all logs
+
+### TamperLockdownScreen
+Full-screen security lockdown displayed when clock manipulation is detected. This screen completely blocks the app — the normal login screen is not shown. Features:
+- **Pulsing warning icon** with red gradient background
+- **Explanation text** describing what clock tampering means
+- **Password-only unlock** — biometric authentication explicitly disabled
+- **Master password verification** to clear the tamper flag and restore normal access
 
 ### QRDisplayScreen
 Displays a scannable `otpauth://` QR code for any stored account. Useful for migrating to another device or authenticator app. Uses error correction level H (30% data recovery).
@@ -563,21 +627,24 @@ Implemented with Flutter's `gen-l10n` toolchain. ARB source files live in `lib/l
 
 ```
 lib/
-├── main.dart                          # App entry point, routing, lifecycle
+├── main.dart                          # App entry point, ServiceLocator init, routing, lifecycle
 │
 ├── models/
 │   ├── account_model.dart             # 2FA account entity (Hive TypeId 0)
 │   ├── account_model.g.dart           # Generated Hive adapter
-│   ├── app_settings.dart              # App configuration entity (Hive TypeId 1)
+│   ├── app_settings.dart              # App configuration entity (Hive TypeId 1, 21 fields)
 │   └── app_settings.g.dart            # Generated Hive adapter
 │
 ├── services/
-│   ├── auth_service.dart              # Auth facade: password + biometric + activity
+│   ├── service_locator.dart           # Singleton DI container, init-time wiring, test overrides
+│   ├── auth_service.dart              # Auth facade: password + biometric + activity + Result<T>
 │   ├── security_service.dart          # Argon2id, brute-force, clipboard, lockout
-│   ├── storage_service.dart           # Hive CRUD + export/import (both boxes AES-256)
+│   ├── storage_service.dart           # Hive CRUD + export/import (both boxes AES-256) + Result<T>
 │   ├── totp_service.dart              # TOTP / HOTP / Steam token generation
 │   ├── qr_service.dart                # QR code generation (PNG + widget)
-│   ├── backup_encryption_service.dart # AES-256-GCM backup encrypt/decrypt (V1+V2)
+│   ├── backup_encryption_service.dart # AES-256-GCM backup encrypt/decrypt (V1+V2) + Result<T>
+│   ├── logger_service.dart            # Structured audit logger (ring buffer, export, filtering)
+│   ├── tamper_detection_service.dart   # Clock rollback detection via FlutterSecureStorage
 │   └── screen_protection_service.dart # Android FLAG_SECURE via MethodChannel
 │
 ├── screens/
@@ -585,31 +652,49 @@ lib/
 │   ├── auth_screen.dart               # Login gate (password + biometric)
 │   ├── home_screen.dart               # Account list with search
 │   ├── add_account_screen.dart        # Add account (QR scan + manual, 3 types)
-│   ├── settings_screen.dart           # Full settings + backup/restore
+│   ├── settings_screen.dart           # Full settings + backup/restore + audit logs
+│   ├── log_viewer_screen.dart         # Security audit log viewer with filters
+│   ├── tamper_lockdown_screen.dart    # Clock tamper lockdown (password-only unlock)
 │   ├── qr_scanner_screen.dart         # Camera QR scanner
 │   └── qr_display_screen.dart         # Account QR display
 │
 ├── widgets/
-│   └── account_card.dart              # Live OTP card (TOTP ring, HOTP controls)
+│   ├── account_card.dart              # Live OTP card (TOTP ring, HOTP controls)
+│   └── color_picker_widget.dart       # Accent color picker
 │
 ├── utils/
 │   ├── constants.dart                 # Colors, spacing, radii, crypto params
-│   └── theme.dart                     # Material 3 light/dark themes
+│   ├── result.dart                    # Result<T> sealed union + AppError + ErrorCategory
+│   └── theme.dart                     # Material 3 light/dark/AMOLED themes
 │
 └── l10n/
     ├── app_en.arb                     # English strings (source of truth)
-    ├── app_tr.arb                     # Turkish
-    ├── app_es.arb                     # Spanish
-    ├── app_de.arb                     # German
-    ├── app_fr.arb                     # French
-    ├── app_pt.arb                     # Portuguese
-    ├── app_ru.arb                     # Russian
-    ├── app_az.arb                     # Azerbaijani
-    ├── app_ar.arb                     # Arabic
-    ├── app_ja.arb                     # Japanese
-    ├── app_ko.arb                     # Korean
-    ├── app_zh.arb                     # Chinese
+    ├── app_tr.arb ... app_zh.arb      # 11 additional languages
     └── app_localizations*.dart        # Generated by flutter gen-l10n
+
+test/
+├── helpers/
+│   └── fake_secure_storage.dart       # In-memory FlutterSecureStorage for testing
+├── services/
+│   ├── security_service_test.dart     # 70+ unit tests for crypto + brute-force
+│   ├── totp_service_test.dart         # OTP generation + URI parsing tests
+│   ├── backup_encryption_service_test.dart  # Encrypt/decrypt round-trip tests
+│   ├── logger_service_test.dart       # Ring buffer, filtering, export tests
+│   └── tamper_detection_service_test.dart   # Clock rollback detection tests
+├── models/
+│   └── account_model_test.dart        # JSON serialization + otpAuthUri tests
+├── utils/
+│   └── result_test.dart               # Result<T> pattern matching + map/flatMap tests
+└── integration/
+    ├── auth_flow_test.dart            # Full auth flow: setup → login → lockout → reset
+    └── backup_roundtrip_test.dart     # Backup encrypt → decrypt → import round-trip
+
+scripts/
+└── setup-hooks.sh                     # Installs pre-commit hook (format + analyze)
+
+.github/workflows/
+├── ci.yml                             # Full CI: analyze, test, build (6 platforms)
+└── release.yml                        # Release workflow: version tags → GitHub Release
 ```
 
 ---
@@ -656,8 +741,13 @@ class AppSettings extends HiveObject {
   bool clearClipboard;         // Auto-clear clipboard enabled (default: true)
   String? hashVersion;         // 'argon2id' | 'pbkdf2' | null (null = legacy)
   bool screenProtection;       // Android FLAG_SECURE (default: true)
+  // ... theme/accent fields (13-18) ...
+  bool auditLoggingEnabled;    // Security event logging (default: true)
+  bool tamperDetectionEnabled; // Clock rollback detection (default: true)
 }
 ```
+
+**Hive field indices** (0–20) are stable and never reordered. New fields use nullable reads with fallback defaults for backward compatibility with existing databases.
 
 ---
 
@@ -692,6 +782,12 @@ class AppSettings extends HiveObject {
 | **Default clipboard clear** | 30 seconds | `AppConstants.defaultClipboardClearSeconds` |
 | **Default max attempts** | 10 | `AppConstants.defaultMaxFailedAttempts` |
 | **Screen protection** | FLAG_SECURE (Android), toggleable | `ScreenProtectionService` |
+| **Clock tamper tolerance** | 60 seconds | `TamperDetectionService` |
+| **Clock tamper storage** | FlutterSecureStorage (4 keys) | `TamperDetectionService` |
+| **Clock tamper unlock** | Password-only (biometric blocked) | `TamperLockdownScreen` |
+| **Audit log buffer** | 500 entries, in-memory ring | `LoggerService` |
+| **Audit log levels** | debug, info, warning, error, security | `LogLevel` enum |
+| **Timestamp recording** | Every 15 seconds while running | `main.dart` timer |
 | **TOTP default period** | 30 seconds | RFC 6238 |
 | **Steam Guard period** | 30 seconds (enforced) | `TOTPService.generateSteam()` |
 | **Steam Guard digits** | 5 (enforced) | Steam spec |
@@ -715,11 +811,17 @@ cd SecureAuth
 # Install dependencies
 flutter pub get
 
+# Install pre-commit hooks (format + analyze checks)
+./scripts/setup-hooks.sh
+
 # Regenerate Hive adapters (only needed if you modify models)
 dart run build_runner build --delete-conflicting-outputs
 
 # Regenerate localization (only needed if you modify .arb files)
 flutter gen-l10n
+
+# Run tests
+flutter test
 
 # Run on a connected device in debug mode
 flutter run
@@ -743,7 +845,8 @@ Contributions are welcome. A few notes:
 - **Security issues:** Please open a GitHub issue marked `[SECURITY]` rather than a public PR. Include reproduction steps and impact assessment.
 - **New features:** Open an issue to discuss before implementing. Large PRs without prior discussion may not be merged.
 - **Localization:** New languages or corrections to existing translations are always appreciated. Edit the relevant `lib/l10n/app_XX.arb` file and run `flutter gen-l10n`.
-- **Code style:** This project uses `flutter_lints`. Run `flutter analyze` before submitting — zero warnings required.
+- **Code style:** This project uses `flutter_lints` with pre-commit hooks. Run `./scripts/setup-hooks.sh` once after cloning — it installs `dart format` + `dart analyze` checks that run automatically before every commit.
+- **Testing:** New features should include unit tests. Run `flutter test` to verify. See `test/helpers/fake_secure_storage.dart` for the testing pattern used across the project.
 
 ---
 
