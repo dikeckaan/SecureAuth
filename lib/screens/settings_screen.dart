@@ -1201,7 +1201,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Icons.history_outlined, const Color(0xFF7C3AED)),
               title: const Text('View Security Logs'),
               subtitle: Text(
-                  '${LoggerService.instance.length} entries recorded'),
+                  '${LoggerService.instance.persistedLength} entries stored'),
               trailing: const Icon(Icons.chevron_right, size: 18),
               onTap: () {
                 Navigator.push(

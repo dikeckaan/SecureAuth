@@ -84,6 +84,10 @@ class AppSettings extends HiveObject {
   @HiveField(20)
   bool tamperDetectionEnabled;
 
+  /// How many days to retain log entries before automatic cleanup (default: 30)
+  @HiveField(21)
+  int logRetentionDays;
+
   AppSettings({
     this.useBiometric = false,
     this.requireAuthOnLaunch = true,
@@ -106,5 +110,6 @@ class AppSettings extends HiveObject {
     this.screenProtection = true,
     this.auditLoggingEnabled = true,
     this.tamperDetectionEnabled = true,
+    this.logRetentionDays = 30,
   });
 }

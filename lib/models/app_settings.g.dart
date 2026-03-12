@@ -38,13 +38,14 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       screenProtection: fields[18] as bool,
       auditLoggingEnabled: fields[19] as bool? ?? true,
       tamperDetectionEnabled: fields[20] as bool? ?? true,
+      logRetentionDays: fields[21] as int? ?? 30,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettings obj) {
     writer
-      ..writeByte(21)
+      ..writeByte(22)
       ..writeByte(0)
       ..write(obj.useBiometric)
       ..writeByte(1)
@@ -86,7 +87,9 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       ..writeByte(19)
       ..write(obj.auditLoggingEnabled)
       ..writeByte(20)
-      ..write(obj.tamperDetectionEnabled);
+      ..write(obj.tamperDetectionEnabled)
+      ..writeByte(21)
+      ..write(obj.logRetentionDays);
   }
 
   @override

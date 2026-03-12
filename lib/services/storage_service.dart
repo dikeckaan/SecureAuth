@@ -14,6 +14,7 @@ class StorageService {
   static const String _settingsBox = 'settings';
   static const String _encryptionKeyName = 'encryption_key';
   static const String _settingsEncryptionKeyName = 'settings_encryption_key';
+  static const String _logsEncryptionKeyName = 'logs_encryption_key';
 
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   Box<AccountModel>? _accountsBoxInstance;
@@ -61,8 +62,20 @@ class StorageService {
     if (_settingsBoxInstance!.isEmpty) {
       await _settingsBoxInstance!.put('settings', AppSettings());
     }
+
+    // Initialize encrypted log persistence
+    final logsKey = await _getOrCreateKey(_logsEncryptionKeyName);
+    final logsKeyBytes = base64Url.decode(logsKey);
+    await _log.initPersistence(logsKeyBytes);
+
+    // Purge expired log entries based on retention setting
+    final settings = getSettings();
+    final purged = await _log.purgeExpired(settings.logRetentionDays);
+
     _log.info('storage', 'Storage initialized', {
       'accounts': _accountsBoxInstance!.length,
+      'persistedLogs': _log.persistedLength,
+      if (purged > 0) 'expiredLogsPurged': purged,
     });
   }
 

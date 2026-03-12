@@ -124,9 +124,8 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
     );
 
     if (confirmed == true) {
-      setState(() {
-        _logger.clear();
-      });
+      await _logger.clear();
+      if (mounted) setState(() {});
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('All logs cleared')),

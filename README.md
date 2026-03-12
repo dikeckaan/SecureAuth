@@ -241,11 +241,12 @@ SecureAuth maintains a structured security event log for transparency and forens
 
 | Property | Value |
 |---|---|
-| **Storage** | In-memory ring buffer (500 entries max) |
+| **Storage** | Encrypted Hive box (AES-256) + in-memory ring buffer (500 entries) |
 | **Log levels** | debug, info, warning, error, security |
 | **Categories** | auth, backup, storage, tamper, app |
 | **Per entry** | Timestamp, level, category, message, metadata map |
-| **Persistence** | Session-only (cleared on app restart for privacy) |
+| **Persistence** | All logs persisted to encrypted disk; survives app restarts |
+| **Retention** | Configurable TTL (default 30 days); expired entries purged on startup |
 | **Toggle** | Enable/disable from Settings → Audit & Logs |
 | **Export** | Text or JSON via native share sheet |
 | **Viewer** | Full-featured log viewer with 7 filter chips (All, Security, Errors, Auth, Backup, Storage, Tamper) |
