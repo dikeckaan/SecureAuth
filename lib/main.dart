@@ -10,6 +10,7 @@ import 'services/screen_protection_service.dart';
 import 'services/storage_service.dart';
 import 'services/auth_service.dart';
 import 'services/tamper_detection_service.dart';
+import 'services/service_locator.dart';
 import 'screens/setup_screen.dart';
 import 'screens/auth_screen.dart';
 import 'screens/home_screen.dart';
@@ -26,8 +27,11 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  final storageService = StorageService();
-  await storageService.init();
+  await ServiceLocator.instance.init();
+
+  final storageService = ServiceLocator.instance.storageService;
+  final authService = ServiceLocator.instance.authService;
+  final tamperDetectionService = ServiceLocator.instance.tamperDetectionService;
 
   final settings = storageService.getSettings();
 
@@ -39,9 +43,6 @@ void main() async {
   } catch (_) {
     // Non-fatal: screen protection is a best-effort feature
   }
-
-  final authService = AuthService(storageService);
-  final tamperDetectionService = TamperDetectionService();
 
   // Run tamper detection check before showing any UI
   bool isTampered = false;

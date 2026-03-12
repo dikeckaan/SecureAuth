@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../models/account_model.dart';
 import '../models/app_settings.dart';
+import '../utils/result.dart';
 import 'logger_service.dart';
 
 class StorageService {
@@ -189,6 +190,29 @@ class StorageService {
       'skippedDuplicates': accountsList.length - imported,
     });
     return imported;
+  }
+
+  /// Result-safe version of importAccountsFromJson.
+  Future<Result<int>> importAccountsSafe(String jsonString) async {
+    try {
+      final count = await importAccountsFromJson(jsonString);
+      return Result.success(count);
+    } on FormatException catch (e, st) {
+      return Result.failure(AppError(
+        category: ErrorCategory.backup,
+        message: e.message,
+        userMessage: 'Invalid backup file format',
+        originalError: e,
+        stackTrace: st,
+      ));
+    } catch (e, st) {
+      return Result.failure(AppError(
+        category: ErrorCategory.storage,
+        message: 'Import failed: $e',
+        originalError: e,
+        stackTrace: st,
+      ));
+    }
   }
 
   // --- Data Management ---

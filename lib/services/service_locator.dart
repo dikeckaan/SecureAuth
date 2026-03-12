@@ -4,6 +4,7 @@ import 'auth_service.dart';
 import 'logger_service.dart';
 import 'security_service.dart';
 import 'storage_service.dart';
+import 'tamper_detection_service.dart';
 import 'totp_service.dart';
 
 /// Lightweight service locator for dependency injection.
@@ -30,12 +31,14 @@ class ServiceLocator {
   late final StorageService _storageService;
   late final AuthService _authService;
   late final TOTPService _totpService;
+  late final TamperDetectionService _tamperDetectionService;
 
   LoggerService get loggerService => _loggerService;
   SecurityService get securityService => _securityService;
   StorageService get storageService => _storageService;
   AuthService get authService => _authService;
   TOTPService get totpService => _totpService;
+  TamperDetectionService get tamperDetectionService => _tamperDetectionService;
 
   // ─── Initialization ──────────────────────────────────────────────────────
 
@@ -63,6 +66,8 @@ class ServiceLocator {
 
     _totpService = TOTPService();
 
+    _tamperDetectionService = TamperDetectionService();
+
     _initialized = true;
     _loggerService.info('app', 'ServiceLocator initialized');
   }
@@ -84,12 +89,14 @@ class ServiceLocator {
     StorageService? storageService,
     AuthService? authService,
     TOTPService? totpService,
+    TamperDetectionService? tamperDetectionService,
   }) {
     _loggerService = loggerService ?? LoggerService.instance;
     if (securityService != null) _securityService = securityService;
     if (storageService != null) _storageService = storageService;
     if (authService != null) _authService = authService;
     if (totpService != null) _totpService = totpService;
+    if (tamperDetectionService != null) _tamperDetectionService = tamperDetectionService;
     _initialized = true;
   }
 

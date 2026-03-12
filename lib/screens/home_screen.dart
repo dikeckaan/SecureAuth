@@ -89,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
       ),
     );
-    if (result == true) _loadAccounts();
+    if (result == true && mounted) _loadAccounts();
   }
 
   Future<void> _editAccount(AccountModel account) async {
@@ -146,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     nameCtrl.dispose();
     issuerCtrl.dispose();
-    if (result == true) _loadAccounts();
+    if (result == true && mounted) _loadAccounts();
   }
 
   Future<void> _deleteAccount(AccountModel account) async {
@@ -204,8 +204,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     if (confirmed == true) {
       await widget.storageService.deleteAccount(account.id);
-      _loadAccounts();
       if (mounted) {
+        _loadAccounts();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(l10n.accountDeleted),
@@ -238,7 +238,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
       ),
     );
-    _loadAccounts();
+    if (mounted) _loadAccounts();
   }
 
   Future<void> _copyCode(String code, AccountModel account) async {

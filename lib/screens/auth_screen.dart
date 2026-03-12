@@ -156,9 +156,8 @@ class _AuthScreenState extends State<AuthScreen>
                   settings.maxFailedAttempts - attempts);
             }
           });
+          _passwordController.clear();
         }
-
-        _passwordController.clear();
       }
     } finally {
       if (mounted) {

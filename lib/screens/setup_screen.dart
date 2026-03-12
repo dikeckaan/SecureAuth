@@ -60,8 +60,10 @@ class _SetupScreenState extends State<SetupScreen> {
     final settings = widget.storageService.getSettings();
     settings.themePreference = value;
     await widget.storageService.updateSettings(settings);
-    setState(() => _themePreference = value);
-    widget.onThemeChanged();
+    if (mounted) {
+      setState(() => _themePreference = value);
+      widget.onThemeChanged();
+    }
   }
 
   void _cycleTheme() {

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:local_auth/local_auth.dart';
 
 import '../utils/constants.dart';
+import '../utils/result.dart';
 import 'logger_service.dart';
 import 'security_service.dart';
 import 'storage_service.dart';
@@ -121,6 +122,42 @@ class AuthService {
     }
 
     return isValid;
+  }
+
+  /// Result-safe password verification.
+  ///
+  /// Returns:
+  ///   - `Result.success(true)` — correct password
+  ///   - `Result.success(false)` — wrong password (attempts tracked)
+  ///   - `Result.failure(...)` with ErrorCategory.auth — locked out or wiped
+  Future<Result<bool>> verifyPasswordSafe(String password) async {
+    try {
+      if (await _securityService.isLockedOut()) {
+        final remaining = await _securityService.getRemainingLockout();
+        return Result.failure(AppError(
+          category: ErrorCategory.auth,
+          message: 'Account is locked out',
+          userMessage: 'Too many failed attempts. Try again later.',
+        ));
+      }
+      final isValid = await verifyPassword(password);
+      if (!isValid && !hasPassword()) {
+        // Data was wiped due to max failed attempts
+        return Result.failure(AppError(
+          category: ErrorCategory.auth,
+          message: 'Data wiped after max failed attempts',
+          userMessage: 'All data has been erased for security.',
+        ));
+      }
+      return Result.success(isValid);
+    } catch (e, st) {
+      return Result.failure(AppError(
+        category: ErrorCategory.auth,
+        message: 'Authentication error: $e',
+        originalError: e,
+        stackTrace: st,
+      ));
+    }
   }
 
   Future<void> removePassword() async {

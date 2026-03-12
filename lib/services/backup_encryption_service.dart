@@ -6,6 +6,7 @@ import 'package:encrypt/encrypt.dart' as enc;
 import 'package:hashlib/hashlib.dart';
 
 import '../utils/constants.dart';
+import '../utils/result.dart';
 import 'logger_service.dart';
 import 'security_service.dart';
 
@@ -118,6 +119,49 @@ class BackupEncryptionService {
       if (data[i] != _magic[i]) return false;
     }
     return true;
+  }
+
+  /// Result-safe version of decryptBackup.
+  static Future<Result<String>> decryptBackupSafe(Uint8List data, String password) async {
+    try {
+      final result = await decryptBackup(data, password);
+      return Result.success(result);
+    } on FormatException catch (e, st) {
+      final category = e.message.contains('Wrong password')
+          ? ErrorCategory.auth
+          : ErrorCategory.backup;
+      return Result.failure(AppError(
+        category: category,
+        message: e.message,
+        userMessage: e.message.contains('Wrong password')
+            ? 'Wrong password or corrupted backup file'
+            : 'Invalid backup file format',
+        originalError: e,
+        stackTrace: st,
+      ));
+    } catch (e, st) {
+      return Result.failure(AppError(
+        category: ErrorCategory.backup,
+        message: 'Unexpected decryption error: $e',
+        originalError: e,
+        stackTrace: st,
+      ));
+    }
+  }
+
+  /// Result-safe version of encryptBackup.
+  static Future<Result<Uint8List>> encryptBackupSafe(String jsonData, String password) async {
+    try {
+      final result = await encryptBackup(jsonData, password);
+      return Result.success(result);
+    } catch (e, st) {
+      return Result.failure(AppError(
+        category: ErrorCategory.crypto,
+        message: 'Encryption failed: $e',
+        originalError: e,
+        stackTrace: st,
+      ));
+    }
   }
 
   // ── Private helpers ───────────────────────────────────────────────────────
