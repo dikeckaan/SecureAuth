@@ -36,13 +36,15 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       steamGuardEnabled: fields[16] as bool,
       hashVersion: fields[17] as String?,
       screenProtection: fields[18] as bool,
+      auditLoggingEnabled: fields[19] as bool? ?? true,
+      tamperDetectionEnabled: fields[20] as bool? ?? true,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettings obj) {
     writer
-      ..writeByte(19)
+      ..writeByte(21)
       ..writeByte(0)
       ..write(obj.useBiometric)
       ..writeByte(1)
@@ -80,7 +82,11 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       ..writeByte(17)
       ..write(obj.hashVersion)
       ..writeByte(18)
-      ..write(obj.screenProtection);
+      ..write(obj.screenProtection)
+      ..writeByte(19)
+      ..write(obj.auditLoggingEnabled)
+      ..writeByte(20)
+      ..write(obj.tamperDetectionEnabled);
   }
 
   @override

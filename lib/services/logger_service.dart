@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
@@ -58,6 +59,9 @@ class LoggerService {
   /// Whether to print logs to the debug console.
   bool printToConsole = kDebugMode;
 
+  /// Whether logging is enabled. When false, _log() skips writing.
+  bool loggingEnabled = true;
+
   // ─── Public API ──────────────────────────────────────────────────────────
 
   void debug(String category, String message, [Map<String, dynamic>? meta]) =>
@@ -102,6 +106,53 @@ class LoggerService {
   /// Total entries currently stored.
   int get length => _buffer.length;
 
+  /// Advanced filtering of log entries by level, category, and time range.
+  List<LogEntry> getFilteredEntries({
+    LogLevel? minLevel,
+    String? category,
+    DateTime? from,
+    DateTime? to,
+  }) {
+    final minLevelIndex = minLevel != null ? minLevel.index : -1;
+    return _buffer.where((e) {
+      if (minLevel != null && e.level.index < minLevelIndex) return false;
+      if (category != null && e.category != category) return false;
+      if (from != null && e.timestamp.isBefore(from)) return false;
+      if (to != null && e.timestamp.isAfter(to)) return false;
+      return true;
+    }).toList();
+  }
+
+  /// Exports all log entries as a readable text report.
+  String exportAsText() {
+    if (_buffer.isEmpty) {
+      return 'No log entries.';
+    }
+    final buffer = StringBuffer();
+    buffer.writeln('=== LOG EXPORT ===');
+    buffer.writeln('Exported: ${DateTime.now().toIso8601String()}');
+    buffer.writeln('Total entries: ${_buffer.length}');
+    buffer.writeln('');
+    for (final entry in _buffer) {
+      buffer.writeln(entry.toString());
+    }
+    return buffer.toString();
+  }
+
+  /// Exports all log entries as a JSON array string.
+  String exportAsJson() {
+    final jsonList = _buffer.map((entry) {
+      return {
+        'timestamp': entry.timestamp.toIso8601String(),
+        'level': entry.level.name,
+        'category': entry.category,
+        'message': entry.message,
+        'metadata': entry.metadata,
+      };
+    }).toList();
+    return jsonEncode(jsonList);
+  }
+
   // ─── Internal ────────────────────────────────────────────────────────────
 
   void _log(
@@ -110,6 +161,10 @@ class LoggerService {
     String message,
     Map<String, dynamic>? metadata,
   ) {
+    if (!loggingEnabled) {
+      return;
+    }
+
     final entry = LogEntry(
       timestamp: DateTime.now(),
       level: level,

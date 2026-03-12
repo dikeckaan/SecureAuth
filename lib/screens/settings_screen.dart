@@ -12,9 +12,11 @@ import '../models/app_settings.dart';
 import '../services/auth_service.dart';
 import '../services/screen_protection_service.dart';
 import '../services/backup_encryption_service.dart';
+import '../services/logger_service.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
 import '../widgets/color_picker_widget.dart';
+import 'log_viewer_screen.dart';
 import 'setup_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -48,6 +50,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late bool _clearClipboard;
   late bool _steamGuardEnabled;
   late bool _screenProtection;
+  late bool _auditLoggingEnabled;
+  late bool _tamperDetectionEnabled;
   bool _biometricAvailable = false;
 
   static const _supportedLanguages = [
@@ -88,6 +92,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _clearClipboard = settings.clearClipboard;
     _steamGuardEnabled = settings.steamGuardEnabled;
     _screenProtection = settings.screenProtection;
+    _auditLoggingEnabled = settings.auditLoggingEnabled;
+    _tamperDetectionEnabled = settings.tamperDetectionEnabled;
   }
 
   Future<void> _checkBiometric() async {
@@ -1152,6 +1158,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               value: _wipeOnMaxAttempts,
               onChanged: _toggleWipeOnMax,
+            ),
+          ]),
+
+          // ── Audit & Logs ──────────────────────────────────────────
+          _buildSectionLabel(
+              theme, 'Audit & Logs', Icons.assignment_outlined),
+          _buildCard([
+            SwitchListTile(
+              secondary: _buildLeadingIcon(
+                  Icons.receipt_long_outlined, theme.colorScheme.primary),
+              title: const Text('Security Logging'),
+              subtitle: Text(_auditLoggingEnabled
+                  ? 'Recording security events'
+                  : 'Logging disabled'),
+              value: _auditLoggingEnabled,
+              onChanged: (v) async {
+                await _updateSetting((s) => s.auditLoggingEnabled = v);
+                LoggerService.instance.loggingEnabled = v;
+                setState(() => _auditLoggingEnabled = v);
+              },
+            ),
+            _buildInternalDivider(),
+            SwitchListTile(
+              secondary: _buildLeadingIcon(
+                  Icons.access_time_outlined,
+                  _tamperDetectionEnabled
+                      ? theme.colorScheme.primary
+                      : Colors.grey),
+              title: const Text('Clock Tamper Detection'),
+              subtitle: const Text(
+                  'Block app if system clock is manipulated'),
+              value: _tamperDetectionEnabled,
+              onChanged: (v) async {
+                await _updateSetting((s) => s.tamperDetectionEnabled = v);
+                setState(() => _tamperDetectionEnabled = v);
+              },
+            ),
+            _buildInternalDivider(),
+            ListTile(
+              leading: _buildLeadingIcon(
+                  Icons.history_outlined, const Color(0xFF7C3AED)),
+              title: const Text('View Security Logs'),
+              subtitle: Text(
+                  '${LoggerService.instance.length} entries recorded'),
+              trailing: const Icon(Icons.chevron_right, size: 18),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const LogViewerScreen(),
+                  ),
+                ).then((_) => setState(() {}));
+              },
             ),
           ]),
 

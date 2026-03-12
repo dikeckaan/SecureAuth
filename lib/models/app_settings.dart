@@ -76,6 +76,14 @@ class AppSettings extends HiveObject {
   @HiveField(18)
   bool screenProtection;
 
+  /// Whether security audit logging is enabled (default: true)
+  @HiveField(19)
+  bool auditLoggingEnabled;
+
+  /// Whether clock tamper detection is enabled (default: true)
+  @HiveField(20)
+  bool tamperDetectionEnabled;
+
   AppSettings({
     this.useBiometric = false,
     this.requireAuthOnLaunch = true,
@@ -96,5 +104,7 @@ class AppSettings extends HiveObject {
     this.steamGuardEnabled = false,
     this.hashVersion,
     this.screenProtection = true,
+    this.auditLoggingEnabled = true,
+    this.tamperDetectionEnabled = true,
   });
 }

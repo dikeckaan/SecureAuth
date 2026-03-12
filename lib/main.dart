@@ -5,12 +5,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:secure_auth/l10n/app_localizations.dart';
 
+import 'services/logger_service.dart';
 import 'services/screen_protection_service.dart';
 import 'services/storage_service.dart';
 import 'services/auth_service.dart';
+import 'services/tamper_detection_service.dart';
 import 'screens/setup_screen.dart';
 import 'screens/auth_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/tamper_lockdown_screen.dart';
 import 'utils/constants.dart';
 import 'utils/theme.dart';
 
@@ -27,6 +30,10 @@ void main() async {
   await storageService.init();
 
   final settings = storageService.getSettings();
+
+  // Sync logging enabled state from persisted settings
+  LoggerService.instance.loggingEnabled = settings.auditLoggingEnabled;
+
   try {
     await ScreenProtectionService.setSecure(settings.screenProtection);
   } catch (_) {
@@ -34,21 +41,34 @@ void main() async {
   }
 
   final authService = AuthService(storageService);
+  final tamperDetectionService = TamperDetectionService();
+
+  // Run tamper detection check before showing any UI
+  bool isTampered = false;
+  if (settings.tamperDetectionEnabled) {
+    isTampered = await tamperDetectionService.checkIntegrity();
+  }
 
   runApp(SecureAuthApp(
     storageService: storageService,
     authService: authService,
+    tamperDetectionService: tamperDetectionService,
+    initialTamperState: isTampered,
   ));
 }
 
 class SecureAuthApp extends StatefulWidget {
   final StorageService storageService;
   final AuthService authService;
+  final TamperDetectionService tamperDetectionService;
+  final bool initialTamperState;
 
   const SecureAuthApp({
     super.key,
     required this.storageService,
     required this.authService,
+    required this.tamperDetectionService,
+    this.initialTamperState = false,
   });
 
   @override
@@ -63,21 +83,26 @@ class _SecureAuthAppState extends State<SecureAuthApp>
   int _accentColorIndex = 0;
   Locale? _locale;
   Timer? _inactivityTimer;
+  Timer? _timestampTimer;
   bool _isLocked = false;
+  late bool _isTampered;
 
   @override
   void initState() {
     super.initState();
+    _isTampered = widget.initialTamperState;
     WidgetsBinding.instance.addObserver(this);
     _loadTheme();
     _loadLocale();
     _startInactivityTimer();
+    _startTimestampRecording();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _inactivityTimer?.cancel();
+    _timestampTimer?.cancel();
     super.dispose();
   }
 
@@ -142,15 +167,41 @@ class _SecureAuthAppState extends State<SecureAuthApp>
     });
   }
 
+  /// Periodically record timestamps for tamper detection (every 15 seconds).
+  void _startTimestampRecording() {
+    _timestampTimer?.cancel();
+    final settings = widget.storageService.getSettings();
+    if (settings.tamperDetectionEnabled) {
+      _timestampTimer = Timer.periodic(
+        const Duration(seconds: 15),
+        (_) => widget.tamperDetectionService.recordTimestamp(),
+      );
+    }
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       // Record last activity when going to background
       widget.authService.recordActivity();
+      // Record timestamp for tamper detection
+      widget.tamperDetectionService.recordTimestamp();
     } else if (state == AppLifecycleState.resumed) {
+      // Re-check tamper detection on resume
+      _checkTamperOnResume();
       // Check if should lock on resume
       _checkAutoLock();
+    }
+  }
+
+  Future<void> _checkTamperOnResume() async {
+    final settings = widget.storageService.getSettings();
+    if (!settings.tamperDetectionEnabled) return;
+
+    final tampered = await widget.tamperDetectionService.checkIntegrity();
+    if (tampered && mounted && !_isTampered) {
+      setState(() => _isTampered = true);
     }
   }
 
@@ -206,6 +257,18 @@ class _SecureAuthAppState extends State<SecureAuthApp>
   }
 
   Widget _determineScreen() {
+    // TAMPER CHECK — highest priority, blocks everything
+    if (_isTampered) {
+      return TamperLockdownScreen(
+        storageService: widget.storageService,
+        authService: widget.authService,
+        tamperDetectionService: widget.tamperDetectionService,
+        onCleared: () {
+          setState(() => _isTampered = false);
+        },
+      );
+    }
+
     final hasPassword = widget.authService.hasPassword();
     final settings = widget.storageService.getSettings();
 
