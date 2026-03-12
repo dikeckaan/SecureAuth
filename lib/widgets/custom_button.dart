@@ -92,14 +92,15 @@ class GradientButton extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: onPressed != null && !isLoading
             ? LinearGradient(
-                colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
+                colors: [
+                  theme.colorScheme.primary,
+                  theme.colorScheme.secondary,
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               )
             : null,
-        color: onPressed == null || isLoading
-            ? Colors.grey.shade400
-            : null,
+        color: onPressed == null || isLoading ? Colors.grey.shade400 : null,
         borderRadius: BorderRadius.circular(AppConstants.radiusMD),
         boxShadow: onPressed != null && !isLoading
             ? [

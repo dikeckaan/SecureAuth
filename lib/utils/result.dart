@@ -57,7 +57,8 @@ sealed class Result<T> {
 
   /// Chains another Result-returning operation on success.
   Future<Result<R>> flatMap<R>(
-      Future<Result<R>> Function(T value) transform) async {
+    Future<Result<R>> Function(T value) transform,
+  ) async {
     return switch (this) {
       Success<T>(value: final v) => transform(v),
       Failure<T>(error: final e) => Result.failure(e),

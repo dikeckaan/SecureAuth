@@ -24,7 +24,7 @@ class TamperDetectionService {
   static final _log = LoggerService.instance;
 
   TamperDetectionService({FlutterSecureStorage? secureStorage})
-      : _secureStorage = secureStorage ?? const FlutterSecureStorage();
+    : _secureStorage = secureStorage ?? const FlutterSecureStorage();
 
   /// Call on every app launch / resume. Returns true if tamper is detected.
   Future<bool> checkIntegrity() async {
@@ -60,21 +60,25 @@ class TamperDetectionService {
 
     // Check 1: Current time before first launch (impossible)
     if (now < firstLaunch - _toleranceMs) {
-      _log.security('tamper', 'CLOCK ROLLBACK: current time before first launch', {
-        'currentTime': now,
-        'firstLaunch': firstLaunch,
-        'delta': firstLaunch - now,
-      });
+      _log.security(
+        'tamper',
+        'CLOCK ROLLBACK: current time before first launch',
+        {
+          'currentTime': now,
+          'firstLaunch': firstLaunch,
+          'delta': firstLaunch - now,
+        },
+      );
       tampered = true;
     }
 
     // Check 2: Current time before last known time (clock rolled back)
     if (now < lastKnown - _toleranceMs) {
-      _log.security('tamper', 'CLOCK ROLLBACK: current time before last known', {
-        'currentTime': now,
-        'lastKnown': lastKnown,
-        'delta': lastKnown - now,
-      });
+      _log.security(
+        'tamper',
+        'CLOCK ROLLBACK: current time before last known',
+        {'currentTime': now, 'lastKnown': lastKnown, 'delta': lastKnown - now},
+      );
       tampered = true;
     }
 
@@ -121,10 +125,14 @@ class TamperDetectionService {
     final tampered = await _secureStorage.read(key: _tamperDetectedKey);
     return {
       'firstLaunch': firstLaunch != null
-          ? DateTime.fromMillisecondsSinceEpoch(int.parse(firstLaunch)).toIso8601String()
+          ? DateTime.fromMillisecondsSinceEpoch(
+              int.parse(firstLaunch),
+            ).toIso8601String()
           : null,
       'lastKnownTime': lastKnown != null
-          ? DateTime.fromMillisecondsSinceEpoch(int.parse(lastKnown)).toIso8601String()
+          ? DateTime.fromMillisecondsSinceEpoch(
+              int.parse(lastKnown),
+            ).toIso8601String()
           : null,
       'bootCount': int.tryParse(bootCount ?? '0') ?? 0,
       'tamperDetected': tampered == 'true',

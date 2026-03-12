@@ -22,9 +22,7 @@ class QRDisplayScreen extends StatelessWidget {
     final serviceColor = AppColors.getServiceColor(account.issuer);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.qrCode),
-      ),
+      appBar: AppBar(title: Text(l10n.qrCode)),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppConstants.paddingLG),
@@ -47,8 +45,9 @@ class QRDisplayScreen extends StatelessWidget {
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
-                          borderRadius:
-                              BorderRadius.circular(AppConstants.radiusMD),
+                          borderRadius: BorderRadius.circular(
+                            AppConstants.radiusMD,
+                          ),
                         ),
                         child: Center(
                           child: Text(
@@ -82,8 +81,9 @@ class QRDisplayScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(AppConstants.paddingMD),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius:
-                              BorderRadius.circular(AppConstants.radiusMD),
+                          borderRadius: BorderRadius.circular(
+                            AppConstants.radiusMD,
+                          ),
                           border: Border.all(
                             color: theme.colorScheme.outline.withAlpha(51),
                           ),
@@ -110,8 +110,11 @@ class QRDisplayScreen extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline,
-                        size: 18, color: theme.colorScheme.primary),
+                    Icon(
+                      Icons.info_outline,
+                      size: 18,
+                      color: theme.colorScheme.primary,
+                    ),
                     const SizedBox(width: AppConstants.paddingSM),
                     Expanded(
                       child: Text(

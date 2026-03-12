@@ -7,13 +7,7 @@ import 'package:hive/hive.dart';
 import '../models/log_entry_model.dart';
 
 /// Log severity levels, ordered from least to most severe.
-enum LogLevel {
-  debug,
-  info,
-  warning,
-  error,
-  security,
-}
+enum LogLevel { debug, info, warning, error, security }
 
 /// A single structured log entry (in-memory representation).
 class LogEntry {
@@ -42,8 +36,12 @@ class LogEntry {
       }
     }
     return LogEntry(
-      timestamp: DateTime.fromMillisecondsSinceEpoch(model.timestampMs, isUtc: true).toLocal(),
-      level: LogLevel.values[model.levelIndex.clamp(0, LogLevel.values.length - 1)],
+      timestamp: DateTime.fromMillisecondsSinceEpoch(
+        model.timestampMs,
+        isUtc: true,
+      ).toLocal(),
+      level: LogLevel
+          .values[model.levelIndex.clamp(0, LogLevel.values.length - 1)],
       category: model.category,
       message: model.message,
       metadata: meta,
@@ -65,8 +63,7 @@ class LogEntry {
 
   @override
   String toString() {
-    final meta =
-        metadata != null && metadata!.isNotEmpty ? ' | $metadata' : '';
+    final meta = metadata != null && metadata!.isNotEmpty ? ' | $metadata' : '';
     return '[${timestamp.toIso8601String()}] '
         '${level.name.toUpperCase().padRight(8)} '
         '[$category] $message$meta';
@@ -180,8 +177,7 @@ class LoggerService {
   void info(String category, String message, [Map<String, dynamic>? meta]) =>
       _log(LogLevel.info, category, message, meta);
 
-  void warning(String category, String message,
-          [Map<String, dynamic>? meta]) =>
+  void warning(String category, String message, [Map<String, dynamic>? meta]) =>
       _log(LogLevel.warning, category, message, meta);
 
   void error(String category, String message, [Map<String, dynamic>? meta]) =>
@@ -189,9 +185,11 @@ class LoggerService {
 
   /// Security-specific log level for auditable events:
   /// login attempts, password changes, backup operations, data wipes, etc.
-  void security(String category, String message,
-          [Map<String, dynamic>? meta]) =>
-      _log(LogLevel.security, category, message, meta);
+  void security(
+    String category,
+    String message, [
+    Map<String, dynamic>? meta,
+  ]) => _log(LogLevel.security, category, message, meta);
 
   // ─── Query ───────────────────────────────────────────────────────────────
 

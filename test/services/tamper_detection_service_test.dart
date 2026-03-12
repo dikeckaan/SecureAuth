@@ -26,8 +26,7 @@ void main() {
       test('first launch timestamps are consistent', () async {
         await service.checkIntegrity();
 
-        final firstLaunch =
-            int.parse(storage.store['first_launch_timestamp']!);
+        final firstLaunch = int.parse(storage.store['first_launch_timestamp']!);
         final lastKnown = int.parse(storage.store['last_known_timestamp']!);
 
         // Both should be set to approximately the same time
@@ -36,8 +35,7 @@ void main() {
     });
 
     group('normal operation', () {
-      test('subsequent checks return false when clock moves forward',
-          () async {
+      test('subsequent checks return false when clock moves forward', () async {
         // First launch
         await service.checkIntegrity();
 
@@ -94,11 +92,9 @@ void main() {
         expect(storage.store['tamper_detected'], equals('true'));
       });
 
-      test('returns true on subsequent checks after tamper detected',
-          () async {
+      test('returns true on subsequent checks after tamper detected', () async {
         // Trigger tamper
-        final futureTime =
-            DateTime.now().millisecondsSinceEpoch + 3600000;
+        final futureTime = DateTime.now().millisecondsSinceEpoch + 3600000;
         storage.store['first_launch_timestamp'] = futureTime.toString();
         storage.store['last_known_timestamp'] = futureTime.toString();
         storage.store['boot_count'] = '1';
@@ -130,8 +126,9 @@ void main() {
       test('clears tamper flag and resets last known timestamp', () async {
         // Set tamper flag
         storage.store['tamper_detected'] = 'true';
-        storage.store['first_launch_timestamp'] =
-            DateTime.now().millisecondsSinceEpoch.toString();
+        storage.store['first_launch_timestamp'] = DateTime.now()
+            .millisecondsSinceEpoch
+            .toString();
 
         expect(await service.isTampered(), isTrue);
 
@@ -145,10 +142,12 @@ void main() {
       test('subsequent check returns false after clearing', () async {
         // Trigger and clear
         storage.store['tamper_detected'] = 'true';
-        storage.store['first_launch_timestamp'] =
-            DateTime.now().millisecondsSinceEpoch.toString();
-        storage.store['last_known_timestamp'] =
-            DateTime.now().millisecondsSinceEpoch.toString();
+        storage.store['first_launch_timestamp'] = DateTime.now()
+            .millisecondsSinceEpoch
+            .toString();
+        storage.store['last_known_timestamp'] = DateTime.now()
+            .millisecondsSinceEpoch
+            .toString();
         storage.store['boot_count'] = '1';
 
         await service.clearTamperFlag();
@@ -189,8 +188,9 @@ void main() {
 
       test('shows tamperDetected true after tamper', () async {
         storage.store['tamper_detected'] = 'true';
-        storage.store['first_launch_timestamp'] =
-            DateTime.now().millisecondsSinceEpoch.toString();
+        storage.store['first_launch_timestamp'] = DateTime.now()
+            .millisecondsSinceEpoch
+            .toString();
         storage.store['boot_count'] = '1';
 
         final diag = await service.getDiagnostics();

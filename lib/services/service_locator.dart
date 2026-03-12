@@ -45,16 +45,12 @@ class ServiceLocator {
   /// Initializes all services in dependency order.
   ///
   /// Must be called once at app startup (typically in main.dart).
-  Future<void> init({
-    FlutterSecureStorage? secureStorage,
-  }) async {
+  Future<void> init({FlutterSecureStorage? secureStorage}) async {
     if (_initialized) return;
 
     _loggerService = LoggerService.instance;
 
-    _securityService = SecurityService(
-      secureStorage: secureStorage,
-    );
+    _securityService = SecurityService(secureStorage: secureStorage);
 
     _storageService = StorageService();
     await _storageService.init();
@@ -96,7 +92,8 @@ class ServiceLocator {
     if (storageService != null) _storageService = storageService;
     if (authService != null) _authService = authService;
     if (totpService != null) _totpService = totpService;
-    if (tamperDetectionService != null) _tamperDetectionService = tamperDetectionService;
+    if (tamperDetectionService != null)
+      _tamperDetectionService = tamperDetectionService;
     _initialized = true;
   }
 

@@ -14,44 +14,51 @@ void main() {
   group('Backup Round-Trip Integration', () {
     // ─── Basic Round-Trip ───────────────────────────────────────────────
 
-    test('encrypt → decrypt with same password returns original JSON', () async {
-      final original = jsonEncode({
-        'accounts': [
-          {
-            'id': 'test-1',
-            'issuer': 'GitHub',
-            'accountName': 'user@example.com',
-            'secret': 'JBSWY3DPEBLW64TMMQ======',
-            'type': 'TOTP',
-          }
-        ],
-        'exported_at': '2026-03-12T12:00:00Z',
-      });
+    test(
+      'encrypt → decrypt with same password returns original JSON',
+      () async {
+        final original = jsonEncode({
+          'accounts': [
+            {
+              'id': 'test-1',
+              'issuer': 'GitHub',
+              'accountName': 'user@example.com',
+              'secret': 'JBSWY3DPEBLW64TMMQ======',
+              'type': 'TOTP',
+            },
+          ],
+          'exported_at': '2026-03-12T12:00:00Z',
+        });
 
-      const password = 'MyBackupPassword123!';
+        const password = 'MyBackupPassword123!';
 
-      final encrypted =
-          await BackupEncryptionService.encryptBackup(original, password);
-      final decrypted = await BackupEncryptionService.decryptBackup(
-        encrypted,
-        password,
-      );
+        final encrypted = await BackupEncryptionService.encryptBackup(
+          original,
+          password,
+        );
+        final decrypted = await BackupEncryptionService.decryptBackup(
+          encrypted,
+          password,
+        );
 
-      expect(decrypted, original);
-    });
+        expect(decrypted, original);
+      },
+    );
 
     test('encrypt → decrypt with correct password succeeds', () async {
       final testData = jsonEncode({
         'version': '2.0',
         'accounts': [
-          {'id': '1', 'issuer': 'Test', 'accountName': 'test@test.com'}
+          {'id': '1', 'issuer': 'Test', 'accountName': 'test@test.com'},
         ],
       });
 
       const password = 'CorrectPassword456!';
 
-      final encrypted =
-          await BackupEncryptionService.encryptBackup(testData, password);
+      final encrypted = await BackupEncryptionService.encryptBackup(
+        testData,
+        password,
+      );
       expect(encrypted, isNotEmpty);
 
       final decrypted = await BackupEncryptionService.decryptBackup(
@@ -61,46 +68,54 @@ void main() {
       expect(decrypted, testData);
     });
 
-    test('encrypt → decrypt with wrong password throws FormatException',
-        () async {
-      final testData = jsonEncode({
-        'accounts': [
-          {'id': '1', 'issuer': 'Test'}
-        ],
-      });
+    test(
+      'encrypt → decrypt with wrong password throws FormatException',
+      () async {
+        final testData = jsonEncode({
+          'accounts': [
+            {'id': '1', 'issuer': 'Test'},
+          ],
+        });
 
-      const correctPassword = 'CorrectPassword123!';
-      const wrongPassword = 'WrongPassword456!';
+        const correctPassword = 'CorrectPassword123!';
+        const wrongPassword = 'WrongPassword456!';
 
-      final encrypted = await BackupEncryptionService.encryptBackup(
-        testData,
-        correctPassword,
-      );
+        final encrypted = await BackupEncryptionService.encryptBackup(
+          testData,
+          correctPassword,
+        );
 
-      expect(
-        () async => await BackupEncryptionService.decryptBackup(
-          encrypted,
-          wrongPassword,
-        ),
-        throwsA(isA<FormatException>()),
-      );
-    });
+        expect(
+          () async => await BackupEncryptionService.decryptBackup(
+            encrypted,
+            wrongPassword,
+          ),
+          throwsA(isA<FormatException>()),
+        );
+      },
+    );
 
     // ─── Uniqueness and Randomness ──────────────────────────────────────
 
-    test('two encryptions of same data produce different ciphertexts',
-        () async {
-      final testData = jsonEncode({'data': 'test content'});
-      const password = 'SamePassword123!';
+    test(
+      'two encryptions of same data produce different ciphertexts',
+      () async {
+        final testData = jsonEncode({'data': 'test content'});
+        const password = 'SamePassword123!';
 
-      final encrypted1 =
-          await BackupEncryptionService.encryptBackup(testData, password);
-      final encrypted2 =
-          await BackupEncryptionService.encryptBackup(testData, password);
+        final encrypted1 = await BackupEncryptionService.encryptBackup(
+          testData,
+          password,
+        );
+        final encrypted2 = await BackupEncryptionService.encryptBackup(
+          testData,
+          password,
+        );
 
-      // Different salts and nonces should produce different ciphertexts
-      expect(encrypted1, isNot(equals(encrypted2)));
-    });
+        // Different salts and nonces should produce different ciphertexts
+        expect(encrypted1, isNot(equals(encrypted2)));
+      },
+    );
 
     // ─── Format Structure Verification ──────────────────────────────────
 
@@ -108,8 +123,10 @@ void main() {
       final testData = jsonEncode({'test': 'data'});
       const password = 'TestPassword123!';
 
-      final encrypted =
-          await BackupEncryptionService.encryptBackup(testData, password);
+      final encrypted = await BackupEncryptionService.encryptBackup(
+        testData,
+        password,
+      );
 
       // V2 magic: 0x53, 0x41, 0x45, 0x4E, 0x43 = "SAENC"
       expect(encrypted[0], 0x53); // S
@@ -126,19 +143,26 @@ void main() {
       final testData = jsonEncode({'test': 'data'});
       const password = 'StructureTest123!';
 
-      final encrypted =
-          await BackupEncryptionService.encryptBackup(testData, password);
+      final encrypted = await BackupEncryptionService.encryptBackup(
+        testData,
+        password,
+      );
 
       // V2 header: 5 (magic) + 1 (version) + 32 (salt) + 12 (nonce) = 50 bytes
-      expect(encrypted.length, greaterThanOrEqualTo(50 + 16)); // +16 for GCM tag
+      expect(
+        encrypted.length,
+        greaterThanOrEqualTo(50 + 16),
+      ); // +16 for GCM tag
     });
 
     test('isEncryptedBackup detects V2 encrypted backups', () async {
       final testData = jsonEncode({'test': 'data'});
       const password = 'DetectTest123!';
 
-      final encrypted =
-          await BackupEncryptionService.encryptBackup(testData, password);
+      final encrypted = await BackupEncryptionService.encryptBackup(
+        testData,
+        password,
+      );
 
       expect(BackupEncryptionService.isEncryptedBackup(encrypted), true);
     });
@@ -159,8 +183,10 @@ void main() {
       final testData = jsonEncode({'accounts': []});
       const password = 'TamperTest123!';
 
-      final encrypted =
-          await BackupEncryptionService.encryptBackup(testData, password);
+      final encrypted = await BackupEncryptionService.encryptBackup(
+        testData,
+        password,
+      );
       final tampered = Uint8List.fromList(encrypted);
 
       // Flip a bit in the ciphertext (after header)
@@ -177,8 +203,10 @@ void main() {
       final testData = jsonEncode({'test': 'data'});
       const password = 'TagTest123!';
 
-      final encrypted =
-          await BackupEncryptionService.encryptBackup(testData, password);
+      final encrypted = await BackupEncryptionService.encryptBackup(
+        testData,
+        password,
+      );
       final tampered = Uint8List.fromList(encrypted);
 
       // Flip a bit in the last 16 bytes (GCM tag)
@@ -193,8 +221,7 @@ void main() {
 
     // ─── Large Payload ─────────────────────────────────────────────────
 
-    test('large payload (100KB) encrypt/decrypt round-trip succeeds',
-        () async {
+    test('large payload (100KB) encrypt/decrypt round-trip succeeds', () async {
       // Generate 100KB of JSON
       final accounts = List.generate(
         1000,
@@ -215,8 +242,10 @@ void main() {
 
       const password = 'LargePayloadPassword123!';
 
-      final encrypted =
-          await BackupEncryptionService.encryptBackup(largeData, password);
+      final encrypted = await BackupEncryptionService.encryptBackup(
+        largeData,
+        password,
+      );
       final decrypted = await BackupEncryptionService.decryptBackup(
         encrypted,
         password,
@@ -252,8 +281,10 @@ void main() {
 
       const password = 'UnicodeTest密码123!';
 
-      final encrypted =
-          await BackupEncryptionService.encryptBackup(unicodeData, password);
+      final encrypted = await BackupEncryptionService.encryptBackup(
+        unicodeData,
+        password,
+      );
       final decrypted = await BackupEncryptionService.decryptBackup(
         encrypted,
         password,
@@ -276,8 +307,10 @@ void main() {
       const emptyData = '';
       const password = 'EmptyTest123!';
 
-      final encrypted =
-          await BackupEncryptionService.encryptBackup(emptyData, password);
+      final encrypted = await BackupEncryptionService.encryptBackup(
+        emptyData,
+        password,
+      );
       final decrypted = await BackupEncryptionService.decryptBackup(
         encrypted,
         password,
@@ -290,8 +323,10 @@ void main() {
       final minimalData = jsonEncode({});
       const password = 'MinimalTest123!';
 
-      final encrypted =
-          await BackupEncryptionService.encryptBackup(minimalData, password);
+      final encrypted = await BackupEncryptionService.encryptBackup(
+        minimalData,
+        password,
+      );
       final decrypted = await BackupEncryptionService.decryptBackup(
         encrypted,
         password,
@@ -305,8 +340,10 @@ void main() {
       final testData = jsonEncode({'test': 'data'});
       final longPassword = 'x' * 500; // 500 character password
 
-      final encrypted =
-          await BackupEncryptionService.encryptBackup(testData, longPassword);
+      final encrypted = await BackupEncryptionService.encryptBackup(
+        testData,
+        longPassword,
+      );
       final decrypted = await BackupEncryptionService.decryptBackup(
         encrypted,
         longPassword,
@@ -317,8 +354,7 @@ void main() {
 
     test('special password characters are preserved correctly', () async {
       final testData = jsonEncode({'test': 'data'});
-      const specialPassword =
-          r'!@#$%^&*()_+-=[]{}|;:",.<>?/~`\!@#$%^&*()';
+      const specialPassword = r'!@#$%^&*()_+-=[]{}|;:",.<>?/~`\!@#$%^&*()';
 
       final encrypted = await BackupEncryptionService.encryptBackup(
         testData,
@@ -354,53 +390,61 @@ void main() {
       );
     });
 
-    test('decryptBackupSafe returns Result.failure for wrong password',
-        () async {
-      final testData = jsonEncode({'test': 'data'});
-      const correctPassword = 'Correct123!';
-      const wrongPassword = 'Wrong456!';
+    test(
+      'decryptBackupSafe returns Result.failure for wrong password',
+      () async {
+        final testData = jsonEncode({'test': 'data'});
+        const correctPassword = 'Correct123!';
+        const wrongPassword = 'Wrong456!';
 
-      final encrypted =
-          await BackupEncryptionService.encryptBackup(testData, correctPassword);
+        final encrypted = await BackupEncryptionService.encryptBackup(
+          testData,
+          correctPassword,
+        );
 
-      final result = await BackupEncryptionService.decryptBackupSafe(
-        encrypted,
-        wrongPassword,
-      );
+        final result = await BackupEncryptionService.decryptBackupSafe(
+          encrypted,
+          wrongPassword,
+        );
 
-      expect(result.isFailure, true);
-      expect(result.error?.category.toString(), contains('auth'));
-    });
+        expect(result.isFailure, true);
+        expect(result.error.category.toString(), contains('auth'));
+      },
+    );
 
     test('encryptBackupSafe returns Result.success on valid input', () async {
       final testData = jsonEncode({'test': 'data'});
       const password = 'SafeTest123!';
 
-      final result =
-          await BackupEncryptionService.encryptBackupSafe(testData, password);
-
-      expect(result.isSuccess, true);
-      expect(result.data, isA<Uint8List>());
-    });
-
-    test('decryptBackupSafe returns Result.success with correct password',
-        () async {
-      final testData = jsonEncode({'test': 'data'});
-      const password = 'SafeTest123!';
-
-      final encrypted = await BackupEncryptionService.encryptBackup(
+      final result = await BackupEncryptionService.encryptBackupSafe(
         testData,
         password,
       );
 
-      final result = await BackupEncryptionService.decryptBackupSafe(
-        encrypted,
-        password,
-      );
-
       expect(result.isSuccess, true);
-      expect(result.data, testData);
+      expect(result.value, isA<Uint8List>());
     });
+
+    test(
+      'decryptBackupSafe returns Result.success with correct password',
+      () async {
+        final testData = jsonEncode({'test': 'data'});
+        const password = 'SafeTest123!';
+
+        final encrypted = await BackupEncryptionService.encryptBackup(
+          testData,
+          password,
+        );
+
+        final result = await BackupEncryptionService.decryptBackupSafe(
+          encrypted,
+          password,
+        );
+
+        expect(result.isSuccess, true);
+        expect(result.value, testData);
+      },
+    );
   });
 
   // ─── Notes on V1 Format Testing ─────────────────────────────────────────

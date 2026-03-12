@@ -79,8 +79,7 @@ void main() {
     });
 
     test('applies defaults for missing parameters', () {
-      const uri =
-          'otpauth://totp/Test:user?secret=JBSWY3DPEHPK3PXP';
+      const uri = 'otpauth://totp/Test:user?secret=JBSWY3DPEHPK3PXP';
       final account = service.parseOtpAuthUri(uri);
 
       expect(account, isNotNull);
@@ -109,8 +108,7 @@ void main() {
     });
 
     test('supports 8-digit codes', () {
-      const uri =
-          'otpauth://totp/Test:user?secret=JBSWY3DPEHPK3PXP&digits=8';
+      const uri = 'otpauth://totp/Test:user?secret=JBSWY3DPEHPK3PXP&digits=8';
       final account = service.parseOtpAuthUri(uri);
 
       expect(account, isNotNull);
@@ -124,7 +122,8 @@ void main() {
     test('returns null for unknown type', () {
       expect(
         service.parseOtpAuthUri(
-            'otpauth://unknown/Test?secret=JBSWY3DPEHPK3PXP'),
+          'otpauth://unknown/Test?secret=JBSWY3DPEHPK3PXP',
+        ),
         isNull,
       );
     });
@@ -134,10 +133,7 @@ void main() {
     });
 
     test('returns null for empty secret', () {
-      expect(
-        service.parseOtpAuthUri('otpauth://totp/Test?secret='),
-        isNull,
-      );
+      expect(service.parseOtpAuthUri('otpauth://totp/Test?secret='), isNull);
     });
 
     test('returns null for malformed URI', () {
@@ -155,8 +151,7 @@ void main() {
     });
 
     test('normalizes secret to uppercase without spaces', () {
-      const uri =
-          'otpauth://totp/Test:user?secret=jbswy3dp ehpk3pxp';
+      const uri = 'otpauth://totp/Test:user?secret=jbswy3dp ehpk3pxp';
       final account = service.parseOtpAuthUri(uri);
 
       expect(account, isNotNull);
@@ -213,8 +208,11 @@ void main() {
       expect(code.length, 5);
       // Steam uses custom alphabet: 23456789BCDFGHJKMNPQRTVWXY
       for (final ch in code.split('')) {
-        expect('23456789BCDFGHJKMNPQRTVWXY'.contains(ch), isTrue,
-            reason: 'Character "$ch" not in Steam alphabet');
+        expect(
+          '23456789BCDFGHJKMNPQRTVWXY'.contains(ch),
+          isTrue,
+          reason: 'Character "$ch" not in Steam alphabet',
+        );
       }
     });
 
@@ -245,7 +243,7 @@ void main() {
         createdAt: DateTime.now(),
         type: 'totp',
       );
-      final current = service.generateTOTP(account);
+      service.generateTOTP(account);
       final next = service.generateNextCode(account);
       // Note: There's a small chance they could be the same, but very unlikely
       // This test verifies the function doesn't throw and returns valid format

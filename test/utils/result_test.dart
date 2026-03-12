@@ -121,16 +121,19 @@ void main() {
 
   group('ErrorCategory', () {
     test('has all expected categories', () {
-      expect(ErrorCategory.values, containsAll([
-        ErrorCategory.auth,
-        ErrorCategory.crypto,
-        ErrorCategory.storage,
-        ErrorCategory.validation,
-        ErrorCategory.backup,
-        ErrorCategory.qr,
-        ErrorCategory.biometric,
-        ErrorCategory.unknown,
-      ]));
+      expect(
+        ErrorCategory.values,
+        containsAll([
+          ErrorCategory.auth,
+          ErrorCategory.crypto,
+          ErrorCategory.storage,
+          ErrorCategory.validation,
+          ErrorCategory.backup,
+          ErrorCategory.qr,
+          ErrorCategory.biometric,
+          ErrorCategory.unknown,
+        ]),
+      );
     });
   });
 }

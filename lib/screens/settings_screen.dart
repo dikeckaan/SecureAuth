@@ -81,7 +81,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _themePreference = settings.themePreference;
     _accentColorIndex = settings.accentColorIndex == -1
         ? -1
-        : settings.accentColorIndex.clamp(0, AccentColorPalette.palettes.length - 1);
+        : settings.accentColorIndex.clamp(
+            0,
+            AccentColorPalette.palettes.length - 1,
+          );
     _useBiometric = settings.useBiometric;
     _requireAuthOnLaunch = settings.requireAuthOnLaunch;
     _autoLockSeconds = settings.autoLockSeconds;
@@ -101,7 +104,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (mounted) setState(() => _biometricAvailable = available);
   }
 
-  Future<void> _updateSetting(void Function(AppSettings settings) updater) async {
+  Future<void> _updateSetting(
+    void Function(AppSettings settings) updater,
+  ) async {
     final settings = widget.storageService.getSettings();
     updater(settings);
     await widget.storageService.updateSettings(settings);
@@ -145,9 +150,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: const EdgeInsets.all(AppConstants.paddingMD),
               child: Text(
                 l10n.themeMode,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
             ),
             const Divider(height: 1),
@@ -209,8 +214,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _setCustomColors(Color primary, Color secondary) async {
-    final pHex = primary.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase();
-    final sHex = secondary.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase();
+    final pHex = primary
+        .toARGB32()
+        .toRadixString(16)
+        .padLeft(8, '0')
+        .toUpperCase();
+    final sHex = secondary
+        .toARGB32()
+        .toRadixString(16)
+        .padLeft(8, '0')
+        .toUpperCase();
     await _updateSetting((s) {
       s.accentColorIndex = -1;
       s.customPrimaryColor = pHex;
@@ -240,7 +253,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       customPrimary = Color(int.parse(settings.customPrimaryColor!, radix: 16));
     }
     if (settings.customSecondaryColor != null) {
-      customSecondary = Color(int.parse(settings.customSecondaryColor!, radix: 16));
+      customSecondary = Color(
+        int.parse(settings.customSecondaryColor!, radix: 16),
+      );
     }
 
     int selectedIndex = _accentColorIndex;
@@ -286,50 +301,57 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         alignment: WrapAlignment.center,
                         children: [
                           // 8 presets
-                          ...List.generate(
-                            AccentColorPalette.palettes.length,
-                            (i) {
-                              final palette = AccentColorPalette.palettes[i];
-                              final isSelected = selectedIndex == i;
-                              return GestureDetector(
-                                onTap: () {
-                                  _setAccentColorIndex(i);
-                                  Navigator.pop(ctx);
-                                },
-                                child: Container(
-                                  width: 52,
-                                  height: 52,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: LinearGradient(
-                                      colors: [palette.primary, palette.secondary],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    border: isSelected
-                                        ? Border.all(
-                                            color: theme.colorScheme.onSurface,
-                                            width: 3,
-                                          )
-                                        : null,
-                                    boxShadow: isSelected
-                                        ? [
-                                            BoxShadow(
-                                              color: palette.primary.withAlpha(100),
-                                              blurRadius: 8,
-                                              spreadRadius: 1,
-                                            ),
-                                          ]
-                                        : null,
+                          ...List.generate(AccentColorPalette.palettes.length, (
+                            i,
+                          ) {
+                            final palette = AccentColorPalette.palettes[i];
+                            final isSelected = selectedIndex == i;
+                            return GestureDetector(
+                              onTap: () {
+                                _setAccentColorIndex(i);
+                                Navigator.pop(ctx);
+                              },
+                              child: Container(
+                                width: 52,
+                                height: 52,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      palette.primary,
+                                      palette.secondary,
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
                                   ),
-                                  child: isSelected
-                                      ? const Icon(Icons.check,
-                                          color: Colors.white, size: 24)
+                                  border: isSelected
+                                      ? Border.all(
+                                          color: theme.colorScheme.onSurface,
+                                          width: 3,
+                                        )
+                                      : null,
+                                  boxShadow: isSelected
+                                      ? [
+                                          BoxShadow(
+                                            color: palette.primary.withAlpha(
+                                              100,
+                                            ),
+                                            blurRadius: 8,
+                                            spreadRadius: 1,
+                                          ),
+                                        ]
                                       : null,
                                 ),
-                              );
-                            },
-                          ),
+                                child: isSelected
+                                    ? const Icon(
+                                        Icons.check,
+                                        color: Colors.white,
+                                        size: 24,
+                                      )
+                                    : null,
+                              ),
+                            );
+                          }),
                           // Custom circle (rainbow gradient + icon)
                           GestureDetector(
                             onTap: () {
@@ -422,7 +444,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               width: double.infinity,
                               child: FilledButton(
                                 onPressed: () {
-                                  _setCustomColors(customPrimary, customSecondary);
+                                  _setCustomColors(
+                                    customPrimary,
+                                    customSecondary,
+                                  );
                                   Navigator.pop(ctx);
                                 },
                                 child: Text(l10n.apply),
@@ -563,12 +588,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-            top: Radius.circular(AppConstants.radiusLG)),
+          top: Radius.circular(AppConstants.radiusLG),
+        ),
       ),
       builder: (ctx) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(
-              AppConstants.paddingMD, 12, AppConstants.paddingMD, 8),
+            AppConstants.paddingMD,
+            12,
+            AppConstants.paddingMD,
+            8,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -587,9 +617,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               Text(
                 l10n.exportBackup,
-                style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                style: Theme.of(
+                  ctx,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 12),
               // ── Encrypted option ──────────────────────────────────────────
@@ -639,8 +669,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _showLoadingDialog(l10n.encryptingBackup);
     try {
       final jsonString = await widget.storageService.exportAccountsToJson();
-      final bytes =
-          await BackupEncryptionService.encryptBackup(jsonString, password);
+      final bytes = await BackupEncryptionService.encryptBackup(
+        jsonString,
+        password,
+      );
 
       final fileName =
           'secureauth_backup_${DateTime.now().millisecondsSinceEpoch}'
@@ -663,19 +695,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
           final dir = await getApplicationDocumentsDirectory();
           final file = File('${dir.path}/$fileName');
           await file.writeAsBytes(bytes, flush: true);
-          await Share.shareXFiles(
-            [XFile(file.path, mimeType: 'application/octet-stream', name: fileName)],
-            sharePositionOrigin: originRect,
-          );
+          await Share.shareXFiles([
+            XFile(
+              file.path,
+              mimeType: 'application/octet-stream',
+              name: fileName,
+            ),
+          ], sharePositionOrigin: originRect);
         } catch (_) {
           // Fallback: share the raw bytes as a temp file.
           final tmp = await getTemporaryDirectory();
           final file = File('${tmp.path}/$fileName');
           await file.writeAsBytes(bytes, flush: true);
-          await Share.shareXFiles(
-            [XFile(file.path, name: fileName)],
-            sharePositionOrigin: originRect,
-          );
+          await Share.shareXFiles([
+            XFile(file.path, name: fileName),
+          ], sharePositionOrigin: originRect);
         }
       }
 
@@ -708,13 +742,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           final dir = await getApplicationDocumentsDirectory();
           final file = File('${dir.path}/$fileName');
           await file.writeAsString(jsonString, flush: true);
-          await Share.shareXFiles(
-            [XFile(file.path, mimeType: 'application/json', name: fileName)],
+          await Share.shareXFiles([
+            XFile(file.path, mimeType: 'application/json', name: fileName),
+          ], sharePositionOrigin: originRect);
+        } catch (_) {
+          await Share.share(
+            jsonString,
+            subject: fileName,
             sharePositionOrigin: originRect,
           );
-        } catch (_) {
-          await Share.share(jsonString,
-              subject: fileName, sharePositionOrigin: originRect);
         }
       }
 
@@ -766,15 +802,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
         _showLoadingDialog(l10n.decryptingBackup);
         try {
-          jsonString =
-              await BackupEncryptionService.decryptBackup(bytes, password);
+          jsonString = await BackupEncryptionService.decryptBackup(
+            bytes,
+            password,
+          );
           if (mounted) Navigator.of(context).pop(); // close loading
         } on FormatException catch (e) {
           if (mounted) {
             Navigator.of(context).pop();
-            _showError(e.message == 'Wrong password or corrupted backup file'
-                ? l10n.wrongPasswordOrCorrupted
-                : l10n.importError);
+            _showError(
+              e.message == 'Wrong password or corrupted backup file'
+                  ? l10n.wrongPasswordOrCorrupted
+                  : l10n.importError,
+            );
           }
           return;
         }
@@ -783,8 +823,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         jsonString = utf8.decode(bytes);
       }
 
-      final imported =
-          await widget.storageService.importAccountsFromJson(jsonString);
+      final imported = await widget.storageService.importAccountsFromJson(
+        jsonString,
+      );
       if (mounted) _showSuccess(l10n.nAccountsImported(imported));
     } catch (e) {
       if (mounted) _showError(l10n.importError);
@@ -819,9 +860,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           content: Row(
             children: [
               const SizedBox(
-                  width: 28,
-                  height: 28,
-                  child: CircularProgressIndicator(strokeWidth: 3)),
+                width: 28,
+                height: 28,
+                child: CircularProgressIndicator(strokeWidth: 3),
+              ),
               const SizedBox(width: 16),
               Expanded(child: Text(message)),
             ],
@@ -851,8 +893,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.warning_amber_rounded,
-                      color: AppColors.error, size: 16),
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: AppColors.error,
+                    size: 16,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -944,9 +989,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: const EdgeInsets.all(AppConstants.paddingMD),
               child: Text(
                 l10n.selectLanguage,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
             ),
             const Divider(height: 1),
@@ -955,10 +1000,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 shrinkWrap: true,
                 children: _supportedLanguages.map((lang) {
                   return ListTile(
-                    leading: Text(lang.flag, style: const TextStyle(fontSize: 24)),
+                    leading: Text(
+                      lang.flag,
+                      style: const TextStyle(fontSize: 24),
+                    ),
                     title: Text(lang.name),
                     trailing: _languageCode == lang.code
-                        ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+                        ? Icon(
+                            Icons.check,
+                            color: Theme.of(context).colorScheme.primary,
+                          )
                         : null,
                     onTap: () {
                       _setLanguage(lang.code);
@@ -982,9 +1033,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final accountCount = widget.storageService.accountCount;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.settings),
-      ),
+      appBar: AppBar(title: Text(l10n.settings)),
       body: ListView(
         padding: const EdgeInsets.symmetric(
           horizontal: AppConstants.paddingMD,
@@ -996,7 +1045,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildCard([
             ListTile(
               leading: _buildLeadingIcon(
-                  Icons.translate_outlined, theme.colorScheme.primary),
+                Icons.translate_outlined,
+                theme.colorScheme.primary,
+              ),
               title: Text(l10n.language),
               subtitle: Text(_getCurrentLanguageName()),
               trailing: const Icon(Icons.chevron_right, size: 18),
@@ -1005,12 +1056,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ]),
 
           // ── Appearance ────────────────────────────────────────────
-          _buildSectionLabel(
-              theme, l10n.appearance, Icons.palette_outlined),
+          _buildSectionLabel(theme, l10n.appearance, Icons.palette_outlined),
           _buildCard([
             ListTile(
               leading: _buildLeadingIcon(
-                  Icons.palette_outlined, theme.colorScheme.primary),
+                Icons.palette_outlined,
+                theme.colorScheme.primary,
+              ),
               title: Text(l10n.themeMode),
               subtitle: Text(_getThemeLabel()),
               trailing: const Icon(Icons.chevron_right, size: 18),
@@ -1025,7 +1077,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     : palette.name;
                 return ListTile(
                   leading: _buildLeadingIcon(
-                      Icons.color_lens_outlined, theme.colorScheme.primary),
+                    Icons.color_lens_outlined,
+                    theme.colorScheme.primary,
+                  ),
                   title: Text(l10n.accentColor),
                   subtitle: Text(subtitleText),
                   trailing: Row(
@@ -1058,7 +1112,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildCard([
             SwitchListTile(
               secondary: _buildLeadingIcon(
-                  Icons.lock_outline, theme.colorScheme.primary),
+                Icons.lock_outline,
+                theme.colorScheme.primary,
+              ),
               title: Text(l10n.appLock),
               subtitle: Text(l10n.requirePasswordOnLaunch),
               value: _requireAuthOnLaunch,
@@ -1068,7 +1124,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildInternalDivider(),
               SwitchListTile(
                 secondary: _buildLeadingIcon(
-                    Icons.fingerprint, theme.colorScheme.primary),
+                  Icons.fingerprint,
+                  theme.colorScheme.primary,
+                ),
                 title: Text(l10n.biometricAuth),
                 subtitle: Text(l10n.fingerprintFaceId),
                 value: _useBiometric,
@@ -1086,10 +1144,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildInternalDivider(),
             ListTile(
               leading: _buildLeadingIcon(
-                  Icons.key_outlined, theme.colorScheme.primary),
-              title: Text(widget.authService.hasPassword()
-                  ? l10n.changePassword
-                  : l10n.setPassword),
+                Icons.key_outlined,
+                theme.colorScheme.primary,
+              ),
+              title: Text(
+                widget.authService.hasPassword()
+                    ? l10n.changePassword
+                    : l10n.setPassword,
+              ),
               trailing: const Icon(Icons.chevron_right, size: 18),
               onTap: _changePassword,
             ),
@@ -1097,11 +1159,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // ── Advanced Security ─────────────────────────────────────
           _buildSectionLabel(
-              theme, l10n.advancedSecurity, Icons.security_outlined),
+            theme,
+            l10n.advancedSecurity,
+            Icons.security_outlined,
+          ),
           _buildCard([
             ListTile(
               leading: _buildLeadingIcon(
-                  Icons.timer_outlined, theme.colorScheme.primary),
+                Icons.timer_outlined,
+                theme.colorScheme.primary,
+              ),
               title: Text(l10n.autoLock),
               subtitle: Text(_formatAutoLock(_autoLockSeconds)),
               trailing: const Icon(Icons.chevron_right, size: 18),
@@ -1110,11 +1177,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildInternalDivider(),
             SwitchListTile(
               secondary: _buildLeadingIcon(
-                  Icons.content_paste_off_outlined, theme.colorScheme.primary),
+                Icons.content_paste_off_outlined,
+                theme.colorScheme.primary,
+              ),
               title: Text(l10n.autoClearClipboard),
-              subtitle: Text(_clearClipboard
-                  ? l10n.clipboardClearAfterSeconds(_clipboardClearSeconds)
-                  : l10n.clipboardNotCleared),
+              subtitle: Text(
+                _clearClipboard
+                    ? l10n.clipboardClearAfterSeconds(_clipboardClearSeconds)
+                    : l10n.clipboardNotCleared,
+              ),
               value: _clearClipboard,
               onChanged: (v) async {
                 await _updateSetting((s) => s.clearClipboard = v);
@@ -1125,11 +1196,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildInternalDivider(),
               ListTile(
                 leading: _buildLeadingIcon(
-                    Icons.content_paste_off_outlined,
-                    theme.colorScheme.primary),
+                  Icons.content_paste_off_outlined,
+                  theme.colorScheme.primary,
+                ),
                 title: Text(l10n.clipboardClear),
-                subtitle:
-                    Text(l10n.clipboardClearAfterSeconds(_clipboardClearSeconds)),
+                subtitle: Text(
+                  l10n.clipboardClearAfterSeconds(_clipboardClearSeconds),
+                ),
                 trailing: const Icon(Icons.chevron_right, size: 18),
                 onTap: _showClipboardClearPicker,
               ),
@@ -1137,7 +1210,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildInternalDivider(),
             ListTile(
               leading: _buildLeadingIcon(
-                  Icons.pin_outlined, theme.colorScheme.primary),
+                Icons.pin_outlined,
+                theme.colorScheme.primary,
+              ),
               title: Text(l10n.maxFailedAttemptsLabel),
               subtitle: Text(l10n.attemptsCount(_maxFailedAttempts)),
               trailing: const Icon(Icons.chevron_right, size: 18),
@@ -1147,7 +1222,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SwitchListTile(
               secondary: _buildLeadingIcon(
                 Icons.delete_forever_outlined,
-                _wipeOnMaxAttempts ? AppColors.error : theme.colorScheme.primary,
+                _wipeOnMaxAttempts
+                    ? AppColors.error
+                    : theme.colorScheme.primary,
               ),
               title: Text(l10n.wipeOnMaxAttemptsLabel),
               subtitle: Text(
@@ -1162,16 +1239,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ]),
 
           // ── Audit & Logs ──────────────────────────────────────────
-          _buildSectionLabel(
-              theme, 'Audit & Logs', Icons.assignment_outlined),
+          _buildSectionLabel(theme, 'Audit & Logs', Icons.assignment_outlined),
           _buildCard([
             SwitchListTile(
               secondary: _buildLeadingIcon(
-                  Icons.receipt_long_outlined, theme.colorScheme.primary),
+                Icons.receipt_long_outlined,
+                theme.colorScheme.primary,
+              ),
               title: const Text('Security Logging'),
-              subtitle: Text(_auditLoggingEnabled
-                  ? 'Recording security events'
-                  : 'Logging disabled'),
+              subtitle: Text(
+                _auditLoggingEnabled
+                    ? 'Recording security events'
+                    : 'Logging disabled',
+              ),
               value: _auditLoggingEnabled,
               onChanged: (v) async {
                 await _updateSetting((s) => s.auditLoggingEnabled = v);
@@ -1182,13 +1262,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildInternalDivider(),
             SwitchListTile(
               secondary: _buildLeadingIcon(
-                  Icons.access_time_outlined,
-                  _tamperDetectionEnabled
-                      ? theme.colorScheme.primary
-                      : Colors.grey),
+                Icons.access_time_outlined,
+                _tamperDetectionEnabled
+                    ? theme.colorScheme.primary
+                    : Colors.grey,
+              ),
               title: const Text('Clock Tamper Detection'),
-              subtitle: const Text(
-                  'Block app if system clock is manipulated'),
+              subtitle: const Text('Block app if system clock is manipulated'),
               value: _tamperDetectionEnabled,
               onChanged: (v) async {
                 await _updateSetting((s) => s.tamperDetectionEnabled = v);
@@ -1198,17 +1278,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildInternalDivider(),
             ListTile(
               leading: _buildLeadingIcon(
-                  Icons.history_outlined, const Color(0xFF7C3AED)),
+                Icons.history_outlined,
+                const Color(0xFF7C3AED),
+              ),
               title: const Text('View Security Logs'),
               subtitle: Text(
-                  '${LoggerService.instance.persistedLength} entries stored'),
+                '${LoggerService.instance.persistedLength} entries stored',
+              ),
               trailing: const Icon(Icons.chevron_right, size: 18),
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const LogViewerScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const LogViewerScreen()),
                 ).then((_) => setState(() {}));
               },
             ),
@@ -1220,22 +1301,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Builder(
               builder: (tileCtx) => ListTile(
                 leading: _buildLeadingIcon(
-                    Icons.upload_outlined, AppColors.success),
+                  Icons.upload_outlined,
+                  AppColors.success,
+                ),
                 title: Text(l10n.exportAccounts),
                 subtitle: Text(l10n.nAccounts(accountCount)),
                 trailing: accountCount > 0
                     ? const Icon(Icons.chevron_right, size: 18)
                     : null,
                 enabled: accountCount > 0,
-                onTap: accountCount > 0
-                    ? () => _onExportTapped(tileCtx)
-                    : null,
+                onTap: accountCount > 0 ? () => _onExportTapped(tileCtx) : null,
               ),
             ),
             _buildInternalDivider(),
             ListTile(
-              leading:
-                  _buildLeadingIcon(Icons.download_outlined, AppColors.accent),
+              leading: _buildLeadingIcon(
+                Icons.download_outlined,
+                AppColors.accent,
+              ),
               title: Text(l10n.importAccounts),
               subtitle: Text(l10n.loadFromFile),
               trailing: const Icon(Icons.chevron_right, size: 18),
@@ -1244,8 +1327,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ]),
 
           // ── Experimental ──────────────────────────────────────────
-          _buildSectionLabel(
-              theme, 'Experimental', Icons.science_outlined),
+          _buildSectionLabel(theme, 'Experimental', Icons.science_outlined),
           _buildCard([
             SwitchListTile(
               title: const Text('Steam Guard'),
@@ -1266,36 +1348,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Icons.warning_outlined,
             color: AppColors.error,
           ),
-          _buildCard(
-            [
-              ListTile(
-                leading: _buildLeadingIcon(
-                    Icons.delete_forever, AppColors.error),
-                title: Text(
-                  l10n.deleteAllData,
-                  style: const TextStyle(
-                    color: AppColors.error,
-                    fontWeight: FontWeight.w600,
-                  ),
+          _buildCard([
+            ListTile(
+              leading: _buildLeadingIcon(Icons.delete_forever, AppColors.error),
+              title: Text(
+                l10n.deleteAllData,
+                style: const TextStyle(
+                  color: AppColors.error,
+                  fontWeight: FontWeight.w600,
                 ),
-                subtitle: Text(l10n.actionIrreversible),
-                onTap: _clearAllData,
               ),
-            ],
-            borderColor: AppColors.error.withAlpha(77),
-          ),
+              subtitle: Text(l10n.actionIrreversible),
+              onTap: _clearAllData,
+            ),
+          ], borderColor: AppColors.error.withAlpha(77)),
 
           // ── About ─────────────────────────────────────────────────
           const SizedBox(height: AppConstants.paddingLG),
           Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: AppConstants.paddingLG),
+                horizontal: AppConstants.paddingLG,
+              ),
               child: Column(
                 children: [
                   ClipRRect(
-                    borderRadius:
-                        BorderRadius.circular(AppConstants.radiusMD),
+                    borderRadius: BorderRadius.circular(AppConstants.radiusMD),
                     child: Image.asset(
                       'assets/icon/app_icon.png',
                       width: 48,
@@ -1337,8 +1415,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // ─── UI helpers ────────────────────────────────────────────────────────────
 
-  Widget _buildSectionLabel(ThemeData theme, String title, IconData icon,
-      {Color? color}) {
+  Widget _buildSectionLabel(
+    ThemeData theme,
+    String title,
+    IconData icon, {
+    Color? color,
+  }) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 20, 4, 8),
       child: Row(
@@ -1418,8 +1500,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       300: l10n.nMinutes(5),
       600: l10n.nMinutes(10),
     };
-    _showOptionPicker(l10n.autoLock, options, _autoLockSeconds,
-        _setAutoLockSeconds);
+    _showOptionPicker(
+      l10n.autoLock,
+      options,
+      _autoLockSeconds,
+      _setAutoLockSeconds,
+    );
   }
 
   void _showClipboardClearPicker() {
@@ -1431,8 +1517,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       60: l10n.nMinutes(1),
       120: l10n.nMinutes(2),
     };
-    _showOptionPicker(l10n.clipboardClearTime, options, _clipboardClearSeconds,
-        _setClipboardClearSeconds);
+    _showOptionPicker(
+      l10n.clipboardClearTime,
+      options,
+      _clipboardClearSeconds,
+      _setClipboardClearSeconds,
+    );
   }
 
   void _showMaxAttemptsPicker() {
@@ -1444,8 +1534,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       15: l10n.attemptsCount(15),
       20: l10n.attemptsCount(20),
     };
-    _showOptionPicker(l10n.maxFailedAttemptsLabel, options, _maxFailedAttempts,
-        _setMaxFailedAttempts);
+    _showOptionPicker(
+      l10n.maxFailedAttemptsLabel,
+      options,
+      _maxFailedAttempts,
+      _setMaxFailedAttempts,
+    );
   }
 
   void _showOptionPicker(
@@ -1469,9 +1563,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: const EdgeInsets.all(AppConstants.paddingMD),
               child: Text(
                 title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
             ),
             const Divider(height: 1),
@@ -1479,7 +1573,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               (entry) => ListTile(
                 title: Text(entry.value),
                 trailing: currentValue == entry.key
-                    ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+                    ? Icon(
+                        Icons.check,
+                        color: Theme.of(context).colorScheme.primary,
+                      )
                     : null,
                 onTap: () {
                   onSelected(entry.key);
@@ -1524,10 +1621,11 @@ class _ExportOptionTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppConstants.radiusMD),
       child: Container(
         padding: const EdgeInsets.symmetric(
-            horizontal: AppConstants.paddingMD, vertical: 12),
+          horizontal: AppConstants.paddingMD,
+          vertical: 12,
+        ),
         decoration: BoxDecoration(
-          border: Border.all(
-              color: theme.colorScheme.outline.withAlpha(60)),
+          border: Border.all(color: theme.colorScheme.outline.withAlpha(60)),
           borderRadius: BorderRadius.circular(AppConstants.radiusMD),
         ),
         child: Row(
@@ -1537,8 +1635,7 @@ class _ExportOptionTile extends StatelessWidget {
               height: 40,
               decoration: BoxDecoration(
                 color: iconColor.withAlpha(22),
-                borderRadius:
-                    BorderRadius.circular(AppConstants.radiusSM),
+                borderRadius: BorderRadius.circular(AppConstants.radiusSM),
               ),
               child: Icon(icon, color: iconColor, size: 20),
             ),
@@ -1547,20 +1644,27 @@ class _ExportOptionTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(fontWeight: FontWeight.w600)),
+                  Text(
+                    title,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   const SizedBox(height: 2),
-                  Text(subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface
-                              .withAlpha(128))),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withAlpha(128),
+                    ),
+                  ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right,
-                size: 18,
-                color: theme.colorScheme.onSurface.withAlpha(100)),
+            Icon(
+              Icons.chevron_right,
+              size: 18,
+              color: theme.colorScheme.onSurface.withAlpha(100),
+            ),
           ],
         ),
       ),
@@ -1576,7 +1680,9 @@ class _PasswordStrengthBar extends StatelessWidget {
   const _PasswordStrengthBar({required this.password});
 
   static ({double value, Color color, String label}) _strength(
-      String pw, AppLocalizations l10n) {
+    String pw,
+    AppLocalizations l10n,
+  ) {
     if (pw.isEmpty) {
       return (value: 0, color: Colors.transparent, label: '');
     }
@@ -1595,25 +1701,21 @@ class _PasswordStrengthBar extends StatelessWidget {
       return (
         value: 0.45,
         color: AppColors.warning,
-        label: l10n.strengthMedium
+        label: l10n.strengthMedium,
       );
     } else if (score <= 6) {
-      return (
-        value: 0.70,
-        color: AppColors.primary,
-        label: l10n.strengthGood
-      );
+      return (value: 0.70, color: AppColors.primary, label: l10n.strengthGood);
     } else if (score <= 7) {
       return (
         value: 0.85,
         color: AppColors.success,
-        label: l10n.strengthStrong
+        label: l10n.strengthStrong,
       );
     } else {
       return (
         value: 1.0,
         color: AppColors.success,
-        label: l10n.strengthVeryStrong
+        label: l10n.strengthVeryStrong,
       );
     }
   }
@@ -1631,8 +1733,9 @@ class _PasswordStrengthBar extends StatelessWidget {
           child: LinearProgressIndicator(
             value: s.value,
             minHeight: 6,
-            backgroundColor:
-                Theme.of(context).colorScheme.outline.withAlpha(40),
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.outline.withAlpha(40),
             valueColor: AlwaysStoppedAnimation<Color>(s.color),
           ),
         ),
@@ -1640,7 +1743,10 @@ class _PasswordStrengthBar extends StatelessWidget {
         Text(
           s.label,
           style: TextStyle(
-              fontSize: 11, fontWeight: FontWeight.w600, color: s.color),
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: s.color,
+          ),
         ),
       ],
     );
@@ -1747,8 +1853,9 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
           onPressed: () async {
             final navigator = Navigator.of(context);
             if (widget.hasExisting) {
-              final isValid = await widget.authService
-                  .verifyPassword(_oldPasswordController.text);
+              final isValid = await widget.authService.verifyPassword(
+                _oldPasswordController.text,
+              );
               if (!mounted) return;
               if (!isValid) {
                 _showError(l10n.currentPasswordWrong);
@@ -1758,10 +1865,12 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
             if (_newPasswordController.text.length <
                 AppConstants.minPasswordLength) {
               _showError(
-                  l10n.passwordMinLength(AppConstants.minPasswordLength));
+                l10n.passwordMinLength(AppConstants.minPasswordLength),
+              );
               return;
             }
-            if (_newPasswordController.text != _confirmPasswordController.text) {
+            if (_newPasswordController.text !=
+                _confirmPasswordController.text) {
               _showError(l10n.passwordsDoNotMatch);
               return;
             }
@@ -1824,9 +1933,11 @@ class _SetBackupPasswordDialogState extends State<_SetBackupPasswordDialog> {
                 labelText: l10n.backupPassword,
                 prefixIcon: const Icon(Icons.lock_outlined),
                 suffixIcon: IconButton(
-                  icon: Icon(_pwVisible
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined),
+                  icon: Icon(
+                    _pwVisible
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                  ),
                   onPressed: () => setState(() => _pwVisible = !_pwVisible),
                 ),
               ),
@@ -1840,9 +1951,11 @@ class _SetBackupPasswordDialogState extends State<_SetBackupPasswordDialog> {
                 labelText: l10n.confirmBackupPassword,
                 prefixIcon: const Icon(Icons.lock_outlined),
                 suffixIcon: IconButton(
-                  icon: Icon(_confirmVisible
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined),
+                  icon: Icon(
+                    _confirmVisible
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                  ),
                   onPressed: () =>
                       setState(() => _confirmVisible = !_confirmVisible),
                 ),
@@ -1861,8 +1974,11 @@ class _SetBackupPasswordDialogState extends State<_SetBackupPasswordDialog> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.warning_amber_rounded,
-                      color: AppColors.warning, size: 16),
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: AppColors.warning,
+                    size: 16,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -1896,13 +2012,18 @@ class _SetBackupPasswordDialogState extends State<_SetBackupPasswordDialog> {
             final pw = _pwCtrl.text;
             final confirm = _confirmCtrl.text;
             if (pw.length < AppConstants.minPasswordLength) {
-              setState(() => _error = AppLocalizations.of(context)!
-                  .passwordMinLength(AppConstants.minPasswordLength));
+              setState(
+                () => _error = AppLocalizations.of(
+                  context,
+                )!.passwordMinLength(AppConstants.minPasswordLength),
+              );
               return;
             }
             if (pw != confirm) {
               setState(
-                  () => _error = AppLocalizations.of(context)!.passwordsDoNotMatch);
+                () =>
+                    _error = AppLocalizations.of(context)!.passwordsDoNotMatch,
+              );
               return;
             }
             Navigator.pop(context, pw);
@@ -1951,8 +2072,8 @@ class _DecryptBackupDialogState extends State<_DecryptBackupDialog> {
           Text(
             l10n.enterBackupPassword,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withAlpha(153),
-                ),
+              color: Theme.of(context).colorScheme.onSurface.withAlpha(153),
+            ),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -1963,9 +2084,11 @@ class _DecryptBackupDialogState extends State<_DecryptBackupDialog> {
               labelText: l10n.backupPassword,
               prefixIcon: const Icon(Icons.lock_outlined),
               suffixIcon: IconButton(
-                icon: Icon(_visible
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined),
+                icon: Icon(
+                  _visible
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                ),
                 onPressed: () => setState(() => _visible = !_visible),
               ),
             ),

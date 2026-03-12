@@ -50,12 +50,14 @@ void main() async {
     isTampered = await tamperDetectionService.checkIntegrity();
   }
 
-  runApp(SecureAuthApp(
-    storageService: storageService,
-    authService: authService,
-    tamperDetectionService: tamperDetectionService,
-    initialTamperState: isTampered,
-  ));
+  runApp(
+    SecureAuthApp(
+      storageService: storageService,
+      authService: authService,
+      tamperDetectionService: tamperDetectionService,
+      initialTamperState: isTampered,
+    ),
+  );
 }
 
 class SecureAuthApp extends StatefulWidget {

@@ -1,10 +1,7 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:secure_auth/services/auth_service.dart';
 import 'package:secure_auth/services/security_service.dart';
-import 'package:secure_auth/services/storage_service.dart';
 import 'package:secure_auth/utils/constants.dart';
 
 import '../helpers/fake_secure_storage.dart';
@@ -29,16 +26,22 @@ void main() {
   // ─── Password Setting and Verification ──────────────────────────────────
 
   group('Password Setting and Verification', () {
-    test('hashPassword then verifyPassword with correct password returns true',
-        () async {
-      const password = 'MySecurePassword123!';
-      final salt = securityService.generateSalt();
+    test(
+      'hashPassword then verifyPassword with correct password returns true',
+      () async {
+        const password = 'MySecurePassword123!';
+        final salt = securityService.generateSalt();
 
-      final hash = await securityService.hashPassword(password, salt);
-      final isValid = await securityService.verifyPassword(password, hash, salt);
+        final hash = await securityService.hashPassword(password, salt);
+        final isValid = await securityService.verifyPassword(
+          password,
+          hash,
+          salt,
+        );
 
-      expect(isValid, true);
-    });
+        expect(isValid, true);
+      },
+    );
 
     test('verifyPassword with incorrect password returns false', () async {
       const correctPassword = 'MySecurePassword123!';
@@ -46,23 +49,28 @@ void main() {
       final salt = securityService.generateSalt();
 
       final hash = await securityService.hashPassword(correctPassword, salt);
-      final isValid =
-          await securityService.verifyPassword(wrongPassword, hash, salt);
+      final isValid = await securityService.verifyPassword(
+        wrongPassword,
+        hash,
+        salt,
+      );
 
       expect(isValid, false);
     });
 
-    test('different salts produce different hashes for same password',
-        () async {
-      const password = 'SamePassword';
-      final salt1 = securityService.generateSalt();
-      final salt2 = securityService.generateSalt();
+    test(
+      'different salts produce different hashes for same password',
+      () async {
+        const password = 'SamePassword';
+        final salt1 = securityService.generateSalt();
+        final salt2 = securityService.generateSalt();
 
-      final hash1 = await securityService.hashPassword(password, salt1);
-      final hash2 = await securityService.hashPassword(password, salt2);
+        final hash1 = await securityService.hashPassword(password, salt1);
+        final hash2 = await securityService.hashPassword(password, salt2);
 
-      expect(hash1, isNot(equals(hash2)));
-    });
+        expect(hash1, isNot(equals(hash2)));
+      },
+    );
   });
 
   // ─── Brute Force Protection ─────────────────────────────────────────────
@@ -90,21 +98,27 @@ void main() {
       expect(fakeStorage.store.containsKey('lockout_until'), true);
     });
 
-    test('failed attempts block verifyPassword even with correct password',
-        () async {
-      const password = 'CorrectPassword123!';
-      final salt = securityService.generateSalt();
-      final hash = await securityService.hashPassword(password, salt);
+    test(
+      'failed attempts block verifyPassword even with correct password',
+      () async {
+        const password = 'CorrectPassword123!';
+        final salt = securityService.generateSalt();
+        final hash = await securityService.hashPassword(password, salt);
 
-      // Trigger lockout
-      await securityService.recordFailedAttempt();
-      await securityService.recordFailedAttempt();
-      await securityService.recordFailedAttempt();
+        // Trigger lockout
+        await securityService.recordFailedAttempt();
+        await securityService.recordFailedAttempt();
+        await securityService.recordFailedAttempt();
 
-      // Even with correct password, should fail while locked out
-      final isValid = await securityService.verifyPassword(password, hash, salt);
-      expect(isValid, false);
-    });
+        // Even with correct password, should fail while locked out
+        final isValid = await securityService.verifyPassword(
+          password,
+          hash,
+          salt,
+        );
+        expect(isValid, false);
+      },
+    );
 
     test('resetFailedAttempts clears counter and lockout', () async {
       await securityService.recordFailedAttempt();
@@ -130,7 +144,10 @@ void main() {
       final remaining = await securityService.getRemainingLockout();
       expect(remaining, isNotNull);
       expect(remaining!.inSeconds, greaterThan(0));
-      expect(remaining.inSeconds, lessThanOrEqualTo(60)); // First lockout is 30s
+      expect(
+        remaining.inSeconds,
+        lessThanOrEqualTo(60),
+      ); // First lockout is 30s
     });
 
     test('getRemainingLockout returns null when not locked out', () async {
@@ -162,19 +179,22 @@ void main() {
       expect(timedOut, false);
     });
 
-    test('hasTimedOut returns true with elapsed time exceeding threshold',
-        () async {
-      // Set activity to 2 hours ago by directly manipulating storage
-      final twoHoursAgo =
-          DateTime.now().subtract(const Duration(hours: 2)).millisecondsSinceEpoch;
-      await fakeStorage.write(
-        key: 'last_activity',
-        value: twoHoursAgo.toString(),
-      );
+    test(
+      'hasTimedOut returns true with elapsed time exceeding threshold',
+      () async {
+        // Set activity to 2 hours ago by directly manipulating storage
+        final twoHoursAgo = DateTime.now()
+            .subtract(const Duration(hours: 2))
+            .millisecondsSinceEpoch;
+        await fakeStorage.write(
+          key: 'last_activity',
+          value: twoHoursAgo.toString(),
+        );
 
-      final timedOut = await securityService.hasTimedOut(3600); // 1 hour
-      expect(timedOut, true);
-    });
+        final timedOut = await securityService.hasTimedOut(3600); // 1 hour
+        expect(timedOut, true);
+      },
+    );
 
     test('hasTimedOut returns true when no activity recorded', () async {
       final timedOut = await securityService.hasTimedOut(3600);
@@ -186,10 +206,7 @@ void main() {
 
   group('Constant-Time Comparison', () {
     test('constantTimeEquals returns true for identical strings', () {
-      expect(
-        SecurityService.constantTimeEquals('password', 'password'),
-        true,
-      );
+      expect(SecurityService.constantTimeEquals('password', 'password'), true);
     });
 
     test('constantTimeEquals returns false for different strings', () {
@@ -317,16 +334,22 @@ void main() {
       expect(await securityService.isLockedOut(), true);
 
       // Correct password attempt blocked by lockout
-      final resultWhileLockedOut =
-          await securityService.verifyPassword(correctPassword, hash, salt);
+      final resultWhileLockedOut = await securityService.verifyPassword(
+        correctPassword,
+        hash,
+        salt,
+      );
       expect(resultWhileLockedOut, false);
 
       // Reset and try again
       await securityService.resetFailedAttempts();
       expect(await securityService.isLockedOut(), false);
 
-      final resultAfterReset =
-          await securityService.verifyPassword(correctPassword, hash, salt);
+      final resultAfterReset = await securityService.verifyPassword(
+        correctPassword,
+        hash,
+        salt,
+      );
       expect(resultAfterReset, true);
       expect(await securityService.getFailedAttempts(), 0);
     });

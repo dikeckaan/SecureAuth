@@ -165,13 +165,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               padding: const EdgeInsets.all(AppConstants.paddingSM),
               decoration: BoxDecoration(
                 color: AppColors.errorLight,
-                borderRadius:
-                    BorderRadius.circular(AppConstants.radiusSM),
+                borderRadius: BorderRadius.circular(AppConstants.radiusSM),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.warning_amber_rounded,
-                      color: AppColors.error, size: 16),
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: AppColors.error,
+                    size: 16,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -353,8 +355,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           body: _accounts.isEmpty
               ? _buildEmptyState(theme, l10n)
               : filtered.isEmpty
-                  ? _buildNoResults(theme, l10n)
-                  : _buildAccountList(filtered, l10n),
+              ? _buildNoResults(theme, l10n)
+              : _buildAccountList(filtered, l10n),
           floatingActionButton: FloatingActionButton(
             onPressed: _addAccount,
             backgroundColor: theme.colorScheme.primary,
@@ -385,8 +387,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         if (_accounts.isNotEmpty) ...[
           const SizedBox(width: 8),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
               color: theme.colorScheme.primary.withAlpha(26),
               borderRadius: BorderRadius.circular(AppConstants.radiusFull),
@@ -443,12 +444,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             Wrap(
               spacing: AppConstants.paddingSM,
               children: [
-                _buildTypeChip('TOTP', Icons.access_time_outlined,
-                    theme.colorScheme.primary),
                 _buildTypeChip(
-                    'HOTP', Icons.tag_outlined, theme.colorScheme.secondary),
-                _buildTypeChip('Steam',
-                    Icons.videogame_asset_outlined, AppColors.accent),
+                  'TOTP',
+                  Icons.access_time_outlined,
+                  theme.colorScheme.primary,
+                ),
+                _buildTypeChip(
+                  'HOTP',
+                  Icons.tag_outlined,
+                  theme.colorScheme.secondary,
+                ),
+                _buildTypeChip(
+                  'Steam',
+                  Icons.videogame_asset_outlined,
+                  AppColors.accent,
+                ),
               ],
             ),
           ],
@@ -488,9 +498,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search_off,
-              size: 48,
-              color: theme.colorScheme.onSurface.withAlpha(102)),
+          Icon(
+            Icons.search_off,
+            size: 48,
+            color: theme.colorScheme.onSurface.withAlpha(102),
+          ),
           const SizedBox(height: AppConstants.paddingMD),
           Text(
             l10n.accountNotFound,
@@ -503,8 +515,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildAccountList(
-      List<AccountModel> accounts, AppLocalizations l10n) {
+  Widget _buildAccountList(List<AccountModel> accounts, AppLocalizations l10n) {
     // While searching, disable reorder so the user can't accidentally shuffle
     // accounts when only a subset is visible.
     if (_isSearching || _searchQuery.isNotEmpty) {
@@ -519,10 +530,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
 
     return ReorderableListView.builder(
-      padding: const EdgeInsets.only(
-        top: AppConstants.paddingSM,
-        bottom: 100,
-      ),
+      padding: const EdgeInsets.only(top: AppConstants.paddingSM, bottom: 100),
       itemCount: accounts.length,
       itemBuilder: (context, index) => _buildCard(accounts[index]),
       onReorder: (oldIndex, newIndex) {

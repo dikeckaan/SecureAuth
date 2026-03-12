@@ -172,10 +172,7 @@ class _SetupScreenState extends State<SetupScreen> {
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.error,
-      ),
+      SnackBar(content: Text(message), backgroundColor: AppColors.error),
     );
   }
 
@@ -196,13 +193,18 @@ class _SetupScreenState extends State<SetupScreen> {
     final Color cardBg = isDark
         ? Colors.white.withAlpha(26)
         : theme.colorScheme.surfaceContainerHighest.withAlpha(120);
-    final Color cardBorder =
-        isDark ? Colors.white.withAlpha(38) : theme.colorScheme.outline.withAlpha(60);
-    final Color fieldFill =
-        isDark ? Colors.white.withAlpha(18) : theme.colorScheme.surfaceContainerHighest.withAlpha(80);
-    final Color fieldBorder =
-        isDark ? Colors.white.withAlpha(51) : theme.colorScheme.outline.withAlpha(100);
-    final Color fieldFocusBorder = isDark ? Colors.white : theme.colorScheme.primary;
+    final Color cardBorder = isDark
+        ? Colors.white.withAlpha(38)
+        : theme.colorScheme.outline.withAlpha(60);
+    final Color fieldFill = isDark
+        ? Colors.white.withAlpha(18)
+        : theme.colorScheme.surfaceContainerHighest.withAlpha(80);
+    final Color fieldBorder = isDark
+        ? Colors.white.withAlpha(51)
+        : theme.colorScheme.outline.withAlpha(100);
+    final Color fieldFocusBorder = isDark
+        ? Colors.white
+        : theme.colorScheme.primary;
 
     return Scaffold(
       body: Container(
@@ -230,218 +232,238 @@ class _SetupScreenState extends State<SetupScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       // Logo
-                  ClipRRect(
-                    borderRadius:
-                        BorderRadius.circular(AppConstants.radiusXL),
-                    child: Image.asset(
-                      'assets/icon/app_icon.png',
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  const SizedBox(height: AppConstants.paddingLG),
-                  Text(
-                    l10n.welcome,
-                    style: TextStyle(
-                      color: fg,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: AppConstants.paddingSM),
-                  Text(
-                    l10n.setupSubtitle,
-                    style: TextStyle(
-                      color: fgMuted,
-                      fontSize: 14,
-                      height: 1.5,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppConstants.paddingXL),
-                  // Setup Card
-                  Container(
-                    padding: const EdgeInsets.all(AppConstants.paddingLG),
-                    decoration: BoxDecoration(
-                      color: cardBg,
-                      borderRadius:
-                          BorderRadius.circular(AppConstants.radiusLG),
-                      border: Border.all(color: cardBorder),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Password field
-                        TextField(
-                          controller: _passwordController,
-                          obscureText: _obscurePassword,
-                          onChanged: (_) => setState(() {}),
-                          style: TextStyle(color: fg),
-                          decoration: InputDecoration(
-                            labelText: l10n.password,
-                            labelStyle: TextStyle(color: fgHint),
-                            prefixIcon: Icon(Icons.lock_outline, color: fgHint),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                                color: fgHint,
-                              ),
-                              onPressed: () => setState(
-                                  () => _obscurePassword = !_obscurePassword),
-                            ),
-                            filled: true,
-                            fillColor: fieldFill,
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(
-                                  AppConstants.radiusMD),
-                              borderSide: BorderSide(color: fieldBorder),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(
-                                  AppConstants.radiusMD),
-                              borderSide: BorderSide(
-                                  color: fieldFocusBorder, width: 2),
-                            ),
-                          ),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.radiusXL,
                         ),
-                        // Password strength indicator
-                        if (_passwordController.text.isNotEmpty) ...[
-                          const SizedBox(height: AppConstants.paddingSM),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: LinearProgressIndicator(
-                              value: strength,
-                              backgroundColor: fg.withAlpha(26),
-                              valueColor: AlwaysStoppedAnimation(
-                                  _getStrengthColor(strength)),
-                              minHeight: 4,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            strengthLabel,
-                            style: TextStyle(
-                              color: _getStrengthColor(strength),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: AppConstants.paddingMD),
-                        // Confirm password
-                        TextField(
-                          controller: _confirmPasswordController,
-                          obscureText: _obscureConfirm,
-                          style: TextStyle(color: fg),
-                          decoration: InputDecoration(
-                            labelText: l10n.confirmPassword,
-                            labelStyle: TextStyle(color: fgHint),
-                            prefixIcon: Icon(Icons.lock_outline, color: fgHint),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscureConfirm
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                                color: fgHint,
-                              ),
-                              onPressed: () => setState(
-                                  () => _obscureConfirm = !_obscureConfirm),
-                            ),
-                            filled: true,
-                            fillColor: fieldFill,
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(
-                                  AppConstants.radiusMD),
-                              borderSide: BorderSide(color: fieldBorder),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(
-                                  AppConstants.radiusMD),
-                              borderSide: BorderSide(
-                                  color: fieldFocusBorder, width: 2),
-                            ),
-                          ),
+                        child: Image.asset(
+                          'assets/icon/app_icon.png',
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
                         ),
-                        // Biometric toggle
-                        if (_biometricAvailable) ...[
-                          const SizedBox(height: AppConstants.paddingLG),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppConstants.paddingMD,
-                              vertical: AppConstants.paddingSM,
-                            ),
-                            decoration: BoxDecoration(
-                              color: fg.withAlpha(13),
-                              borderRadius: BorderRadius.circular(
-                                  AppConstants.radiusMD),
-                              border: Border.all(color: fg.withAlpha(26)),
-                            ),
-                            child: SwitchListTile(
-                              title: Text(
-                                l10n.biometricAuth,
-                                style: TextStyle(color: fg, fontSize: 14),
-                              ),
-                              subtitle: Text(
-                                l10n.fingerprintOrFace,
-                                style: TextStyle(
-                                  color: fgSubtle,
-                                  fontSize: 12,
+                      ),
+                      const SizedBox(height: AppConstants.paddingLG),
+                      Text(
+                        l10n.welcome,
+                        style: TextStyle(
+                          color: fg,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: AppConstants.paddingSM),
+                      Text(
+                        l10n.setupSubtitle,
+                        style: TextStyle(
+                          color: fgMuted,
+                          fontSize: 14,
+                          height: 1.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: AppConstants.paddingXL),
+                      // Setup Card
+                      Container(
+                        padding: const EdgeInsets.all(AppConstants.paddingLG),
+                        decoration: BoxDecoration(
+                          color: cardBg,
+                          borderRadius: BorderRadius.circular(
+                            AppConstants.radiusLG,
+                          ),
+                          border: Border.all(color: cardBorder),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Password field
+                            TextField(
+                              controller: _passwordController,
+                              obscureText: _obscurePassword,
+                              onChanged: (_) => setState(() {}),
+                              style: TextStyle(color: fg),
+                              decoration: InputDecoration(
+                                labelText: l10n.password,
+                                labelStyle: TextStyle(color: fgHint),
+                                prefixIcon: Icon(
+                                  Icons.lock_outline,
+                                  color: fgHint,
+                                ),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword
+                                        ? Icons.visibility_outlined
+                                        : Icons.visibility_off_outlined,
+                                    color: fgHint,
+                                  ),
+                                  onPressed: () => setState(
+                                    () => _obscurePassword = !_obscurePassword,
+                                  ),
+                                ),
+                                filled: true,
+                                fillColor: fieldFill,
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    AppConstants.radiusMD,
+                                  ),
+                                  borderSide: BorderSide(color: fieldBorder),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    AppConstants.radiusMD,
+                                  ),
+                                  borderSide: BorderSide(
+                                    color: fieldFocusBorder,
+                                    width: 2,
+                                  ),
                                 ),
                               ),
-                              value: _useBiometric,
-                              onChanged: (value) =>
-                                  setState(() => _useBiometric = value),
-                              secondary: Icon(Icons.fingerprint, color: fgMuted),
-                              contentPadding: EdgeInsets.zero,
                             ),
+                            // Password strength indicator
+                            if (_passwordController.text.isNotEmpty) ...[
+                              const SizedBox(height: AppConstants.paddingSM),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: LinearProgressIndicator(
+                                  value: strength,
+                                  backgroundColor: fg.withAlpha(26),
+                                  valueColor: AlwaysStoppedAnimation(
+                                    _getStrengthColor(strength),
+                                  ),
+                                  minHeight: 4,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                strengthLabel,
+                                style: TextStyle(
+                                  color: _getStrengthColor(strength),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: AppConstants.paddingMD),
+                            // Confirm password
+                            TextField(
+                              controller: _confirmPasswordController,
+                              obscureText: _obscureConfirm,
+                              style: TextStyle(color: fg),
+                              decoration: InputDecoration(
+                                labelText: l10n.confirmPassword,
+                                labelStyle: TextStyle(color: fgHint),
+                                prefixIcon: Icon(
+                                  Icons.lock_outline,
+                                  color: fgHint,
+                                ),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscureConfirm
+                                        ? Icons.visibility_outlined
+                                        : Icons.visibility_off_outlined,
+                                    color: fgHint,
+                                  ),
+                                  onPressed: () => setState(
+                                    () => _obscureConfirm = !_obscureConfirm,
+                                  ),
+                                ),
+                                filled: true,
+                                fillColor: fieldFill,
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    AppConstants.radiusMD,
+                                  ),
+                                  borderSide: BorderSide(color: fieldBorder),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    AppConstants.radiusMD,
+                                  ),
+                                  borderSide: BorderSide(
+                                    color: fieldFocusBorder,
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Biometric toggle
+                            if (_biometricAvailable) ...[
+                              const SizedBox(height: AppConstants.paddingLG),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppConstants.paddingMD,
+                                  vertical: AppConstants.paddingSM,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: fg.withAlpha(13),
+                                  borderRadius: BorderRadius.circular(
+                                    AppConstants.radiusMD,
+                                  ),
+                                  border: Border.all(color: fg.withAlpha(26)),
+                                ),
+                                child: SwitchListTile(
+                                  title: Text(
+                                    l10n.biometricAuth,
+                                    style: TextStyle(color: fg, fontSize: 14),
+                                  ),
+                                  subtitle: Text(
+                                    l10n.fingerprintOrFace,
+                                    style: TextStyle(
+                                      color: fgSubtle,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  value: _useBiometric,
+                                  onChanged: (value) =>
+                                      setState(() => _useBiometric = value),
+                                  secondary: Icon(
+                                    Icons.fingerprint,
+                                    color: fgMuted,
+                                  ),
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: AppConstants.paddingLG),
+                            // Setup button
+                            GradientButton(
+                              text: l10n.completeSetup,
+                              onPressed: _setupSecurity,
+                              isLoading: _isLoading,
+                              icon: Icons.check,
+                            ),
+                            const SizedBox(height: AppConstants.paddingMD),
+                            // Skip button
+                            TextButton(
+                              onPressed: _skipSetup,
+                              child: Text(
+                                l10n.continueWithoutPassword,
+                                style: TextStyle(
+                                  color: fgHint,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppConstants.paddingMD),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.info_outline, size: 14, color: fgFaint),
+                          const SizedBox(width: 6),
+                          Text(
+                            l10n.strongEncryption,
+                            style: TextStyle(color: fgFaint, fontSize: 12),
                           ),
                         ],
-                        const SizedBox(height: AppConstants.paddingLG),
-                        // Setup button
-                        GradientButton(
-                          text: l10n.completeSetup,
-                          onPressed: _setupSecurity,
-                          isLoading: _isLoading,
-                          icon: Icons.check,
-                        ),
-                        const SizedBox(height: AppConstants.paddingMD),
-                        // Skip button
-                        TextButton(
-                          onPressed: _skipSetup,
-                          child: Text(
-                            l10n.continueWithoutPassword,
-                            style: TextStyle(
-                              color: fgHint,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppConstants.paddingMD),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.info_outline, size: 14, color: fgFaint),
-                      const SizedBox(width: 6),
-                      Text(
-                        l10n.strongEncryption,
-                        style: TextStyle(
-                          color: fgFaint,
-                          fontSize: 12,
-                        ),
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
             ],
           ),
         ),

@@ -33,7 +33,9 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget> {
     _hue = hsv.hue;
     _saturation = hsv.saturation;
     _value = hsv.value;
-    _hexController = TextEditingController(text: _colorToHex6(widget.initialColor));
+    _hexController = TextEditingController(
+      text: _colorToHex6(widget.initialColor),
+    );
   }
 
   @override
@@ -46,7 +48,12 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget> {
       HSVColor.fromAHSV(1.0, _hue, _saturation, _value).toColor();
 
   String _colorToHex6(Color c) {
-    return c.toARGB32().toRadixString(16).padLeft(8, '0').substring(2).toUpperCase();
+    return c
+        .toARGB32()
+        .toRadixString(16)
+        .padLeft(8, '0')
+        .substring(2)
+        .toUpperCase();
   }
 
   void _notifyChange() {
@@ -135,8 +142,10 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget> {
                 decoration: InputDecoration(
                   prefixText: '#',
                   isDense: true,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -346,11 +355,7 @@ class _SVSquarePainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.5,
     );
-    canvas.drawCircle(
-      Offset(dx, dy),
-      6,
-      Paint()..color = thumbColor,
-    );
+    canvas.drawCircle(Offset(dx, dy), 6, Paint()..color = thumbColor);
   }
 
   @override

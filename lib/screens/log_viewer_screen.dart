@@ -85,15 +85,14 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
       );
       await file.writeAsString(text);
 
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: 'SecureAuth Security Logs',
-      );
+      await Share.shareXFiles([
+        XFile(file.path),
+      ], text: 'SecureAuth Security Logs');
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to export logs: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to export logs: $e')));
       }
     }
   }
@@ -114,9 +113,7 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.error,
-            ),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
             child: const Text('Clear Logs'),
           ),
         ],
@@ -127,9 +124,9 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
       await _logger.clear();
       if (mounted) setState(() {});
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('All logs cleared')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('All logs cleared')));
       }
     }
   }
@@ -180,9 +177,7 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
               ],
             ),
           ),
-          Expanded(
-            child: _buildLogList(),
-          ),
+          Expanded(child: _buildLogList()),
         ],
       ),
     );
@@ -211,14 +206,14 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
             Icon(
               Icons.history,
               size: 64,
-              color: Colors.grey.withOpacity(0.3),
+              color: Colors.grey.withValues(alpha: 0.3),
             ),
             SizedBox(height: AppConstants.paddingMD),
             Text(
               'No logs recorded',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.grey,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: Colors.grey),
             ),
           ],
         ),
@@ -241,10 +236,8 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
       margin: const EdgeInsets.only(bottom: AppConstants.paddingMD),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppConstants.radiusMD),
-        border: Border.all(
-          color: Colors.grey.withOpacity(0.2),
-        ),
-        color: Colors.grey.withOpacity(0.03),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+        color: Colors.grey.withValues(alpha: 0.03),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,9 +262,9 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
                     children: [
                       Text(
                         _formatTimestamp(entry.timestamp),
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: Colors.grey,
-                            ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.labelSmall?.copyWith(color: Colors.grey),
                       ),
                       SizedBox(width: AppConstants.paddingMD),
                       _buildLevelBadge(entry.level, levelColor),
@@ -304,15 +297,15 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
         vertical: AppConstants.paddingXS,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(AppConstants.radiusSM),
       ),
       child: Text(
         level.name.toUpperCase(),
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w600,
-            ),
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -324,15 +317,15 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
         vertical: AppConstants.paddingXS,
       ),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.15),
+        color: AppColors.primary.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(AppConstants.radiusSM),
       ),
       child: Text(
         category.toUpperCase(),
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w600,
-            ),
+          color: AppColors.primary,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -342,9 +335,9 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
         .map(
           (e) => Text(
             '${e.key}: ${e.value}',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Colors.grey,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.labelSmall?.copyWith(color: Colors.grey),
           ),
         )
         .toList();

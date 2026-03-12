@@ -83,7 +83,8 @@ class _TamperLockdownScreenState extends State<TamperLockdownScreen>
       } else {
         HapticFeedback.heavyImpact();
         setState(() {
-          _errorMessage = 'Incorrect password. Only the master password '
+          _errorMessage =
+              'Incorrect password. Only the master password '
               'can clear a tamper lockdown.';
         });
         _passwordController.clear();
@@ -103,11 +104,7 @@ class _TamperLockdownScreenState extends State<TamperLockdownScreen>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF1A0000),
-              Color(0xFF2D0A0A),
-              Color(0xFF1A0000),
-            ],
+            colors: [Color(0xFF1A0000), Color(0xFF2D0A0A), Color(0xFF1A0000)],
           ),
         ),
         child: SafeArea(
@@ -180,16 +177,18 @@ class _TamperLockdownScreenState extends State<TamperLockdownScreen>
                     padding: const EdgeInsets.all(AppConstants.paddingMD),
                     decoration: BoxDecoration(
                       color: AppColors.error.withAlpha(25),
-                      borderRadius:
-                          BorderRadius.circular(AppConstants.radiusMD),
-                      border: Border.all(
-                        color: AppColors.error.withAlpha(60),
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.radiusMD,
                       ),
+                      border: Border.all(color: AppColors.error.withAlpha(60)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.info_outline,
-                            color: AppColors.error, size: 20),
+                        const Icon(
+                          Icons.info_outline,
+                          color: AppColors.error,
+                          size: 20,
+                        ),
                         const SizedBox(width: AppConstants.paddingSM),
                         Expanded(
                           child: Text(
@@ -222,10 +221,12 @@ class _TamperLockdownScreenState extends State<TamperLockdownScreen>
                           backgroundColor: AppColors.error,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(
-                              vertical: AppConstants.paddingMD),
+                            vertical: AppConstants.paddingMD,
+                          ),
                           shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(AppConstants.radiusMD),
+                            borderRadius: BorderRadius.circular(
+                              AppConstants.radiusMD,
+                            ),
                           ),
                         ),
                       ),
@@ -236,8 +237,9 @@ class _TamperLockdownScreenState extends State<TamperLockdownScreen>
                       padding: const EdgeInsets.all(AppConstants.paddingLG),
                       decoration: BoxDecoration(
                         color: Colors.white.withAlpha(18),
-                        borderRadius:
-                            BorderRadius.circular(AppConstants.radiusLG),
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.radiusLG,
+                        ),
                         border: Border.all(
                           color: AppColors.error.withAlpha(60),
                           width: 1,
@@ -289,21 +291,24 @@ class _TamperLockdownScreenState extends State<TamperLockdownScreen>
                                       : Icons.visibility_off_outlined,
                                   color: Colors.white.withAlpha(153),
                                 ),
-                                onPressed: () => setState(() =>
-                                    _obscurePassword = !_obscurePassword),
+                                onPressed: () => setState(
+                                  () => _obscurePassword = !_obscurePassword,
+                                ),
                               ),
                               filled: true,
                               fillColor: Colors.white.withAlpha(12),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(
-                                    AppConstants.radiusMD),
+                                  AppConstants.radiusMD,
+                                ),
                                 borderSide: BorderSide(
                                   color: AppColors.error.withAlpha(100),
                                 ),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(
-                                    AppConstants.radiusMD),
+                                  AppConstants.radiusMD,
+                                ),
                                 borderSide: const BorderSide(
                                   color: AppColors.error,
                                   width: 2,
@@ -324,13 +329,15 @@ class _TamperLockdownScreenState extends State<TamperLockdownScreen>
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.error,
                                 foregroundColor: Colors.white,
-                                disabledBackgroundColor:
-                                    AppColors.error.withAlpha(100),
+                                disabledBackgroundColor: AppColors.error
+                                    .withAlpha(100),
                                 padding: const EdgeInsets.symmetric(
-                                    vertical: AppConstants.paddingMD),
+                                  vertical: AppConstants.paddingMD,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(
-                                      AppConstants.radiusMD),
+                                    AppConstants.radiusMD,
+                                  ),
                                 ),
                               ),
                               child: _isLoading

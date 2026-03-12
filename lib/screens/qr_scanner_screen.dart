@@ -12,10 +12,7 @@ import '../utils/constants.dart';
 class QRScannerScreen extends StatefulWidget {
   final TOTPService totpService;
 
-  const QRScannerScreen({
-    super.key,
-    required this.totpService,
-  });
+  const QRScannerScreen({super.key, required this.totpService});
 
   @override
   State<QRScannerScreen> createState() => _QRScannerScreenState();
@@ -51,10 +48,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   void _showError(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.error,
-      ),
+      SnackBar(content: Text(message), backgroundColor: AppColors.error),
     );
   }
 
@@ -82,7 +76,12 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       } else {
         final code = await zx.readBarcodeImagePathString(
           path,
-          DecodeParams(tryHarder: true, tryRotate: true, tryInverted: true, maxSize: 0),
+          DecodeParams(
+            tryHarder: true,
+            tryRotate: true,
+            tryInverted: true,
+            maxSize: 0,
+          ),
         );
         rawValue = code.isValid ? code.text : null;
       }
@@ -143,15 +142,9 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       body: Stack(
         children: [
           // Camera
-          MobileScanner(
-            controller: _controller,
-            onDetect: _onDetect,
-          ),
+          MobileScanner(controller: _controller, onDetect: _onDetect),
           // Overlay
-          CustomPaint(
-            painter: _ScannerOverlayPainter(),
-            size: Size.infinite,
-          ),
+          CustomPaint(painter: _ScannerOverlayPainter(), size: Size.infinite),
           // Scan frame
           Center(
             child: Container(
@@ -186,21 +179,22 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                   ),
                   decoration: BoxDecoration(
                     color: Colors.black54,
-                    borderRadius:
-                        BorderRadius.circular(AppConstants.radiusFull),
+                    borderRadius: BorderRadius.circular(
+                      AppConstants.radiusFull,
+                    ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.info_outline,
-                          color: Colors.white70, size: 16),
+                      const Icon(
+                        Icons.info_outline,
+                        color: Colors.white70,
+                        size: 16,
+                      ),
                       const SizedBox(width: 8),
                       const Text(
                         'Camera unavailable? Use the image button above.',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 13,
-                        ),
+                        style: TextStyle(color: Colors.white70, fontSize: 13),
                       ),
                     ],
                   ),
@@ -220,8 +214,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: Colors.black54,
-                  borderRadius:
-                      BorderRadius.circular(AppConstants.radiusFull),
+                  borderRadius: BorderRadius.circular(AppConstants.radiusFull),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -261,9 +254,10 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
           height: size,
           child: CustomPaint(
             painter: _CornerPainter(
-                corner: _Corner.topLeft,
-                color: color,
-                thickness: thickness),
+              corner: _Corner.topLeft,
+              color: color,
+              thickness: thickness,
+            ),
           ),
         ),
       ),
@@ -276,9 +270,10 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
           height: size,
           child: CustomPaint(
             painter: _CornerPainter(
-                corner: _Corner.topRight,
-                color: color,
-                thickness: thickness),
+              corner: _Corner.topRight,
+              color: color,
+              thickness: thickness,
+            ),
           ),
         ),
       ),
@@ -291,9 +286,10 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
           height: size,
           child: CustomPaint(
             painter: _CornerPainter(
-                corner: _Corner.bottomLeft,
-                color: color,
-                thickness: thickness),
+              corner: _Corner.bottomLeft,
+              color: color,
+              thickness: thickness,
+            ),
           ),
         ),
       ),
@@ -306,9 +302,10 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
           height: size,
           child: CustomPaint(
             painter: _CornerPainter(
-                corner: _Corner.bottomRight,
-                color: color,
-                thickness: thickness),
+              corner: _Corner.bottomRight,
+              color: color,
+              thickness: thickness,
+            ),
           ),
         ),
       ),
@@ -339,11 +336,12 @@ class _ScannerOverlayPainter extends CustomPainter {
       Path.combine(
         PathOperation.difference,
         Path()..addRect(fullRect),
-        Path()
-          ..addRRect(RRect.fromRectAndRadius(
+        Path()..addRRect(
+          RRect.fromRectAndRadius(
             scanRect,
             const Radius.circular(AppConstants.radiusLG),
-          )),
+          ),
+        ),
       ),
       paint,
     );

@@ -146,16 +146,20 @@ class AppTheme {
     );
   }
 
-  static ThemeData buildDarkTheme(AccentColorPalette accent,
-      {required bool pureDark}) {
-    final Color bgColor =
-        pureDark ? AppColors.bgDark : AppColors.bgDarkNormal;
-    final Color surfaceColor =
-        pureDark ? AppColors.surfaceDark : AppColors.surfaceDarkNormal;
-    final Color cardColor =
-        pureDark ? AppColors.cardDark : AppColors.cardDarkNormal;
-    final Color borderColor =
-        pureDark ? AppColors.borderDark : AppColors.borderDarkNormal;
+  static ThemeData buildDarkTheme(
+    AccentColorPalette accent, {
+    required bool pureDark,
+  }) {
+    final Color bgColor = pureDark ? AppColors.bgDark : AppColors.bgDarkNormal;
+    final Color surfaceColor = pureDark
+        ? AppColors.surfaceDark
+        : AppColors.surfaceDarkNormal;
+    final Color cardColor = pureDark
+        ? AppColors.cardDark
+        : AppColors.cardDarkNormal;
+    final Color borderColor = pureDark
+        ? AppColors.borderDark
+        : AppColors.borderDarkNormal;
 
     return ThemeData(
       useMaterial3: true,

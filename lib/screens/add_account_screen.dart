@@ -55,7 +55,11 @@ class _AddAccountScreenState extends State<AddAccountScreen>
       const _TokenTypeOption('totp', 'TOTP', Icons.access_time_outlined),
       const _TokenTypeOption('hotp', 'HOTP', Icons.tag_outlined),
       if (steamEnabled)
-        const _TokenTypeOption('steam', 'Steam', Icons.videogame_asset_outlined),
+        const _TokenTypeOption(
+          'steam',
+          'Steam',
+          Icons.videogame_asset_outlined,
+        ),
     ];
     _tabController = TabController(length: _tokenTypes.length, vsync: this);
     _tabController.addListener(() {
@@ -86,8 +90,7 @@ class _AddAccountScreenState extends State<AddAccountScreen>
     final result = await Navigator.push<AccountModel>(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            QRScannerScreen(totpService: widget.totpService),
+        builder: (context) => QRScannerScreen(totpService: widget.totpService),
       ),
     );
 
@@ -122,7 +125,12 @@ class _AddAccountScreenState extends State<AddAccountScreen>
         // Desktop: ZXing C++ FFI
         final code = await zx.readBarcodeImagePathString(
           path,
-          DecodeParams(tryHarder: true, tryRotate: true, tryInverted: true, maxSize: 0),
+          DecodeParams(
+            tryHarder: true,
+            tryRotate: true,
+            tryInverted: true,
+            maxSize: 0,
+          ),
         );
         rawValue = code.isValid ? code.text : null;
       }
@@ -210,10 +218,7 @@ class _AddAccountScreenState extends State<AddAccountScreen>
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.addAccount),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text(l10n.addAccount), centerTitle: true),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppConstants.paddingMD),
         child: Form(
@@ -227,38 +232,48 @@ class _AddAccountScreenState extends State<AddAccountScreen>
                   color: theme.colorScheme.surface,
                   borderRadius: BorderRadius.circular(AppConstants.radiusMD),
                   border: Border.all(
-                      color: theme.colorScheme.outline.withAlpha(60)),
+                    color: theme.colorScheme.outline.withAlpha(60),
+                  ),
                 ),
                 child: TabBar(
                   controller: _tabController,
                   indicator: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
+                      colors: [
+                        theme.colorScheme.primary,
+                        theme.colorScheme.secondary,
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
-                    borderRadius:
-                        BorderRadius.circular(AppConstants.radiusMD - 1),
+                    borderRadius: BorderRadius.circular(
+                      AppConstants.radiusMD - 1,
+                    ),
                   ),
                   indicatorSize: TabBarIndicatorSize.tab,
                   dividerColor: Colors.transparent,
                   labelColor: Colors.white,
-                  unselectedLabelColor:
-                      theme.colorScheme.onSurface.withAlpha(153),
+                  unselectedLabelColor: theme.colorScheme.onSurface.withAlpha(
+                    153,
+                  ),
                   labelStyle: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 13),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
                   tabs: _tokenTypes
-                      .map((t) => Tab(
-                            height: 44,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(t.icon, size: 16),
-                                const SizedBox(width: 6),
-                                Text(t.label),
-                              ],
-                            ),
-                          ))
+                      .map(
+                        (t) => Tab(
+                          height: 44,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(t.icon, size: 16),
+                              const SizedBox(width: 6),
+                              Text(t.label),
+                            ],
+                          ),
+                        ),
+                      )
                       .toList(),
                 ),
               ),
@@ -351,8 +366,7 @@ class _AddAccountScreenState extends State<AddAccountScreen>
                   ),
                 ),
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(
-                      RegExp(r'[A-Za-z2-7=\s]')),
+                  FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z2-7=\s]')),
                 ],
                 textCapitalization: TextCapitalization.characters,
                 validator: (v) => (v == null || v.trim().isEmpty)
@@ -366,9 +380,7 @@ class _AddAccountScreenState extends State<AddAccountScreen>
                 TextFormField(
                   controller: _counterController,
                   keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly
-                  ],
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   decoration: const InputDecoration(
                     labelText: 'Başlangıç sayacı',
                     hintText: '0',
@@ -430,8 +442,9 @@ class _AddAccountScreenState extends State<AddAccountScreen>
     required VoidCallback onTap,
     bool secondary = false,
   }) {
-    final color =
-        secondary ? theme.colorScheme.secondary : theme.colorScheme.primary;
+    final color = secondary
+        ? theme.colorScheme.secondary
+        : theme.colorScheme.primary;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppConstants.radiusLG),
@@ -451,7 +464,10 @@ class _AddAccountScreenState extends State<AddAccountScreen>
                 gradient: LinearGradient(
                   colors: secondary
                       ? [theme.colorScheme.secondary, theme.colorScheme.primary]
-                      : [theme.colorScheme.primary, theme.colorScheme.secondary],
+                      : [
+                          theme.colorScheme.primary,
+                          theme.colorScheme.secondary,
+                        ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -466,8 +482,9 @@ class _AddAccountScreenState extends State<AddAccountScreen>
                 children: [
                   Text(
                     title,
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.w600),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -479,8 +496,10 @@ class _AddAccountScreenState extends State<AddAccountScreen>
                 ],
               ),
             ),
-            Icon(Icons.chevron_right,
-                color: theme.colorScheme.onSurface.withAlpha(128)),
+            Icon(
+              Icons.chevron_right,
+              color: theme.colorScheme.onSurface.withAlpha(128),
+            ),
           ],
         ),
       ),
@@ -492,8 +511,9 @@ class _AddAccountScreenState extends State<AddAccountScreen>
       children: [
         const Expanded(child: Divider()),
         Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: AppConstants.paddingMD),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppConstants.paddingMD,
+          ),
           child: Text(
             l10n.or,
             style: theme.textTheme.bodySmall?.copyWith(
@@ -512,9 +532,7 @@ class _AddAccountScreenState extends State<AddAccountScreen>
       child: Row(
         children: [
           Icon(
-            _showAdvanced
-                ? Icons.keyboard_arrow_up
-                : Icons.keyboard_arrow_down,
+            _showAdvanced ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
             size: 18,
             color: theme.colorScheme.primary,
           ),
@@ -559,7 +577,8 @@ class _AddAccountScreenState extends State<AddAccountScreen>
             onSelectionChanged: (s) => setState(() => _algorithm = s.first),
             style: ButtonStyle(
               textStyle: WidgetStateProperty.all(
-                  const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+                const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+              ),
             ),
           ),
           const SizedBox(height: AppConstants.paddingMD),
@@ -604,7 +623,11 @@ class _AddAccountScreenState extends State<AddAccountScreen>
   }
 
   Widget _buildInfoBanner(
-      ThemeData theme, IconData icon, String text, Color color) {
+    ThemeData theme,
+    IconData icon,
+    String text,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppConstants.paddingMD,
@@ -640,7 +663,10 @@ class _AddAccountScreenState extends State<AddAccountScreen>
         gradient: _isLoading
             ? null
             : LinearGradient(
-                colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
+                colors: [
+                  theme.colorScheme.primary,
+                  theme.colorScheme.secondary,
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -653,7 +679,7 @@ class _AddAccountScreenState extends State<AddAccountScreen>
                   color: theme.colorScheme.primary.withAlpha(70),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
-                )
+                ),
               ],
       ),
       child: Material(
@@ -673,15 +699,17 @@ class _AddAccountScreenState extends State<AddAccountScreen>
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.5,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(Colors.white),
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
                   : Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.save_outlined,
-                            size: 20, color: Colors.white),
+                        const Icon(
+                          Icons.save_outlined,
+                          size: 20,
+                          color: Colors.white,
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           l10n.saveAccount,

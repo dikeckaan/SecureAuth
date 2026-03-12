@@ -49,9 +49,11 @@ class StorageService {
     } catch (e) {
       // Box existed unencrypted (first run after upgrade) — delete and recreate.
       // Password hash/salt will be re-created at next login (transparent migration).
-      _log.warning('storage', 'Settings box migration: recreating encrypted box', {
-        'reason': e.toString(),
-      });
+      _log.warning(
+        'storage',
+        'Settings box migration: recreating encrypted box',
+        {'reason': e.toString()},
+      );
       await Hive.deleteBoxFromDisk(_settingsBox);
       _settingsBoxInstance = await Hive.openBox<AppSettings>(
         _settingsBox,
@@ -126,8 +128,9 @@ class StorageService {
     final accounts = accountsBox.values.toList();
     final order = getSettings().accountOrder;
     if (order == null || order.isEmpty) {
-      return accounts
-        ..sort((a, b) => a.issuer.toLowerCase().compareTo(b.issuer.toLowerCase()));
+      return accounts..sort(
+        (a, b) => a.issuer.toLowerCase().compareTo(b.issuer.toLowerCase()),
+      );
     }
     final orderMap = {for (var i = 0; i < order.length; i++) order[i]: i};
     accounts.sort((a, b) {
@@ -179,7 +182,9 @@ class StorageService {
     final data = json.decode(jsonString) as Map<String, dynamic>;
 
     if (!data.containsKey('accounts')) {
-      throw const FormatException('Invalid backup file: "accounts" field not found');
+      throw const FormatException(
+        'Invalid backup file: "accounts" field not found',
+      );
     }
 
     final accountsList = data['accounts'] as List;
@@ -211,20 +216,24 @@ class StorageService {
       final count = await importAccountsFromJson(jsonString);
       return Result.success(count);
     } on FormatException catch (e, st) {
-      return Result.failure(AppError(
-        category: ErrorCategory.backup,
-        message: e.message,
-        userMessage: 'Invalid backup file format',
-        originalError: e,
-        stackTrace: st,
-      ));
+      return Result.failure(
+        AppError(
+          category: ErrorCategory.backup,
+          message: e.message,
+          userMessage: 'Invalid backup file format',
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
     } catch (e, st) {
-      return Result.failure(AppError(
-        category: ErrorCategory.storage,
-        message: 'Import failed: $e',
-        originalError: e,
-        stackTrace: st,
-      ));
+      return Result.failure(
+        AppError(
+          category: ErrorCategory.storage,
+          message: 'Import failed: $e',
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
     }
   }
 

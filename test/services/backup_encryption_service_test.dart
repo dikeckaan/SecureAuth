@@ -12,10 +12,14 @@ void main() {
       const json = '{"accounts":[],"version":"2.0"}';
       const password = 'TestPassword123';
 
-      final encrypted =
-          await BackupEncryptionService.encryptBackup(json, password);
-      final decrypted =
-          await BackupEncryptionService.decryptBackup(encrypted, password);
+      final encrypted = await BackupEncryptionService.encryptBackup(
+        json,
+        password,
+      );
+      final decrypted = await BackupEncryptionService.decryptBackup(
+        encrypted,
+        password,
+      );
 
       expect(decrypted, equals(json));
     });
@@ -50,18 +54,24 @@ void main() {
       });
       const password = 'Güçlü_Şifre_🔒';
 
-      final encrypted =
-          await BackupEncryptionService.encryptBackup(jsonData, password);
-      final decrypted =
-          await BackupEncryptionService.decryptBackup(encrypted, password);
+      final encrypted = await BackupEncryptionService.encryptBackup(
+        jsonData,
+        password,
+      );
+      final decrypted = await BackupEncryptionService.decryptBackup(
+        encrypted,
+        password,
+      );
 
       expect(decrypted, equals(jsonData));
     });
 
     test('wrong password throws FormatException', () async {
       const json = '{"test": true}';
-      final encrypted =
-          await BackupEncryptionService.encryptBackup(json, 'correct');
+      final encrypted = await BackupEncryptionService.encryptBackup(
+        json,
+        'correct',
+      );
 
       expect(
         () => BackupEncryptionService.decryptBackup(encrypted, 'wrong'),
@@ -69,36 +79,50 @@ void main() {
       );
     });
 
-    test('each encryption produces different output (unique salt/nonce)',
-        () async {
-      const json = '{"test": true}';
-      const password = 'SamePassword';
+    test(
+      'each encryption produces different output (unique salt/nonce)',
+      () async {
+        const json = '{"test": true}';
+        const password = 'SamePassword';
 
-      final encrypted1 =
-          await BackupEncryptionService.encryptBackup(json, password);
-      final encrypted2 =
-          await BackupEncryptionService.encryptBackup(json, password);
+        final encrypted1 = await BackupEncryptionService.encryptBackup(
+          json,
+          password,
+        );
+        final encrypted2 = await BackupEncryptionService.encryptBackup(
+          json,
+          password,
+        );
 
-      // Encrypted outputs should differ due to random salt + nonce
-      expect(encrypted1, isNot(equals(encrypted2)));
+        // Encrypted outputs should differ due to random salt + nonce
+        expect(encrypted1, isNot(equals(encrypted2)));
 
-      // But both should decrypt to the same plaintext
-      final decrypted1 =
-          await BackupEncryptionService.decryptBackup(encrypted1, password);
-      final decrypted2 =
-          await BackupEncryptionService.decryptBackup(encrypted2, password);
-      expect(decrypted1, equals(json));
-      expect(decrypted2, equals(json));
-    });
+        // But both should decrypt to the same plaintext
+        final decrypted1 = await BackupEncryptionService.decryptBackup(
+          encrypted1,
+          password,
+        );
+        final decrypted2 = await BackupEncryptionService.decryptBackup(
+          encrypted2,
+          password,
+        );
+        expect(decrypted1, equals(json));
+        expect(decrypted2, equals(json));
+      },
+    );
 
     test('handles empty JSON string', () async {
       const json = '';
       const password = 'test';
 
-      final encrypted =
-          await BackupEncryptionService.encryptBackup(json, password);
-      final decrypted =
-          await BackupEncryptionService.decryptBackup(encrypted, password);
+      final encrypted = await BackupEncryptionService.encryptBackup(
+        json,
+        password,
+      );
+      final decrypted = await BackupEncryptionService.decryptBackup(
+        encrypted,
+        password,
+      );
 
       expect(decrypted, equals(json));
     });
@@ -116,10 +140,14 @@ void main() {
       final json = jsonEncode({'accounts': accounts});
       const password = 'LargePayloadTest';
 
-      final encrypted =
-          await BackupEncryptionService.encryptBackup(json, password);
-      final decrypted =
-          await BackupEncryptionService.decryptBackup(encrypted, password);
+      final encrypted = await BackupEncryptionService.encryptBackup(
+        json,
+        password,
+      );
+      final decrypted = await BackupEncryptionService.decryptBackup(
+        encrypted,
+        password,
+      );
 
       expect(decrypted, equals(json));
     });
@@ -130,7 +158,9 @@ void main() {
   group('V2 format structure', () {
     test('encrypted output starts with SAENC magic bytes', () async {
       final encrypted = await BackupEncryptionService.encryptBackup(
-          '{"test":true}', 'pass');
+        '{"test":true}',
+        'pass',
+      );
 
       // "SAENC" = [0x53, 0x41, 0x45, 0x4E, 0x43]
       expect(encrypted[0], 0x53); // S
@@ -142,13 +172,14 @@ void main() {
 
     test('encrypted output has version byte 0x02', () async {
       final encrypted = await BackupEncryptionService.encryptBackup(
-          '{"test":true}', 'pass');
+        '{"test":true}',
+        'pass',
+      );
       expect(encrypted[5], 0x02);
     });
 
     test('encrypted output has minimum expected length', () async {
-      final encrypted =
-          await BackupEncryptionService.encryptBackup('', 'pass');
+      final encrypted = await BackupEncryptionService.encryptBackup('', 'pass');
       // Header: 5 magic + 1 version + 32 salt + 12 nonce = 50
       // Minimum ciphertext with GCM tag: at least 16 bytes
       expect(encrypted.length, greaterThanOrEqualTo(66));
@@ -160,7 +191,9 @@ void main() {
   group('isEncryptedBackup', () {
     test('returns true for valid encrypted data', () async {
       final encrypted = await BackupEncryptionService.encryptBackup(
-          '{"test":true}', 'pass');
+        '{"test":true}',
+        'pass',
+      );
       expect(BackupEncryptionService.isEncryptedBackup(encrypted), isTrue);
     });
 
@@ -170,24 +203,32 @@ void main() {
     });
 
     test('returns false for empty data', () {
-      expect(
-          BackupEncryptionService.isEncryptedBackup(Uint8List(0)), isFalse);
+      expect(BackupEncryptionService.isEncryptedBackup(Uint8List(0)), isFalse);
     });
 
     test('returns false for data shorter than magic', () {
       expect(
         BackupEncryptionService.isEncryptedBackup(
-            Uint8List.fromList([0x53, 0x41])),
+          Uint8List.fromList([0x53, 0x41]),
+        ),
         isFalse,
       );
     });
 
-    test('returns true for data that starts with SAENC (even if incomplete)',
-        () {
-      final fakeData =
-          Uint8List.fromList([0x53, 0x41, 0x45, 0x4E, 0x43, 0x00]);
-      expect(BackupEncryptionService.isEncryptedBackup(fakeData), isTrue);
-    });
+    test(
+      'returns true for data that starts with SAENC (even if incomplete)',
+      () {
+        final fakeData = Uint8List.fromList([
+          0x53,
+          0x41,
+          0x45,
+          0x4E,
+          0x43,
+          0x00,
+        ]);
+        expect(BackupEncryptionService.isEncryptedBackup(fakeData), isTrue);
+      },
+    );
   });
 
   // ─── Error Handling ────────────────────────────────────────────────────────
@@ -196,46 +237,75 @@ void main() {
     test('throws FormatException for data too small', () {
       expect(
         () => BackupEncryptionService.decryptBackup(
-            Uint8List.fromList([0x53]), 'pass'),
-        throwsA(isA<FormatException>().having(
-          (e) => e.message,
-          'message',
-          contains('too small'),
-        )),
+          Uint8List.fromList([0x53]),
+          'pass',
+        ),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            contains('too small'),
+          ),
+        ),
       );
     });
 
     test('throws FormatException for wrong magic bytes', () {
-      final badMagic = Uint8List.fromList(
-          [0x00, 0x00, 0x00, 0x00, 0x00, 0x02, ...List.filled(60, 0)]);
+      final badMagic = Uint8List.fromList([
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x02,
+        ...List.filled(60, 0),
+      ]);
       expect(
         () => BackupEncryptionService.decryptBackup(badMagic, 'pass'),
-        throwsA(isA<FormatException>().having(
-          (e) => e.message,
-          'message',
-          contains('Not a SecureAuth'),
-        )),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            contains('Not a SecureAuth'),
+          ),
+        ),
       );
     });
 
     test('throws FormatException for unknown version', () {
       // Valid magic but version 0xFF
-      final unknownVersion = Uint8List.fromList(
-          [0x53, 0x41, 0x45, 0x4E, 0x43, 0xFF, ...List.filled(60, 0)]);
+      final unknownVersion = Uint8List.fromList([
+        0x53,
+        0x41,
+        0x45,
+        0x4E,
+        0x43,
+        0xFF,
+        ...List.filled(60, 0),
+      ]);
       expect(
         () => BackupEncryptionService.decryptBackup(unknownVersion, 'pass'),
-        throwsA(isA<FormatException>().having(
-          (e) => e.message,
-          'message',
-          contains('Unknown backup format version'),
-        )),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            contains('Unknown backup format version'),
+          ),
+        ),
       );
     });
 
     test('throws FormatException for truncated V2 file', () {
       // Valid magic + version but not enough data
-      final truncated = Uint8List.fromList(
-          [0x53, 0x41, 0x45, 0x4E, 0x43, 0x02, ...List.filled(10, 0)]);
+      final truncated = Uint8List.fromList([
+        0x53,
+        0x41,
+        0x45,
+        0x4E,
+        0x43,
+        0x02,
+        ...List.filled(10, 0),
+      ]);
       expect(
         () => BackupEncryptionService.decryptBackup(truncated, 'pass'),
         throwsA(isA<FormatException>()),
@@ -244,7 +314,9 @@ void main() {
 
     test('throws FormatException for tampered ciphertext', () async {
       final encrypted = await BackupEncryptionService.encryptBackup(
-          '{"test":true}', 'pass');
+        '{"test":true}',
+        'pass',
+      );
 
       // Tamper with the last byte (part of GCM tag)
       final tampered = Uint8List.fromList(encrypted);

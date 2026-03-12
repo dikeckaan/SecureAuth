@@ -80,7 +80,8 @@ class TOTPService {
 
       final hash = Hmac(sha1, keyBytes).convert(msg).bytes;
       final offset = hash[hash.length - 1] & 0x0F;
-      int code = ((hash[offset] & 0x7F) << 24) |
+      int code =
+          ((hash[offset] & 0x7F) << 24) |
           ((hash[offset + 1] & 0xFF) << 16) |
           ((hash[offset + 2] & 0xFF) << 8) |
           (hash[offset + 3] & 0xFF);

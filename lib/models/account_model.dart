@@ -54,30 +54,30 @@ class AccountModel extends HiveObject {
   bool get isSteam => type == 'steam';
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'issuer': issuer,
-        'secret': secret,
-        'digits': digits,
-        'period': period,
-        'algorithm': algorithm,
-        'createdAt': createdAt.toIso8601String(),
-        'type': type,
-        'counter': counter,
-      };
+    'id': id,
+    'name': name,
+    'issuer': issuer,
+    'secret': secret,
+    'digits': digits,
+    'period': period,
+    'algorithm': algorithm,
+    'createdAt': createdAt.toIso8601String(),
+    'type': type,
+    'counter': counter,
+  };
 
   factory AccountModel.fromJson(Map<String, dynamic> json) => AccountModel(
-        id: json['id'] as String,
-        name: json['name'] as String,
-        issuer: json['issuer'] as String,
-        secret: json['secret'] as String,
-        digits: json['digits'] as int? ?? 6,
-        period: json['period'] as int? ?? 30,
-        algorithm: json['algorithm'] as String? ?? 'SHA1',
-        createdAt: DateTime.parse(json['createdAt'] as String),
-        type: json['type'] as String? ?? 'totp',
-        counter: json['counter'] as int? ?? 0,
-      );
+    id: json['id'] as String,
+    name: json['name'] as String,
+    issuer: json['issuer'] as String,
+    secret: json['secret'] as String,
+    digits: json['digits'] as int? ?? 6,
+    period: json['period'] as int? ?? 30,
+    algorithm: json['algorithm'] as String? ?? 'SHA1',
+    createdAt: DateTime.parse(json['createdAt'] as String),
+    type: json['type'] as String? ?? 'totp',
+    counter: json['counter'] as int? ?? 0,
+  );
 
   String get otpAuthUri {
     final encodedIssuer = Uri.encodeComponent(issuer);

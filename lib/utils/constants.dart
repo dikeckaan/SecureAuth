@@ -102,17 +102,17 @@ class AppColors {
   );
 
   static List<Color> get serviceColors => [
-        const Color(0xFF4F46E5),
-        const Color(0xFF7C3AED),
-        const Color(0xFF06B6D4),
-        const Color(0xFFEC4899),
-        const Color(0xFFF59E0B),
-        const Color(0xFF10B981),
-        const Color(0xFFEF4444),
-        const Color(0xFF8B5CF6),
-        const Color(0xFF14B8A6),
-        const Color(0xFFF97316),
-      ];
+    const Color(0xFF4F46E5),
+    const Color(0xFF7C3AED),
+    const Color(0xFF06B6D4),
+    const Color(0xFFEC4899),
+    const Color(0xFFF59E0B),
+    const Color(0xFF10B981),
+    const Color(0xFFEF4444),
+    const Color(0xFF8B5CF6),
+    const Color(0xFF14B8A6),
+    const Color(0xFFF97316),
+  ];
 
   static Color getServiceColor(String name) {
     final index = name.isEmpty ? 0 : name.codeUnitAt(0) % serviceColors.length;
@@ -158,7 +158,10 @@ class AccentColorPalette {
   /// [index] == -1 with non-null hex strings → custom palette.
   /// Otherwise returns the preset at [index].
   static AccentColorPalette resolve(
-      int index, String? customPrimary, String? customSecondary) {
+    int index,
+    String? customPrimary,
+    String? customSecondary,
+  ) {
     if (index == -1 && customPrimary != null && customSecondary != null) {
       return AccentColorPalette.fromCustom(
         Color(int.parse(customPrimary, radix: 16)),

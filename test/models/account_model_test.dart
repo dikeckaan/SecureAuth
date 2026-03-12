@@ -138,8 +138,12 @@ void main() {
   group('type helpers', () {
     test('isTotp returns true for TOTP', () {
       final a = AccountModel(
-        id: '1', name: 'a', issuer: 'b', secret: 's',
-        createdAt: DateTime.now(), type: 'totp',
+        id: '1',
+        name: 'a',
+        issuer: 'b',
+        secret: 's',
+        createdAt: DateTime.now(),
+        type: 'totp',
       );
       expect(a.isTotp, isTrue);
       expect(a.isHotp, isFalse);
@@ -148,8 +152,12 @@ void main() {
 
     test('isHotp returns true for HOTP', () {
       final a = AccountModel(
-        id: '1', name: 'a', issuer: 'b', secret: 's',
-        createdAt: DateTime.now(), type: 'hotp',
+        id: '1',
+        name: 'a',
+        issuer: 'b',
+        secret: 's',
+        createdAt: DateTime.now(),
+        type: 'hotp',
       );
       expect(a.isTotp, isFalse);
       expect(a.isHotp, isTrue);
@@ -158,8 +166,12 @@ void main() {
 
     test('isSteam returns true for Steam', () {
       final a = AccountModel(
-        id: '1', name: 'a', issuer: 'b', secret: 's',
-        createdAt: DateTime.now(), type: 'steam',
+        id: '1',
+        name: 'a',
+        issuer: 'b',
+        secret: 's',
+        createdAt: DateTime.now(),
+        type: 'steam',
       );
       expect(a.isTotp, isFalse);
       expect(a.isHotp, isFalse);
@@ -172,7 +184,10 @@ void main() {
   group('initials', () {
     test('uses first letter of issuer', () {
       final a = AccountModel(
-        id: '1', name: 'user', issuer: 'Google', secret: 's',
+        id: '1',
+        name: 'user',
+        issuer: 'Google',
+        secret: 's',
         createdAt: DateTime.now(),
       );
       expect(a.initials, 'G');
@@ -180,7 +195,10 @@ void main() {
 
     test('uses first letter of name when issuer is empty', () {
       final a = AccountModel(
-        id: '1', name: 'user', issuer: '', secret: 's',
+        id: '1',
+        name: 'user',
+        issuer: '',
+        secret: 's',
         createdAt: DateTime.now(),
       );
       expect(a.initials, 'U');
@@ -188,7 +206,10 @@ void main() {
 
     test('returns ? when both are empty', () {
       final a = AccountModel(
-        id: '1', name: '', issuer: '', secret: 's',
+        id: '1',
+        name: '',
+        issuer: '',
+        secret: 's',
         createdAt: DateTime.now(),
       );
       expect(a.initials, '?');
@@ -196,7 +217,10 @@ void main() {
 
     test('uppercases the initial', () {
       final a = AccountModel(
-        id: '1', name: 'user', issuer: 'github', secret: 's',
+        id: '1',
+        name: 'user',
+        issuer: 'github',
+        secret: 's',
         createdAt: DateTime.now(),
       );
       expect(a.initials, 'G');

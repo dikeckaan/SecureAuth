@@ -95,8 +95,7 @@ void main() {
     });
 
     test('filter by both level and category', () {
-      final result =
-          logger.query(level: LogLevel.info, category: 'backup');
+      final result = logger.query(level: LogLevel.info, category: 'backup');
       expect(result.length, 1);
       expect(result.first.message, 'exported');
     });

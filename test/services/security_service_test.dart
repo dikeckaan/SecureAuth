@@ -65,10 +65,7 @@ void main() {
     });
 
     test('returns false when only last char differs', () {
-      expect(
-        SecurityService.constantTimeEquals('abcdef', 'abcdeg'),
-        isFalse,
-      );
+      expect(SecurityService.constantTimeEquals('abcdef', 'abcdeg'), isFalse);
     });
 
     test('works with base64-encoded hash-length strings', () {
@@ -114,16 +111,18 @@ void main() {
     test('verifyPassword returns true for correct password', () async {
       final salt = service.generateSalt();
       final hash = await service.hashPassword('CorrectPassword', salt);
-      final isValid =
-          await service.verifyPassword('CorrectPassword', hash, salt);
+      final isValid = await service.verifyPassword(
+        'CorrectPassword',
+        hash,
+        salt,
+      );
       expect(isValid, isTrue);
     });
 
     test('verifyPassword returns false for wrong password', () async {
       final salt = service.generateSalt();
       final hash = await service.hashPassword('CorrectPassword', salt);
-      final isValid =
-          await service.verifyPassword('WrongPassword', hash, salt);
+      final isValid = await service.verifyPassword('WrongPassword', hash, salt);
       expect(isValid, isFalse);
     });
 
@@ -131,16 +130,22 @@ void main() {
       final salt = service.generateSalt();
       final wrongSalt = service.generateSalt();
       final hash = await service.hashPassword('MyPassword', salt);
-      final isValid =
-          await service.verifyPassword('MyPassword', hash, wrongSalt);
+      final isValid = await service.verifyPassword(
+        'MyPassword',
+        hash,
+        wrongSalt,
+      );
       expect(isValid, isFalse);
     });
 
     test('handles unicode passwords', () async {
       final salt = service.generateSalt();
       final hash = await service.hashPassword('Şifre_Türkçe_🔒', salt);
-      final isValid =
-          await service.verifyPassword('Şifre_Türkçe_🔒', hash, salt);
+      final isValid = await service.verifyPassword(
+        'Şifre_Türkçe_🔒',
+        hash,
+        salt,
+      );
       expect(isValid, isTrue);
     });
 
@@ -165,7 +170,10 @@ void main() {
       final hash = await service.hashPassword('LegacyTest', salt);
       // Legacy verify should NOT match Argon2id hash (different algorithms)
       final isValid = await SecurityService.verifyLegacyPbkdf2(
-          'LegacyTest', hash, salt);
+        'LegacyTest',
+        hash,
+        salt,
+      );
       expect(isValid, isFalse); // Different KDFs produce different hashes
     });
   });
@@ -233,18 +241,22 @@ void main() {
       expect(await service.hasTimedOut(60), isTrue);
     });
 
-    test('hasTimedOut returns false immediately after recordActivity',
-        () async {
-      await service.recordActivity();
-      expect(await service.hasTimedOut(60), isFalse);
-    });
+    test(
+      'hasTimedOut returns false immediately after recordActivity',
+      () async {
+        await service.recordActivity();
+        expect(await service.hasTimedOut(60), isFalse);
+      },
+    );
 
-    test('hasTimedOut returns true with 0 second timeout after activity',
-        () async {
-      await service.recordActivity();
-      // With 0 timeout, should always be timed out
-      expect(await service.hasTimedOut(0), isTrue);
-    });
+    test(
+      'hasTimedOut returns true with 0 second timeout after activity',
+      () async {
+        await service.recordActivity();
+        // With 0 timeout, should always be timed out
+        expect(await service.hasTimedOut(0), isTrue);
+      },
+    );
   });
 
   // ─── Security State Cleanup ─────────────────────────────────────────────────

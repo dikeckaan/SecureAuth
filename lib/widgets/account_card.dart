@@ -62,8 +62,9 @@ class _AccountCardState extends State<AccountCard> {
     if (!mounted) return;
     setState(() {
       _code = widget.totpService.generateCode(widget.account);
-      _remaining =
-          widget.totpService.getRemainingSeconds(widget.account.period);
+      _remaining = widget.totpService.getRemainingSeconds(
+        widget.account.period,
+      );
       _progress = widget.totpService.getProgress(widget.account.period);
     });
   }
@@ -79,8 +80,7 @@ class _AccountCardState extends State<AccountCard> {
 
   /// Open a number-input dialog to jump to any counter value.
   Future<void> _showCounterPicker() async {
-    final ctrl =
-        TextEditingController(text: '${widget.account.counter}');
+    final ctrl = TextEditingController(text: '${widget.account.counter}');
     final result = await showDialog<int>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -92,11 +92,8 @@ class _AccountCardState extends State<AccountCard> {
             Text(
               'Mevcut sayaç: ${widget.account.counter}',
               style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(ctx)
-                        .colorScheme
-                        .onSurface
-                        .withAlpha(153),
-                  ),
+                color: Theme.of(ctx).colorScheme.onSurface.withAlpha(153),
+              ),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -297,29 +294,40 @@ class _AccountCardState extends State<AccountCard> {
           itemBuilder: (context) => [
             PopupMenuItem(
               value: 'qr',
-              child: Row(children: [
-                const Icon(Icons.qr_code_2, size: 20),
-                const SizedBox(width: 12),
-                Text(l10n.qrCode),
-              ]),
+              child: Row(
+                children: [
+                  const Icon(Icons.qr_code_2, size: 20),
+                  const SizedBox(width: 12),
+                  Text(l10n.qrCode),
+                ],
+              ),
             ),
             PopupMenuItem(
               value: 'edit',
-              child: Row(children: [
-                const Icon(Icons.edit_outlined, size: 20),
-                const SizedBox(width: 12),
-                Text(l10n.edit),
-              ]),
+              child: Row(
+                children: [
+                  const Icon(Icons.edit_outlined, size: 20),
+                  const SizedBox(width: 12),
+                  Text(l10n.edit),
+                ],
+              ),
             ),
             PopupMenuItem(
               value: 'delete',
-              child: Row(children: [
-                const Icon(Icons.delete_outline,
-                    size: 20, color: AppColors.error),
-                const SizedBox(width: 12),
-                Text(l10n.delete,
-                    style: const TextStyle(color: AppColors.error)),
-              ]),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.delete_outline,
+                    size: 20,
+                    color: AppColors.error,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    l10n.delete,
+                    style: const TextStyle(color: AppColors.error),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -363,13 +371,17 @@ class _AccountCardState extends State<AccountCard> {
   // ── Code row ─────────────────────────────────────────────────────────────
 
   Widget _buildCodeRow(
-      ThemeData theme, AppLocalizations l10n, String formattedCode) {
+    ThemeData theme,
+    AppLocalizations l10n,
+    String formattedCode,
+  ) {
     // Show next-period code preview when ≤ 5 s remain (TOTP only)
     final showNext =
         !widget.account.isHotp && !widget.account.isSteam && _remaining <= 5;
     final nextFormatted = showNext
         ? widget.totpService.formatCode(
-            widget.totpService.generateNextCode(widget.account))
+            widget.totpService.generateNextCode(widget.account),
+          )
         : null;
 
     return Row(
@@ -397,14 +409,18 @@ class _AccountCardState extends State<AccountCard> {
                   AnimatedSwitcher(
                     duration: AppConstants.animFast,
                     child: _copied
-                        ? const Icon(Icons.check_circle,
+                        ? const Icon(
+                            Icons.check_circle,
                             key: ValueKey('check'),
                             color: AppColors.success,
-                            size: 18)
-                        : Icon(Icons.copy,
+                            size: 18,
+                          )
+                        : Icon(
+                            Icons.copy,
                             key: const ValueKey('copy'),
                             color: theme.colorScheme.onSurface.withAlpha(102),
-                            size: 16),
+                            size: 16,
+                          ),
                   ),
                 ],
               ),
@@ -499,7 +515,9 @@ class _AccountCardState extends State<AccountCard> {
             decoration: BoxDecoration(
               color: theme.colorScheme.secondary.withAlpha(20),
               borderRadius: BorderRadius.circular(AppConstants.radiusSM),
-              border: Border.all(color: theme.colorScheme.secondary.withAlpha(70)),
+              border: Border.all(
+                color: theme.colorScheme.secondary.withAlpha(70),
+              ),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -550,11 +568,7 @@ class _CounterNavBtn extends StatelessWidget {
   final bool enabled;
   final VoidCallback? onTap;
 
-  const _CounterNavBtn({
-    required this.icon,
-    required this.enabled,
-    this.onTap,
-  });
+  const _CounterNavBtn({required this.icon, required this.enabled, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -568,7 +582,10 @@ class _CounterNavBtn extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: enabled
               ? LinearGradient(
-                  colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
+                  colors: [
+                    theme.colorScheme.primary,
+                    theme.colorScheme.secondary,
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 )

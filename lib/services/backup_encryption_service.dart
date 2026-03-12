@@ -58,14 +58,17 @@ class BackupEncryptionService {
   ///
   /// Runs Argon2id in a background [Isolate] so the UI stays responsive.
   static Future<Uint8List> encryptBackup(
-      String jsonData, String password) async {
+    String jsonData,
+    String password,
+  ) async {
     final salt = SecurityService.secureRandom(_saltLenV2);
     final nonce = SecurityService.secureRandom(_nonceLenV2);
     final keyBytes = await Isolate.run(
       () => _argon2idKey(password: password, salt: salt),
     );
-    final encrypter =
-        enc.Encrypter(enc.AES(enc.Key(keyBytes), mode: enc.AESMode.gcm));
+    final encrypter = enc.Encrypter(
+      enc.AES(enc.Key(keyBytes), mode: enc.AESMode.gcm),
+    );
     final encrypted = encrypter.encrypt(jsonData, iv: enc.IV(nonce));
     final out = BytesBuilder(copy: false)
       ..add(_magic)
@@ -89,8 +92,7 @@ class BackupEncryptionService {
   ///   • the file is too short / KDF params are out of bounds
   ///   • the format version is unknown
   ///   • the GCM tag does not verify (wrong password or corruption)
-  static Future<String> decryptBackup(
-      Uint8List data, String password) async {
+  static Future<String> decryptBackup(Uint8List data, String password) async {
     if (data.length < _magic.length + 1) {
       throw const FormatException('File too small to be a valid backup');
     }
@@ -104,10 +106,14 @@ class BackupEncryptionService {
       _log.security('backup', 'Decrypting V2 backup', {'size': data.length});
       return _decryptV2(data, password);
     } else if (version == _versionV1) {
-      _log.security('backup', 'Decrypting legacy V1 backup', {'size': data.length});
+      _log.security('backup', 'Decrypting legacy V1 backup', {
+        'size': data.length,
+      });
       return _decryptV1(data, password);
     } else {
-      _log.error('backup', 'Unknown backup format version', {'version': version});
+      _log.error('backup', 'Unknown backup format version', {
+        'version': version,
+      });
       throw FormatException('Unknown backup format version: $version');
     }
   }
@@ -122,7 +128,10 @@ class BackupEncryptionService {
   }
 
   /// Result-safe version of decryptBackup.
-  static Future<Result<String>> decryptBackupSafe(Uint8List data, String password) async {
+  static Future<Result<String>> decryptBackupSafe(
+    Uint8List data,
+    String password,
+  ) async {
     try {
       final result = await decryptBackup(data, password);
       return Result.success(result);
@@ -130,44 +139,52 @@ class BackupEncryptionService {
       final category = e.message.contains('Wrong password')
           ? ErrorCategory.auth
           : ErrorCategory.backup;
-      return Result.failure(AppError(
-        category: category,
-        message: e.message,
-        userMessage: e.message.contains('Wrong password')
-            ? 'Wrong password or corrupted backup file'
-            : 'Invalid backup file format',
-        originalError: e,
-        stackTrace: st,
-      ));
+      return Result.failure(
+        AppError(
+          category: category,
+          message: e.message,
+          userMessage: e.message.contains('Wrong password')
+              ? 'Wrong password or corrupted backup file'
+              : 'Invalid backup file format',
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
     } catch (e, st) {
-      return Result.failure(AppError(
-        category: ErrorCategory.backup,
-        message: 'Unexpected decryption error: $e',
-        originalError: e,
-        stackTrace: st,
-      ));
+      return Result.failure(
+        AppError(
+          category: ErrorCategory.backup,
+          message: 'Unexpected decryption error: $e',
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
     }
   }
 
   /// Result-safe version of encryptBackup.
-  static Future<Result<Uint8List>> encryptBackupSafe(String jsonData, String password) async {
+  static Future<Result<Uint8List>> encryptBackupSafe(
+    String jsonData,
+    String password,
+  ) async {
     try {
       final result = await encryptBackup(jsonData, password);
       return Result.success(result);
     } catch (e, st) {
-      return Result.failure(AppError(
-        category: ErrorCategory.crypto,
-        message: 'Encryption failed: $e',
-        originalError: e,
-        stackTrace: st,
-      ));
+      return Result.failure(
+        AppError(
+          category: ErrorCategory.crypto,
+          message: 'Encryption failed: $e',
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
     }
   }
 
   // ── Private helpers ───────────────────────────────────────────────────────
 
-  static Future<String> _decryptV2(
-      Uint8List data, String password) async {
+  static Future<String> _decryptV2(Uint8List data, String password) async {
     if (data.length < _minFileLenV2) {
       throw const FormatException('File too small to be a valid V2 backup');
     }
@@ -183,8 +200,9 @@ class BackupEncryptionService {
     final keyBytes = await Isolate.run(
       () => _argon2idKey(password: password, salt: salt),
     );
-    final encrypter =
-        enc.Encrypter(enc.AES(enc.Key(keyBytes), mode: enc.AESMode.gcm));
+    final encrypter = enc.Encrypter(
+      enc.AES(enc.Key(keyBytes), mode: enc.AESMode.gcm),
+    );
     try {
       return encrypter.decrypt(enc.Encrypted(ciphertext), iv: enc.IV(nonce));
     } catch (_) {
@@ -192,8 +210,7 @@ class BackupEncryptionService {
     }
   }
 
-  static Future<String> _decryptV1(
-      Uint8List data, String password) async {
+  static Future<String> _decryptV1(Uint8List data, String password) async {
     const v1HeaderLen = 5 + 1 + 4 + 16 + 16; // 42
     if (data.length < v1HeaderLen + _tagLen) {
       throw const FormatException('File too small to be a valid V1 backup');
@@ -215,8 +232,9 @@ class BackupEncryptionService {
     final keyBytes = await Isolate.run(
       () => _pbkdf2V1(password: password, salt: salt, iterations: iterations),
     );
-    final encrypter =
-        enc.Encrypter(enc.AES(enc.Key(keyBytes), mode: enc.AESMode.gcm));
+    final encrypter = enc.Encrypter(
+      enc.AES(enc.Key(keyBytes), mode: enc.AESMode.gcm),
+    );
     try {
       return encrypter.decrypt(enc.Encrypted(ciphertext), iv: enc.IV(nonce));
     } catch (_) {
@@ -254,7 +272,6 @@ class BackupEncryptionService {
     ).convert(utf8.encode(password));
     return Uint8List.fromList(derived.bytes);
   }
-
 
   static int _rd32(Uint8List d, int o) =>
       (d[o] << 24) | (d[o + 1] << 16) | (d[o + 2] << 8) | d[o + 3];

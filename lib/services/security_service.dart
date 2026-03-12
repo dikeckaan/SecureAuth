@@ -22,7 +22,7 @@ class SecurityService {
   final FlutterSecureStorage _secureStorage;
 
   SecurityService({FlutterSecureStorage? secureStorage})
-      : _secureStorage = secureStorage ?? const FlutterSecureStorage();
+    : _secureStorage = secureStorage ?? const FlutterSecureStorage();
 
   // --- Argon2id Key Derivation ---
 
@@ -44,7 +44,10 @@ class SecurityService {
   }
 
   Future<bool> verifyPassword(
-      String password, String storedHash, Uint8List salt) async {
+    String password,
+    String storedHash,
+    Uint8List salt,
+  ) async {
     final computedHash = await hashPassword(password, salt);
     return constantTimeEquals(computedHash, storedHash);
   }
@@ -192,22 +195,28 @@ class SecurityService {
     try {
       final user32 = DynamicLibrary.open('user32.dll');
 
-      final openClipboard = user32.lookupFunction<
-          Int32 Function(IntPtr), int Function(int)>('OpenClipboard');
-      final closeClipboard = user32.lookupFunction<
-          Int32 Function(), int Function()>('CloseClipboard');
-      final registerFormat = user32.lookupFunction<
-          Uint32 Function(Pointer<Utf16>),
-          int Function(Pointer<Utf16>)>('RegisterClipboardFormatW');
-      final setClipboardData = user32.lookupFunction<
-          IntPtr Function(Uint32, IntPtr),
-          int Function(int, int)>('SetClipboardData');
+      final openClipboard = user32
+          .lookupFunction<Int32 Function(IntPtr), int Function(int)>(
+            'OpenClipboard',
+          );
+      final closeClipboard = user32
+          .lookupFunction<Int32 Function(), int Function()>('CloseClipboard');
+      final registerFormat = user32
+          .lookupFunction<
+            Uint32 Function(Pointer<Utf16>),
+            int Function(Pointer<Utf16>)
+          >('RegisterClipboardFormatW');
+      final setClipboardData = user32
+          .lookupFunction<
+            IntPtr Function(Uint32, IntPtr),
+            int Function(int, int)
+          >('SetClipboardData');
 
       if (openClipboard(0) == 0) return;
 
       // Allocate the format name as a native UTF-16 (wide) string.
-      final name =
-          'ExcludeClipboardContentFromMonitorProcessing'.toNativeUtf16();
+      final name = 'ExcludeClipboardContentFromMonitorProcessing'
+          .toNativeUtf16();
       try {
         final formatId = registerFormat(name);
         if (formatId != 0) {
@@ -228,12 +237,14 @@ class SecurityService {
   static void _clearWindowsClipboard() {
     try {
       final user32 = DynamicLibrary.open('user32.dll');
-      final openClipboard = user32.lookupFunction<
-          Int32 Function(IntPtr), int Function(int)>('OpenClipboard');
-      final emptyClipboard = user32.lookupFunction<
-          Int32 Function(), int Function()>('EmptyClipboard');
-      final closeClipboard = user32.lookupFunction<
-          Int32 Function(), int Function()>('CloseClipboard');
+      final openClipboard = user32
+          .lookupFunction<Int32 Function(IntPtr), int Function(int)>(
+            'OpenClipboard',
+          );
+      final emptyClipboard = user32
+          .lookupFunction<Int32 Function(), int Function()>('EmptyClipboard');
+      final closeClipboard = user32
+          .lookupFunction<Int32 Function(), int Function()>('CloseClipboard');
 
       if (openClipboard(0) != 0) {
         emptyClipboard();
@@ -275,7 +286,10 @@ class SecurityService {
   /// Legacy PBKDF2-SHA512 verifier — used ONLY during one-time migration.
   /// After successful login, the hash is replaced with Argon2id automatically.
   static Future<bool> verifyLegacyPbkdf2(
-      String password, String storedHash, Uint8List salt) async {
+    String password,
+    String storedHash,
+    Uint8List salt,
+  ) async {
     final derived = await Isolate.run(
       () => _pbkdf2Legacy(password: password, salt: salt),
     );

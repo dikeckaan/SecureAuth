@@ -98,8 +98,8 @@ class _AuthScreenState extends State<AuthScreen>
 
   Future<void> _tryBiometricAuth() async {
     if (widget.authService.isBiometricEnabled()) {
-      final authenticated =
-          await widget.authService.authenticateWithBiometric();
+      final authenticated = await widget.authService
+          .authenticateWithBiometric();
       if (authenticated && mounted) {
         _navigateToHome();
       }
@@ -153,7 +153,8 @@ class _AuthScreenState extends State<AuthScreen>
               _startLockoutTimer();
             } else {
               _errorMessage = l10n.wrongPasswordWithRemaining(
-                  settings.maxFailedAttempts - attempts);
+                settings.maxFailedAttempts - attempts,
+              );
             }
           });
           _passwordController.clear();
@@ -207,10 +208,7 @@ class _AuthScreenState extends State<AuthScreen>
                 const SizedBox(height: AppConstants.paddingMD),
                 Text(
                   l10n.dataWipedBody,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    height: 1.6,
-                  ),
+                  style: const TextStyle(fontSize: 14, height: 1.6),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: AppConstants.paddingXL),
@@ -221,10 +219,12 @@ class _AuthScreenState extends State<AuthScreen>
                       backgroundColor: AppColors.error,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
-                          vertical: AppConstants.paddingMD),
+                        vertical: AppConstants.paddingMD,
+                      ),
                       shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppConstants.radiusMD),
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.radiusMD,
+                        ),
                       ),
                     ),
                     onPressed: () {
@@ -234,7 +234,9 @@ class _AuthScreenState extends State<AuthScreen>
                     child: Text(
                       l10n.ok,
                       style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w600),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -300,8 +302,7 @@ class _AuthScreenState extends State<AuthScreen>
                 children: [
                   // Logo
                   ClipRRect(
-                    borderRadius:
-                        BorderRadius.circular(AppConstants.radiusXL),
+                    borderRadius: BorderRadius.circular(AppConstants.radiusXL),
                     child: Image.asset(
                       'assets/icon/app_icon.png',
                       width: 80,
@@ -335,8 +336,9 @@ class _AuthScreenState extends State<AuthScreen>
                     padding: const EdgeInsets.all(AppConstants.paddingLG),
                     decoration: BoxDecoration(
                       color: Colors.white.withAlpha(26),
-                      borderRadius:
-                          BorderRadius.circular(AppConstants.radiusLG),
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.radiusLG,
+                      ),
                       border: Border.all(
                         color: Colors.white.withAlpha(38),
                         width: 1,
@@ -348,25 +350,31 @@ class _AuthScreenState extends State<AuthScreen>
                         // Lockout warning
                         if (isLocked) ...[
                           Container(
-                            padding:
-                                const EdgeInsets.all(AppConstants.paddingMD),
+                            padding: const EdgeInsets.all(
+                              AppConstants.paddingMD,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.error.withAlpha(38),
                               borderRadius: BorderRadius.circular(
-                                  AppConstants.radiusMD),
+                                AppConstants.radiusMD,
+                              ),
                               border: Border.all(
                                 color: AppColors.error.withAlpha(77),
                               ),
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.lock_clock,
-                                    color: AppColors.error, size: 20),
+                                const Icon(
+                                  Icons.lock_clock,
+                                  color: AppColors.error,
+                                  size: 20,
+                                ),
                                 const SizedBox(width: AppConstants.paddingSM),
                                 Expanded(
                                   child: Text(
                                     l10n.lockedWithTime(
-                                        _formatDuration(_lockoutRemaining!)),
+                                      _formatDuration(_lockoutRemaining!),
+                                    ),
                                     style: const TextStyle(
                                       color: AppColors.error,
                                       fontWeight: FontWeight.w600,
@@ -383,7 +391,8 @@ class _AuthScreenState extends State<AuthScreen>
                         AnimatedBuilder(
                           animation: _shakeAnimation,
                           builder: (context, child) {
-                            final dx = _shakeAnimation.value *
+                            final dx =
+                                _shakeAnimation.value *
                                 10 *
                                 ((_shakeController.value * 6).toInt().isEven
                                     ? 1
@@ -418,20 +427,23 @@ class _AuthScreenState extends State<AuthScreen>
                                   color: Colors.white.withAlpha(153),
                                 ),
                                 onPressed: () => setState(
-                                    () => _obscurePassword = !_obscurePassword),
+                                  () => _obscurePassword = !_obscurePassword,
+                                ),
                               ),
                               filled: true,
                               fillColor: Colors.white.withAlpha(18),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(
-                                    AppConstants.radiusMD),
+                                  AppConstants.radiusMD,
+                                ),
                                 borderSide: BorderSide(
                                   color: Colors.white.withAlpha(51),
                                 ),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(
-                                    AppConstants.radiusMD),
+                                  AppConstants.radiusMD,
+                                ),
                                 borderSide: const BorderSide(
                                   color: Colors.white,
                                   width: 2,
@@ -439,7 +451,8 @@ class _AuthScreenState extends State<AuthScreen>
                               ),
                               disabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(
-                                    AppConstants.radiusMD),
+                                  AppConstants.radiusMD,
+                                ),
                                 borderSide: BorderSide(
                                   color: Colors.white.withAlpha(26),
                                 ),
@@ -457,13 +470,16 @@ class _AuthScreenState extends State<AuthScreen>
                         if (_failedAttempts > 0 && !isLocked)
                           Padding(
                             padding: const EdgeInsets.only(
-                                bottom: AppConstants.paddingSM),
+                              bottom: AppConstants.paddingSM,
+                            ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.warning_amber_rounded,
-                                    size: 14,
-                                    color: AppColors.warning.withAlpha(204)),
+                                Icon(
+                                  Icons.warning_amber_rounded,
+                                  size: 14,
+                                  color: AppColors.warning.withAlpha(204),
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   l10n.failedAttemptsCount(_failedAttempts),
@@ -488,8 +504,10 @@ class _AuthScreenState extends State<AuthScreen>
                           const SizedBox(height: AppConstants.paddingMD),
                           OutlinedButton.icon(
                             onPressed: isLocked ? null : _tryBiometricAuth,
-                            icon: const Icon(Icons.fingerprint,
-                                color: Colors.white),
+                            icon: const Icon(
+                              Icons.fingerprint,
+                              color: Colors.white,
+                            ),
                             label: Text(
                               l10n.biometricLogin,
                               style: const TextStyle(color: Colors.white),
@@ -500,10 +518,12 @@ class _AuthScreenState extends State<AuthScreen>
                                 width: 1.5,
                               ),
                               padding: const EdgeInsets.symmetric(
-                                  vertical: AppConstants.paddingMD),
+                                vertical: AppConstants.paddingMD,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(
-                                    AppConstants.radiusMD),
+                                  AppConstants.radiusMD,
+                                ),
                               ),
                             ),
                           ),
